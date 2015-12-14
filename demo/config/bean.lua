@@ -27,13 +27,9 @@ redis = {
 paramService = {
     class = "com.lajin.service.common.paramService"
 }
-userService = {
-    class = "com.lajin.service.user.userService",
+testService = {
+    class = "com.lajin.service.test.testService",
     arg = { { ref = "redis" } }
-}
-loginService = {
-    class = "com.lajin.service.user.loginService",
-    arg = { { ref = "redis" }, { ref = "userService" } }
 }
 
 
