@@ -48,15 +48,15 @@ openresty/nginx/sbin/nginx -c openresty/nginx/conf/nginx.conf
 ###3.2 全局变量
 luastar在初始化时，定义了几个常用的工具，在项目中可以直接使用，不用require引入。
 参看：luastar/src/luastar_init.lua
-|变量名|用途|
-|--|--|
-|Class|类定义|
-|cjson|json处理类|
-|_|Moses常用工具类|
-|luastar_cache|缓存|
-|luastar_config|配置|
-|luastar_context|上下文|
-|logger|日志辅助|
+| 变量名 | 用途 |
+|-------------|-------------|
+| Class | 类定义 |
+| cjson | json处理类 |
+| _ | Moses常用工具类 |
+| luastar_cache | 缓存 |
+| luastar_config | 配置 |
+| luastar_context | 上下文 |
+| logger | 日志辅助 |
 
 第三方工具类：
 * [csjon](http://www.kyne.com.au/~mark/software/lua-cjson.php)
