@@ -16,7 +16,7 @@ function BeanFactory:init(config_file)
         ngx.log(ngx.ERR, "[BeanFactory:init] illegal argument : config_file can't nil.")
         return
     end
-    self.config = util_file.loadlua(self.config_file) or {}
+    self.config = util_file.loadlua_nested(self.config_file) or {}
     -- single bean cache
     self.beanCache = {}
 end

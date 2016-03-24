@@ -17,3 +17,8 @@ redis = {
     timeout = 30000,
     pool_size = 1000
 }
+
+_include_ = {
+    "/config/a.lua",
+    "/config/b.lua"
+}

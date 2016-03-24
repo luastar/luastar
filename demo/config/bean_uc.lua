@@ -12,28 +12,17 @@ id = {
   single = 0  -- default 1
 }
 --]]
-mysql = {
+mysql_uc = {
     class = "luastar.db.mysql",
     arg = {
         { value = "${mysql}" }
     }
 }
-redis = {
+redis_uc = {
     class = "luastar.db.redis",
     arg = {
         { value = "${redis}" }
     }
-}
-paramService = {
-    class = "com.lajin.service.common.paramService"
-}
-testService = {
-    class = "com.lajin.service.test.testService",
-    arg = { { ref = "redis" } }
-}
-
-_include_ = {
-    "/config/bean_uc.lua"
 }
 
 
