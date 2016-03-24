@@ -140,7 +140,12 @@ weixin = {
   refresh_token_url = "https://api.weixin.qq.com/sns/oauth2/refresh_token",
   userinfo_url = "https://api.weixin.qq.com/sns/userinfo"
 }
+_include_ = {
+    "/config/a.lua",
+    "/config/b.lua"
+}
 ```
+_include_ 是一个特殊的用法，支持配置文件嵌套引入。
 在代码中可通过luastar_config.getConfig来获取：
 ```lua
 local access_token_url = luastar_config.getConfig("weixin")["access_token_url"]
@@ -221,7 +226,11 @@ testService = {
     class = "com.lajin.service.test.testService",
     arg = { { ref = "redis" } }
 }
+_include_ = {
+    "/config/bean_uc.lua"
+}
 ```
+bean配置文件也支持_include_引入其他配置的语法
 注：在类中定义的方法最好使用类的模式，可以使用luastar框架中的class类定义：
 ```lua
 local testService = Class("com.luastar.demo.service.test.testService")
