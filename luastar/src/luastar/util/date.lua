@@ -11,6 +11,10 @@ function get_ngx_time()
     return ngx.time()
 end
 
+function get_today()
+    return os.date('%Y-%m-%d', ngx.time())
+end
+
 function get_ngx_today()
     return ngx.today()
 end

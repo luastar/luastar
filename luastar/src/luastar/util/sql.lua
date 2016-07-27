@@ -23,12 +23,12 @@ local util_str = require("luastar.util.str")
 local function getsql_value(sql, data, nv)
     local var, var1, var2 = nil, {}, {}
     -- #{}
-    for word in string.gmatch(sql, "#{%w+}") do
+    for word in string.gmatch(sql, "#{[%w_]+}") do
         var = string.sub(word, 3, string.len(word) - 1) -- sub #{}
         table.insert(var1, var)
     end
     -- ${}
-    for word in string.gmatch(sql, "%${%w+}") do
+    for word in string.gmatch(sql, "%${[%w_]+}") do
         var = string.sub(word, 3, string.len(word) - 1) -- sub ${}
         table.insert(var2, var)
     end
@@ -113,7 +113,7 @@ function getsql(sql_table, data)
     end
     -- set tag value
     local sql, tag = sql_table["sql"], {}
-    for word in string.gmatch(sql, "@{%w+}") do
+    for word in string.gmatch(sql, "@{[%w_]+}") do
         var = string.sub(word, 3, string.len(word) - 1) -- sub @{}
         table.insert(tag, var)
     end

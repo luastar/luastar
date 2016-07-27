@@ -13,6 +13,7 @@ note null value type is userdata
 
 --]===]
 local resty_mysql = require("resty.mysql")
+local db_monitor = require("luastar.db.monitor")
 
 Mysql = Class("luastar.db.Mysql")
 
@@ -23,10 +24,10 @@ function Mysql:init(datasource)
         database = "",
         user = "",
         password = "",
-        timeout = 3000,
+        timeout = 30000,
         max_idle_timeout = 60000,
-        pool_size = 1000,
-        charset = "UTF8"
+        pool_size = 50,
+        charset = "utf8"
     })
     ngx.log(ngx.DEBUG, "[Mysql:init] datasource : ", cjson.encode(self.datasource))
 end
@@ -48,6 +49,7 @@ function Mysql:getConnect()
     if not res then
         ngx.log(ngx.ERR, "[Mysql:getConnect] set charset fail : ", err)
     end
+    db_monitor.add("mysql_connect")
     return connect
 end
 
@@ -64,7 +66,8 @@ function Mysql:query(sql, nrows)
 end
 
 function Mysql:close(connect)
-    if not connect then
+    db_monitor.sub("mysql_connect")
+    if connect == nil  then
         return
     end
     if self.datasource.pool_size <= 0 then

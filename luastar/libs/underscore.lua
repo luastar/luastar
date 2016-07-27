@@ -91,9 +91,10 @@ end
 
 function Underscore.funcs.map(list, func)
     local mapped = {}
+    if list == nil then return mapped end
     for i in Underscore.iter(list) do
-        mapped[#mapped+1] = func(i)
-    end 
+        mapped[#mapped + 1] = func(i)
+    end
     return mapped
 end
 

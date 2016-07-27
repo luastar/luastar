@@ -104,6 +104,12 @@ function sha1(str)
     return resty_str.to_hex(ngx.sha1_bin(str))
 end
 
+-- hmac_sha1
+function hmac_sha1(secret_key, str)
+    local resty_str = require("resty.string")
+    return resty_str.to_hex(ngx.hmac_sha1(secret_key, str))
+end
+
 function isNil(val)
     if val == nil then return true end
     if type(val) == 'string' then return #val == 0 end

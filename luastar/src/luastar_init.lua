@@ -18,6 +18,8 @@ _ = require("moses")
 luastar_cache = require("luastar.core.cache")
 --luastar配置模块
 luastar_config = require("luastar.core.config")
+--luastar消息模块
+luastar_msg = require("luastar.core.message")
 --luastar上下文模块
 luastar_context = require("luastar.core.context")
 --luastar日志模块

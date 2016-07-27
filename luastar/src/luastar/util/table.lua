@@ -28,5 +28,5 @@ end
 
 function table2arr(t, s)
     local seq = s or "="
-    return _.values(_.map(t, function(k, v) return k .. seq .. v end))
+    return _.values(_.map(t, function(k, v) return k .. seq .. tostring(v) end))
 end

@@ -8,7 +8,7 @@ local util_file = require("luastar.util.file")
 local Route = Class("luastar.core.Route")
 
 function Route:init(config_file)
-    ngx.log(ngx.DEBUG, "[Route:init] file : ", config_file)
+    -- ngx.log(ngx.INFO, "[Route:init] file : ", config_file)
     self.config_file = config_file
     if not self.config_file then
         ngx.log(ngx.ERR, "[Route:init] illegal argument : config_file can't nil.")
@@ -17,10 +17,10 @@ function Route:init(config_file)
     local config = util_file.loadlua(self.config_file)
     -- 初始化路由配置
     self.config_route = config["route"] or {}
-    ngx.log(ngx.INFO, "[Route:init] config_route : ", cjson.encode(self.config_route))
+    -- ngx.log(ngx.INFO, "[Route:init] config_route : ", cjson.encode(self.config_route))
     -- 初始化拦截器配置
     self.config_interceptor = config["interceptor"] or {}
-    ngx.log(ngx.INFO, "[Route:init] config_interceptor : ", cjson.encode(self.config_interceptor))
+    -- ngx.log(ngx.INFO, "[Route:init] config_interceptor : ", cjson.encode(self.config_interceptor))
 end
 
 function Route:getRoute(uri)

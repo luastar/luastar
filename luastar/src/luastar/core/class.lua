@@ -17,7 +17,7 @@ local _class = function(classname, super)
     cls.new = function(self, ...)
         local instance = { class = self }
         setmetatable(instance, self)
-        if instance.init and type(instance.init) == 'function' then
+        if instance.init and type(instance.init) == "function" then
             instance:init(...)
         end
         return instance

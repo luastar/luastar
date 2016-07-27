@@ -158,6 +158,10 @@ function Request:get_header(key, default)
     return self.headers[key] or default
 end
 
+function Request:get_ip()
+    return self:get_header("X-Forwarded-For") or self:get_header("X-Real-IP", self.remote_addr)
+end
+
 --[[
  获取多个header，返回一个table
  eg. request: get_header_table("appkey","devid","devmac")

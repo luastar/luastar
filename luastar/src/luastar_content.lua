@@ -6,6 +6,8 @@
 
 local Request = require("luastar.core.request")
 local Response = require("luastar.core.response")
+local db_monitor = require("luastar.db.monitor")
+
 -- 执行变量
 local execute_var = {
     stop = false,
@@ -43,8 +45,8 @@ end
 function content()
     init()
     if execute_var["stop"] then
+        -- openresty/1.7.10.1及以前版本的bug
         -- 必须调用ngx.req.read_body()或ngx.req.discard_body()处理请求体
-        -- 否则HTTP 1.1 pipelining 和 HTTP 1.1 keepalive都将无法正确工作。
         -- 因为第一个请求的请求体如果没有读取，会被错误地当作下一个请求的请求头来解析
         ngx.req.discard_body()
         ngx.exit(execute_var["status"])
@@ -55,13 +57,17 @@ function content()
     else
         execute_ctrl_fun()
     end
+    -- 监控数据库连接
+    db_monitor.check("redis_connect", "mysql_connect")
     ngx.ctx.response:finish()
     ngx.req.discard_body()
 end
 
 function execute_ctrl_new()
-    local interceptor_ok = execute_before()
+    local interceptor_ok, interceptor_msg = execute_before()
     if not interceptor_ok then
+        ngx.log(ngx.INFO, "interceptor ctrl success.")
+        ngx.ctx.response:writeln(interceptor_msg)
         return
     end
     local ctrl_instance = execute_var["ctrl"]:new()
@@ -75,9 +81,10 @@ function execute_ctrl_new()
 end
 
 function execute_ctrl_fun()
-    local interceptor_ok = execute_before()
+    local interceptor_ok, interceptor_msg = execute_before()
     if not interceptor_ok then
         ngx.log(ngx.INFO, "interceptor ctrl success.")
+        ngx.ctx.response:writeln(interceptor_msg)
         return
     end
     local ctrl = execute_var["ctrl"]
@@ -92,17 +99,17 @@ end
 
 function execute_before()
     if _.size(execute_var["interceptorAry"]) == 0 then
-        return true
+        return true, "no interceptor."
     end
     local call_ok, interceptor, rs_ok = true, nil, true
     for key, value in pairs(execute_var["interceptorAry"]) do
         call_ok, interceptor = pcall(require, value)
         if call_ok and _.isFunction(interceptor["beforeHandle"]) then
-            call_ok, rs_ok = pcall(interceptor["beforeHandle"])
+            call_ok, rs_ok, rs_msg = pcall(interceptor["beforeHandle"])
             if call_ok then
                 -- 有一个返回失败，则返回
                 if not rs_ok then
-                    return false
+                    return false, rs_msg or "intercept by interceptor."
                 end
             else
                 ngx.log(ngx.ERR, "interceptor call beforeHandle fail : ", rs_ok)
@@ -111,10 +118,13 @@ function execute_before()
             ngx.log(ngx.ERR, "interceptor require fail : ", interceptor)
         end
     end
-    return true
+    return true, "not intercept by interceptor."
 end
 
 function execute_after(ctrl_call_ok, err_info)
+    if not ctrl_call_ok then
+        ngx.log(ngx.ERR, "ctrl execute error : ", err_info)
+    end
     if _.size(execute_var["interceptorAry"]) == 0 then
         return
     end

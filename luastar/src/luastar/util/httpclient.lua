@@ -1,6 +1,7 @@
 module(..., package.seeall)
 
 local http = require("resty.http")
+-- local str_util = require("luastar.util.str")
 
 local fmt = function(p, ...)
     if select('#', ...) == 0 then
@@ -46,7 +47,8 @@ local encode = function(t, boundary)
                 content_transfer_encoding = v.content_transfer_encoding or "binary",
             }
             append_data(r, k, v.data or v.value, extra)
-        else error(string.format("unexpected type %s", _t))
+        else
+            error(string.format("unexpected type %s", _t))
         end
     end
     tprintf(r, "--%s--\r\n", boundary)
@@ -71,7 +73,7 @@ local gen_boundary = function()
     return table.concat(t)
 end
 
-local gen_common_params = function(t)
+function gen_common_params(t)
     local body = {}
     for k, v in pairs(t) do
         body[#body + 1] = k .. "=" .. v
@@ -79,7 +81,7 @@ local gen_common_params = function(t)
     return table.concat(body, "&")
 end
 
-local gen_post_params = function(t)
+function gen_post_params(t)
     local body, content_type
     if hasfile(t) then
         local boundary = gen_boundary()
@@ -100,7 +102,8 @@ end
     proxy = "http://127.0.0.1:8888",
     scheme = "https", -- default "http"
     headers = { content-type="application/x-www-form-urlencoded" }, -- add post content-type and cookie
-    params = { a="1", b="2" }
+    params = { a="1", b="2" },
+    body = ""
 }
 --]===]
 function request_http(reqTable)
@@ -130,10 +133,10 @@ function request_http(reqTable)
     end
     reqTable["params"] = nil -- 清空参数，http中会用到产生冲突
     -- 请求http
-    ngx.log(logger.i(cjson.encode(reqTable)))
+    ngx.log(logger.d(cjson.encode(reqTable)))
     local http_instance = http:new()
     local res_ok, res_code, res_headers, res_status, res_body = http_instance:request(reqTable)
-    ngx.log(logger.i(cjson.encode({
+    ngx.log(logger.d(cjson.encode({
         res_ok = res_ok,
         res_code = res_code,
         res_headers = res_headers,
@@ -144,7 +147,7 @@ function request_http(reqTable)
 end
 
 --[===[
-
+    兼容老接口
 --]===]
 function request(url, method, params, timeout, headers)
     return request_http({

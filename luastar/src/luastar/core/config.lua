@@ -13,10 +13,11 @@ function getConfig(k, default_v)
     if app_config then
         return app_config[k] or default_v
     end
+    ngx.log(ngx.INFO, "init app config.")
 	local app_config_file = ngx.var.APP_CONFIG or "/config/app.lua"
     local config_file = ngx.var.APP_PATH ..app_config_file
     app_config = util_file.loadlua_nested(config_file) or {}
     luastar_cache.set("app_config", app_config)
-    ngx.log(ngx.ERR, "init app config.")
     return app_config[k] or default_v
 end
+

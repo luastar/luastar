@@ -10,7 +10,7 @@ local BeanFactory = Class("luastar.core.BeanFactory")
 local bean_status = { init_ing = 1, init_ok = 2, init_fail = 3 }
 
 function BeanFactory:init(config_file)
-    ngx.log(ngx.DEBUG, "[BeanFactory:init] file : ", config_file)
+    -- ngx.log(ngx.INFO, "[BeanFactory:init] file : ", config_file)
     self.config_file = config_file
     if not self.config_file then
         ngx.log(ngx.ERR, "[BeanFactory:init] illegal argument : config_file can't nil.")
