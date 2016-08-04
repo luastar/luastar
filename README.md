@@ -275,3 +275,7 @@ function hello(request, response)
 end
 ```
 可以通过request:get_arg("name", "default")获取参数，支持get、post参数，支持文件上传。
+
+##9 联系方式
+QQ群：545501138
+Email：19102630@163.com
