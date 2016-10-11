@@ -1,40 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-us">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <meta charset="UTF-8">
+    <title>luastar by luastar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-
-    <title>luastar by luastar</title>
   </head>
-
   <body>
-    <header>
-      <div class="inner">
-        <h1>luastar</h1>
-        <h2>一个用lua实现的基于openresty的接口(api)开发框架</h2>
-        <a href="https://github.com/luastar/luastar" class="button"><small>View project on</small> GitHub</a>
-      </div>
-    </header>
+    <section class="page-header">
+      <h1 class="project-name">luastar</h1>
+      <h2 class="project-tagline">一个用lua实现的基于openresty的接口(api)开发框架</h2>
+      <a href="https://github.com/luastar/luastar" class="btn">View on GitHub</a>
+      <a href="https://github.com/luastar/luastar/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/luastar/luastar/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <h1>
+    <section class="main-content">
+      <h1>
 <a id="luastar" class="anchor" href="#luastar" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>luastar</h1>
 
 <h2>
 <a id="1-简介" class="anchor" href="#1-%E7%AE%80%E4%BB%8B" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>1. 简介</h2>
 
-<p>luastar是一个基于<a href="http://openresty.org/cn/index.html">openresty</a>的高性能高并发开发框架，主要用于移动端app的http接口开发，实现了request/response、缓存、配置文件、路由/拦截器、bean管理、mysql和redis以及httpclient等常用工具类的封装，便于快速开发。</p>
+<p>luastar是一个基于<a href="http://openresty.org/cn/index.html">openresty</a>的高性能高并发开发框架，主要用于移动端app的http接口开发，实现了request/response、缓存、配置文件、路由/拦截器、bean管理、mysql和redis以及httpclient等常用工具类的封装，便于快速开发。
+luastar目前只在macOS和centos系统上测试过。</p>
 
 <h2>
 <a id="2-安装" class="anchor" href="#2-%E5%AE%89%E8%A3%85" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2. 安装</h2>
@@ -57,7 +49,7 @@
 <h3>
 <a id="23-nginx-配置" class="anchor" href="#23-nginx-%E9%85%8D%E7%BD%AE" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2.3 nginx 配置</h3>
 
-<p>修改 openresty/nginx/conf/nginx.conf，最后一行增加：
+<p>修改 openresty/nginx/conf/nginx.conf，引入luastar项目配置文件：
 include /data/apps/luastar/luastar/conf/luastar_dev.conf;</p>
 
 <h3>
@@ -85,6 +77,7 @@ openresty/nginx/sbin/nginx -c openresty/nginx/conf/nginx.conf</p>
 <li>|--------config（项目配置）</li>
 <li>|------------app.lua（项目配置文件）</li>
 <li>|------------bean.lua（bean配置文件）</li>
+<li>|------------msg.lua（文案配置文件）</li>
 <li>|------------route.lua（路由/拦截器配置文件）</li>
 <li>|--------src（项目源码）</li>
 <li>|------------com</li>
@@ -182,9 +175,9 @@ luastar提供了一个辅助类，主要用于日志跟踪。</p>
 <span class="pl-c">-- 也可以使用简写</span>
 ngx.<span class="pl-c1">log</span>(logger.<span class="pl-c1">i</span>(p1,p2,p3,<span class="pl-c1">...</span>))</pre></div>
 
-<p>设计在每个请求头中增加一个参数random，如果客户端传入了此参数，则直接使用，如果没传，则随机生成，在使用上述方式输出的日志中都会带有该标识，例如：--[ECekJjHCK5]--。</p>
+<p>设计在每次请求中生成一个request_id，在使用上述方式输出的日志中都会带有该标识，例如：--[MJw7NMaz5cGn6u3TV9hM]--。</p>
 
-<pre lang="log"><code>2015/12/14 13:31:06 [info] 3102#0: *26 [lua] common.lua:20: --[3SLqq8d1Zn]--request header is {"datakey":"","random":"3SLqq8d1Zn","ostype":"","appkey":"","appversion":""}, client: 127.0.0.1, server: localhost, request: "GET /api/test/hello HTTP/1.1", host: "localhost:8001"
+<pre lang="log"><code>2016/10/11 17:01:11 [info] 90429#0: *8 [lua] hello.lua:9: --[MJw7NMaz5cGn6u3TV9hM]--name=world, try to give a param with name., client: 127.0.0.1, server: localhost, request: "GET /api/test/hello HTTP/1.1", host: "localhost:8001"
 </code></pre>
 
 <h3>
@@ -236,9 +229,14 @@ weixin <span class="pl-k">=</span> {
   check_token_url <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>https://api.weixin.qq.com/sns/auth<span class="pl-pds">"</span></span>,
   refresh_token_url <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>https://api.weixin.qq.com/sns/oauth2/refresh_token<span class="pl-pds">"</span></span>,
   userinfo_url <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>https://api.weixin.qq.com/sns/userinfo<span class="pl-pds">"</span></span>
+}
+_include_ <span class="pl-k">=</span> {
+    <span class="pl-s"><span class="pl-pds">"</span>/config/app_dev_a.lua<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>/config/app_dev_b.lua<span class="pl-pds">"</span></span>
 }</pre></div>
 
-<p>在代码中可通过luastar_config.getConfig来获取：</p>
+<p><em>include</em> 是一个特殊的用法，支持配置文件嵌套引入。
+在代码中可通过luastar_config.getConfig来获取：</p>
 
 <div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> access_token_url <span class="pl-k">=</span> luastar_config.<span class="pl-c1">getConfig</span>(<span class="pl-s"><span class="pl-pds">"</span>weixin<span class="pl-pds">"</span></span>)[<span class="pl-s"><span class="pl-pds">"</span>access_token_url<span class="pl-pds">"</span></span>]</pre></div>
 
@@ -323,9 +321,13 @@ paramService <span class="pl-k">=</span> {
 testService <span class="pl-k">=</span> {
     class <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>com.lajin.service.test.testService<span class="pl-pds">"</span></span>,
     arg <span class="pl-k">=</span> { { ref <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>redis<span class="pl-pds">"</span></span> } }
+}
+_include_ <span class="pl-k">=</span> {
+    <span class="pl-s"><span class="pl-pds">"</span>/config/bean_uc.lua<span class="pl-pds">"</span></span>
 }</pre></div>
 
-<p>注：在类中定义的方法最好使用类的模式，可以使用luastar框架中的class类定义：</p>
+<p>bean配置文件也支持<em>include</em>引入其他配置的语法
+注：在类中定义的方法最好使用类的模式，可以使用luastar框架中的class类定义：</p>
 
 <div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> testService <span class="pl-k">=</span> <span class="pl-c1">Class</span>(<span class="pl-s"><span class="pl-pds">"</span>com.luastar.demo.service.test.testService<span class="pl-pds">"</span></span>)
 <span class="pl-k">local</span> table_util <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">"</span>luastar.util.table<span class="pl-pds">"</span></span>)
@@ -370,24 +372,24 @@ testService <span class="pl-k">=</span> {
 <span class="pl-k">end</span></pre></div>
 
 <p>可以通过request:get_arg("name", "default")获取参数，支持get、post参数，支持文件上传。</p>
-        </section>
 
-        <aside id="sidebar">
-          <a href="https://github.com/luastar/luastar/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/luastar/luastar/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
+<h2>
+<a id="9-联系方式" class="anchor" href="#9-%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>9 联系方式</h2>
 
-          <p class="repo-owner"><a href="https://github.com/luastar/luastar"></a> is maintained by <a href="https://github.com/luastar">luastar</a>.</p>
+<h3>
+<a id="qq群545501138" class="anchor" href="#qq%E7%BE%A4545501138" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>QQ群：545501138</h3>
 
-          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
-        </aside>
-      </div>
-    </div>
+<h3>
+<a id="email19102630163com" class="anchor" href="#email19102630163com" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Email：<a href="mailto:19102630@163.com">19102630@163.com</a>
+</h3>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/luastar/luastar">luastar</a> is maintained by <a href="https://github.com/luastar">luastar</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
 
   
   </body>
