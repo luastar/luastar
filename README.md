@@ -1,6 +1,7 @@
 #luastar
 ##1. 简介
 luastar是一个基于[openresty](http://openresty.org/cn/index.html)的高性能高并发开发框架，主要用于移动端app的http接口开发，实现了request/response、缓存、配置文件、路由/拦截器、bean管理、mysql和redis以及httpclient等常用工具类的封装，便于快速开发。
+luastar目前只在macOS和centos系统上测试过。
 ##2. 安装
 ###2.1 openresty 安装
 请参考官网介绍，建议安装目录：/usr/local/openresty
@@ -12,7 +13,7 @@ luastar是一个基于[openresty](http://openresty.org/cn/index.html)的高性�
 开发调试可使用[ZeroBrane Studio](http://studio.zerobrane.com/)，详细请参考后继章节。
 关闭代码缓存可在修改代码后不必每次重启nginx。
 ###2.3 nginx 配置
-修改 openresty/nginx/conf/nginx.conf，最后一行增加：
+修改 openresty/nginx/conf/nginx.conf，引入luastar项目配置文件：
 include /data/apps/luastar/luastar/conf/luastar_dev.conf;
 ###2.4 hello world
 启动openresty：
@@ -32,6 +33,7 @@ openresty/nginx/sbin/nginx -c openresty/nginx/conf/nginx.conf
 * |--------config（项目配置）
 * |------------app.lua（项目配置文件）
 * |------------bean.lua（bean配置文件）
+* |------------msg.lua（文案配置文件）
 * |------------route.lua（路由/拦截器配置文件）
 * |--------src（项目源码）
 * |------------com
@@ -89,9 +91,9 @@ ngx.log(logger.info(p1,p2,p3,...))
 -- 也可以使用简写
 ngx.log(logger.i(p1,p2,p3,...))
 ```
-设计在每个请求头中增加一个参数random，如果客户端传入了此参数，则直接使用，如果没传，则随机生成，在使用上述方式输出的日志中都会带有该标识，例如：--[ECekJjHCK5]--。
+设计在每次请求中生成一个request_id，在使用上述方式输出的日志中都会带有该标识，例如：--[MJw7NMaz5cGn6u3TV9hM]--。
 ```log
-2015/12/14 13:31:06 [info] 3102#0: *26 [lua] common.lua:20: --[3SLqq8d1Zn]--request header is {"datakey":"","random":"3SLqq8d1Zn","ostype":"","appkey":"","appversion":""}, client: 127.0.0.1, server: localhost, request: "GET /api/test/hello HTTP/1.1", host: "localhost:8001"
+2016/10/11 17:01:11 [info] 90429#0: *8 [lua] hello.lua:9: --[MJw7NMaz5cGn6u3TV9hM]--name=world, try to give a param with name., client: 127.0.0.1, server: localhost, request: "GET /api/test/hello HTTP/1.1", host: "localhost:8001"
 ```
 ###3.6 配置文件
 项目配置可根据不同环境配置多个，
@@ -141,8 +143,8 @@ weixin = {
   userinfo_url = "https://api.weixin.qq.com/sns/userinfo"
 }
 _include_ = {
-    "/config/a.lua",
-    "/config/b.lua"
+    "/config/app_dev_a.lua",
+    "/config/app_dev_b.lua"
 }
 ```
 _include_ 是一个特殊的用法，支持配置文件嵌套引入。
@@ -277,5 +279,6 @@ end
 可以通过request:get_arg("name", "default")获取参数，支持get、post参数，支持文件上传。
 
 ##9 联系方式
-QQ群：545501138
-Email：19102630@163.com
+###QQ群：545501138
+###Email：19102630@163.com
+

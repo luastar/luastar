@@ -1,4 +1,3 @@
-#!  /usr/bin/env lua
 --[===[
 mysql操作库
 insert res

@@ -1,4 +1,3 @@
-#!  /usr/bin/env lua
 --[[
 
 --]]
@@ -110,11 +109,12 @@ function hmac_sha1(secret_key, str)
     return resty_str.to_hex(ngx.hmac_sha1(secret_key, str))
 end
 
-function isNil(val)
-    if val == nil then return true end
-    if type(val) == 'string' then return #val == 0 end
-    if type(val) == 'table' then return _.size(val) == 0 end
-    if type(val) == 'userdata' then return true end
+function isNil(obj)
+    if obj == nil then return true end
+    if type(obj) == 'boolean' then return not obj end
+    if type(obj) == 'string' then return #obj == 0 end
+    if type(obj) == 'table' then return _.size(obj) == 0 end
+    if type(obj) == 'userdata' then return true end
     return false
 end
 	

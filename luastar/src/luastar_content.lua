@@ -1,4 +1,3 @@
-#!   /usr/bin/env lua
 --[[
 
 --]]
@@ -7,6 +6,7 @@
 local Request = require("luastar.core.request")
 local Response = require("luastar.core.response")
 local db_monitor = require("luastar.db.monitor")
+local resty_random = require("resty.random")
 
 -- 执行变量
 local execute_var = {
@@ -15,6 +15,8 @@ local execute_var = {
 }
 
 function init()
+    -- 生成request_id
+    ngx.ctx.request_id = resty_random.token(20)
     -- 初始化应用包路径
     luastar_context.init_pkg_path()
     -- 获取路由

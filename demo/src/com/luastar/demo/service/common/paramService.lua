@@ -13,12 +13,11 @@ end
 function paramService:getHeadParam()
     local request = ngx.ctx.request
     local param = {}
-    param["random"] = request:get_header("random") or ""
     param["appkey"] = request:get_header("appkey") or ""
     param["appversion"] = request:get_header("apiversion") or ""
-    param["datakey"] = request:get_header("datakey") or ""
     param["ostype"] = request:get_header("ostype") or 2
     param["osrelease"] = request:get_header("osrelease") or ""
+    param["sign"] = request:get_header("sign") or ""
     return param
 end
 

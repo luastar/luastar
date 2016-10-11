@@ -1,4 +1,3 @@
-#!  /usr/bin/env lua
 --[[
 https://github.com/starwing/luautf8
 --]]

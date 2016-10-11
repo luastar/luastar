@@ -1,4 +1,3 @@
-#! /usr/bin/env lua
 --[[
 luastar缓存模块，使用全局变量“LUASTAR_C”存储；
 “LUASTAR_C”在ngx_lua的“init_by_lua_file”指令执行文件“luastar_init.lua”中进行初始化。

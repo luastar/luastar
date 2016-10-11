@@ -1,4 +1,3 @@
-#!    /usr/bin/env lua
 --[[
 应用bean工厂，类似于spring bean容器
 --]]

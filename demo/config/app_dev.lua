@@ -19,6 +19,6 @@ redis = {
 }
 
 _include_ = {
-    "/config/a.lua",
-    "/config/b.lua"
+    "/config/app_dev_a.lua",
+    "/config/app_dev_b.lua"
 }

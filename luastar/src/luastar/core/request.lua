@@ -2,7 +2,7 @@
 --[[
 
 --]]
-local upload = require "resty.upload"
+local upload = require("resty.upload")
 
 local Request = Class("luastar.core.Request")
 
@@ -28,13 +28,17 @@ function Request:init()
     self.socket = ngx.req.socket
 end
 
-function Request:read_body()
-    if self.post_args then
-        return
+function Request:isMultipart()
+    local content_type = self.headers["content-type"]
+    if not content_type then
+        return false
     end
-    ngx.req.read_body()
-    self.post_args = ngx.req.get_post_args() or {}
-    self.request_body = ngx.var.request_body or ""
+    local s = string.match(content_type, "multipart/form%-data")
+    if s then
+        return true
+    else
+        return false
+    end
 end
 
 function Request:get_arg(name, default)
@@ -42,13 +46,9 @@ function Request:get_arg(name, default)
     if method == "GET" then
         return self:get_uri_arg(name, default)
     elseif method == "POST" then
-        local content_type = self.headers["content-type"]
-        if content_type then
-            local s = string.match(content_type, "multipart/form%-data")
-            if s then
-                -- file upload
-                return self:get_upload_arg(name) or self:get_uri_arg(name, default)
-            end
+        if self:isMultipart() then
+            -- file upload
+            return self:get_upload_arg(name) or self:get_uri_arg(name, default)
         end
         return self:get_post_arg(name) or self:get_uri_arg(name, default)
     end
@@ -77,7 +77,10 @@ end
 
 function Request:get_post_arg(name, default)
     if not name then return default end
-    self:read_body()
+    if not self.post_args then
+        ngx.req.read_body()
+        self.post_args = ngx.req.get_post_args() or {}
+    end
     local arg = self.post_args[name]
     if not arg then return default end
     if _.isTable(arg) then
@@ -147,7 +150,32 @@ function Request:get_upload_data()
 end
 
 function Request:get_request_body()
-    self:read_body()
+    if self.request_body then
+        return self.request_body
+    end
+    ngx.req.read_body()
+    --self.request_body = ngx.var.request_body
+    self.request_body = ngx.req.get_body_data()
+    if self.request_body then
+        return self.request_body
+    end
+    -- body may get buffered in a temp file:
+    local body_file = ngx.req.get_body_file()
+    if body_file then
+        ngx.log(logger.i("body is in file ", tostring(body_file)))
+        local body_file_handle, err = io.open(body_file, "r")
+        if body_file_handle then
+            body_file_handle:seek("set")
+            self.request_body = body_file_handle:read("*a")
+            body_file_handle:close()
+        else
+            self.request_body = ""
+            ngx.log(logger.e("failed to open ", tostring(body_file), "for reading: ", tostring(err)))
+        end
+    else
+        self.request_body = ""
+        ngx.log(logger.i("no body found"))
+    end
     return self.request_body
 end
 

@@ -1,11 +1,8 @@
-#!   /usr/bin/env lua
 --[[
 	
 ]]
 
 module(..., package.seeall)
-
-local str_util = require("luastar.util.str")
 
 function get_ngx_time()
     return ngx.time()
@@ -27,9 +24,21 @@ function get_timestamp2()
     return os.date('%Y-%m-%d %H:%M:%S', ngx.time())
 end
 
-function parse_time(r)
-    local a = str_util.split(r, " ")
-    local b = str_util.split(a[1], "-")
-    local c = str_util.split(a[2], ":")
-    return os.time({ year = b[1], month = b[2], day = b[3], hour = c[1], min = c[2], sec = c[3] })
+-- 解析'%Y-%m-%d %H:%M:%S'的时间格式
+function parse_time(t)
+    if t == nil or type(t) ~= 'string' or #t == 0 then
+        return ngx.time()
+    end
+    local year, month, day, hour, min, sec = string.match(t, "^(%d%d%d%d)%-(%d%d?)%-(%d%d?)%s*(%d%d?):(%d%d?):(%d%d?)$")
+    if year == nil or month == nil or day == nil or hour == nil or min == nil or sec == nil then
+        return ngx.time()
+    end
+    return os.time({
+        year = tonumber(year),
+        month = tonumber(month),
+        day = tonumber(day),
+        hour = tonumber(hour),
+        min = tonumber(min),
+        sec = tonumber(sec)
+    })
 end

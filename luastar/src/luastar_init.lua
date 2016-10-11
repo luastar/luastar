@@ -1,4 +1,3 @@
-#! /usr/bin/env lua
 --[[
 在“ngx_lua”模块的“init_by_lua_file”命令中执行;
 只在启动nginx时初始化一次。

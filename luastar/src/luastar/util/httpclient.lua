@@ -145,16 +145,3 @@ function request_http(reqTable)
     })))
     return res_ok, res_code, res_headers, res_status, res_body
 end
-
---[===[
-    兼容老接口
---]===]
-function request(url, method, params, timeout, headers)
-    return request_http({
-        url = url,
-        method = method,
-        timeout = timeout,
-        headers = headers,
-        params = params
-    })
-end

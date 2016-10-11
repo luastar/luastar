@@ -12,7 +12,7 @@ function success(data, needFormat)
 		head = {
 			status = 1,
 			msg = "ok.",
-			datakey = date_util.get_timestamp(),
+			request_id = ngx.ctx.request_id or date_util.get_timestamp(),
 			timestamp=  ngx.time()
 		},
 		body = body
@@ -28,7 +28,7 @@ function illegal_argument(msg)
 		head = {
 			status = 2,
 			msg = msg or "参数错误。",
-			datakey = date_util.get_timestamp(),
+			request_id = ngx.ctx.request_id or date_util.get_timestamp(),
 			timestamp= ngx.time()
 		}
 	}
@@ -40,7 +40,7 @@ function exp(msg)
 		head = {
 			status = 3,
 			msg = msg or "系统异常。",
-			datakey = date_util.get_timestamp(),
+			request_id = ngx.ctx.request_id or date_util.get_timestamp(),
 			timestamp=  ngx.time()
 		}
 	}
@@ -52,7 +52,7 @@ function fail(msg)
 		head = {
 			status = 4,
 			msg = msg or "处理失败。",
-			datakey = date_util.get_timestamp(),
+			request_id = ngx.ctx.request_id or date_util.get_timestamp(),
 			timestamp= ngx.time()
 		}
 	}
@@ -64,7 +64,7 @@ function illegal_token(msg)
 		head = {
 			status = 5,
 			msg = msg or "登录超时。",
-			datakey = date_util.get_timestamp(),
+			request_id = ngx.ctx.request_id or date_util.get_timestamp(),
 			timestamp= ngx.time()
 		}
 	}

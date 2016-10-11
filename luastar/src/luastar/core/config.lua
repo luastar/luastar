@@ -1,4 +1,3 @@
-#! /usr/bin/env lua
 --[[
 luastar配置模块，需要在nginx配置文件中定义应用路径：APP_PATH。
 应用配置文件路径：APP_PATH/config/app.lua

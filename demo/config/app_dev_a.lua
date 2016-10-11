@@ -6,7 +6,7 @@ a = {
 }
 
 _include_ = {
-    "/config/c.lua",
+    "/config/app_dev_c.lua",
     "/config/app_dev.lua"
 }
 

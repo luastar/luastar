@@ -1,4 +1,3 @@
-#! /usr/bin/env lua
 --[[
 luastar消息模块，默认路径：APP_PATH/config/msg.lua
 --]]

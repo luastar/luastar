@@ -1,4 +1,3 @@
-#!   /usr/bin/env lua
 --[===[
 sql_table = {
   sql = [[
