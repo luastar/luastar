@@ -1,396 +1,66 @@
-<!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="UTF-8">
-    <title>luastar by luastar</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">luastar</h1>
-      <h2 class="project-tagline">一个用lua实现的基于openresty的接口(api)开发框架</h2>
-      <a href="https://github.com/luastar/luastar" class="btn">View on GitHub</a>
-      <a href="https://github.com/luastar/luastar/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/luastar/luastar/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on https://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-    <section class="main-content">
-      <h1>
-<a id="luastar" class="anchor" href="#luastar" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>luastar</h1>
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen">
+  <link rel="stylesheet" href="stylesheets/github-dark.css">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
 
-<h2>
-<a id="1-简介" class="anchor" href="#1-%E7%AE%80%E4%BB%8B" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>1. 简介</h2>
+  <title>luastar</title>
+  <meta name="description" content="一个用lua实现的基于openresty的接口(api)开发框架">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">luastar</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">一个用lua实现的基于openresty的接口(api)开发框架</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/luastar/luastar/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/luastar/luastar/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/luastar/luastar" class="code">View luastar on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h1>
+<a id="luastar-简介" class="anchor" href="#luastar-%E7%AE%80%E4%BB%8B" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>luastar 简介</h1>
 
 <p>luastar是一个基于<a href="http://openresty.org/cn/index.html">openresty</a>的高性能高并发开发框架，主要用于移动端app的http接口开发，实现了request/response、缓存、配置文件、路由/拦截器、bean管理、mysql和redis以及httpclient等常用工具类的封装，便于快速开发。
 luastar目前只在macOS和centos系统上测试过。</p>
-
-<h2>
-<a id="2-安装" class="anchor" href="#2-%E5%AE%89%E8%A3%85" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2. 安装</h2>
-
-<h3>
-<a id="21-openresty-安装" class="anchor" href="#21-openresty-%E5%AE%89%E8%A3%85" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2.1 openresty 安装</h3>
-
-<p>请参考官网介绍，建议安装目录：/usr/local/openresty</p>
-
-<h3>
-<a id="22-luastar-安装" class="anchor" href="#22-luastar-%E5%AE%89%E8%A3%85" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2.2 luastar 安装</h3>
-
-<p>下载项目到到硬盘上，如：/data/apps/luastar下。
-可修改配置文件(luastar/conf/luastar*.conf)中的相关路径为openresty安装路径和项目存放路径，可配置多个不同环境的配置文件。
-例如：
-开发环境（luastar_dev.conf）中增加了调试工具路径并关闭了代码缓存。
-开发调试可使用<a href="http://studio.zerobrane.com/">ZeroBrane Studio</a>，详细请参考后继章节。
-关闭代码缓存可在修改代码后不必每次重启nginx。</p>
-
-<h3>
-<a id="23-nginx-配置" class="anchor" href="#23-nginx-%E9%85%8D%E7%BD%AE" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2.3 nginx 配置</h3>
-
-<p>修改 openresty/nginx/conf/nginx.conf，引入luastar项目配置文件：
-include /data/apps/luastar/luastar/conf/luastar_dev.conf;</p>
-
-<h3>
-<a id="24-hello-world" class="anchor" href="#24-hello-world" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2.4 hello world</h3>
-
-<p>启动openresty：
-openresty/nginx/sbin/nginx -c openresty/nginx/conf/nginx.conf</p>
-
-<p>访问 http://localhost:8001/api/test/hello，
-试试带参数访问 http://localhost:8001/api/test/hello?name=haha</p>
-
-<h2>
-<a id="3-开始" class="anchor" href="#3-%E5%BC%80%E5%A7%8B" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3. 开始</h2>
-
-<h3>
-<a id="31-项目结构" class="anchor" href="#31-%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3.1 项目结构</h3>
-
-<ul>
-<li>luastar</li>
-<li>|----luastar</li>
-<li>|--------conf（nginx配置文件）</li>
-<li>|--------libs（第三方库）</li>
-<li>|--------src（luastar源码）</li>
-<li>|----demo1（项目1）</li>
-<li>|--------config（项目配置）</li>
-<li>|------------app.lua（项目配置文件）</li>
-<li>|------------bean.lua（bean配置文件）</li>
-<li>|------------msg.lua（文案配置文件）</li>
-<li>|------------route.lua（路由/拦截器配置文件）</li>
-<li>|--------src（项目源码）</li>
-<li>|------------com</li>
-<li>|----------------luastar</li>
-<li>|--------------------demo</li>
-<li>|------------------------ctrl（控制类-业务逻辑）</li>
-<li>|------------------------interceptor（拦截器）</li>
-<li>|------------------------service（服务类-公共服务）</li>
-<li>|------------------------util（常用类）</li>
-<li>|----demo2（项目2）</li>
-<li>|--------config（项目配置）</li>
-<li>|--------src（项目源码）</li>
-</ul>
-
-<h3>
-<a id="32-全局变量" class="anchor" href="#32-%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3.2 全局变量</h3>
-
-<p>luastar在初始化时，定义了几个常用的工具，在项目中可以直接使用，不用require引入。
-参看：luastar/src/luastar_init.lua</p>
-
-<table>
-<thead>
-<tr>
-<th>变量名</th>
-<th>用途</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Class</td>
-<td>类定义</td>
-</tr>
-<tr>
-<td>cjson</td>
-<td>json处理类</td>
-</tr>
-<tr>
-<td>_</td>
-<td>Moses常用工具类</td>
-</tr>
-<tr>
-<td>luastar_cache</td>
-<td>缓存</td>
-</tr>
-<tr>
-<td>luastar_config</td>
-<td>配置</td>
-</tr>
-<tr>
-<td>luastar_context</td>
-<td>上下文</td>
-</tr>
-<tr>
-<td>logger</td>
-<td>日志辅助</td>
-</tr>
-</tbody>
-</table>
-
-<p>第三方工具类：</p>
-
-<ul>
-<li><a href="http://www.kyne.com.au/%7Emark/software/lua-cjson.php">csjon</a></li>
-<li><a href="https://github.com/Yonaba/Moses">moses</a></li>
-<li><a href="https://github.com/liseen/lua-resty-http">http</a></li>
-<li>...</li>
-</ul>
-
-<h3>
-<a id="33-缓存" class="anchor" href="#33-%E7%BC%93%E5%AD%98" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3.3 缓存</h3>
-
-<p>在项目中，如果有需要缓存的数据，可使用luastar_cache来存放和读取</p>
-
-<div class="highlight highlight-source-lua"><pre>luastar_cache.<span class="pl-c1">get</span>(<span class="pl-s"><span class="pl-pds">"</span>app_config<span class="pl-pds">"</span></span>)
-luastar_cache.<span class="pl-c1">set</span>(<span class="pl-s"><span class="pl-pds">"</span>app_config<span class="pl-pds">"</span></span>, app_config)</pre></div>
-
-<p>注：luastar的缓存根据openresty的机制，每个nginx的worker会存放一份，如果需要在worker中共用，请使用openresty提供的字典（支持的数据结构有限）</p>
-
-<h3>
-<a id="34-上下文" class="anchor" href="#34-%E4%B8%8A%E4%B8%8B%E6%96%87" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3.4 上下文</h3>
-
-<div class="highlight highlight-source-lua"><pre><span class="pl-c">--获取路由</span>
-<span class="pl-k">local</span> route <span class="pl-k">=</span> luastar_context.<span class="pl-c1">getRoute</span>()
-<span class="pl-c">--获取bean</span>
-<span class="pl-k">local</span> beanFactory <span class="pl-k">=</span> luastar_context.<span class="pl-c1">getBeanFactory</span>()
-<span class="pl-k">local</span> redis_util <span class="pl-k">=</span> beanFactory:<span class="pl-c1">getBean</span>(<span class="pl-s"><span class="pl-pds">"</span>redis<span class="pl-pds">"</span></span>)</pre></div>
-
-<h3>
-<a id="35-日志" class="anchor" href="#35-%E6%97%A5%E5%BF%97" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3.5 日志</h3>
-
-<p>luastar日志直接使用openresty中提供的ngx.log实现，之前有使用第三方log包写文件，但效果不太理想，容易丢失日志。
-luastar提供了一个辅助类，主要用于日志跟踪。</p>
-
-<div class="highlight highlight-source-lua"><pre>ngx.<span class="pl-c1">log</span>(logger.<span class="pl-c1">info</span>(p1,p2,p3,<span class="pl-c1">...</span>))
-<span class="pl-c">-- 也可以使用简写</span>
-ngx.<span class="pl-c1">log</span>(logger.<span class="pl-c1">i</span>(p1,p2,p3,<span class="pl-c1">...</span>))</pre></div>
-
-<p>设计在每次请求中生成一个request_id，在使用上述方式输出的日志中都会带有该标识，例如：--[MJw7NMaz5cGn6u3TV9hM]--。</p>
-
-<pre lang="log"><code>2016/10/11 17:01:11 [info] 90429#0: *8 [lua] hello.lua:9: --[MJw7NMaz5cGn6u3TV9hM]--name=world, try to give a param with name., client: 127.0.0.1, server: localhost, request: "GET /api/test/hello HTTP/1.1", host: "localhost:8001"
-</code></pre>
-
-<h3>
-<a id="36-配置文件" class="anchor" href="#36-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3.6 配置文件</h3>
-
-<p>项目配置可根据不同环境配置多个，
-例如在测试环境的luastar/conf/luastar_test.conf中设置：
-set $APP_CONFIG '/config/app_test.lua';</p>
-
-<pre lang="conf"><code>server {
-  listen 8001;
-  server_name localhost;
-  set $LUASTAR_PATH '/data/apps/luastar/luastar';
-  set $APP_NAME 'demo';
-  set $APP_PATH '/data/apps/luastar/demo';
-  set $APP_CONFIG '/config/app_test.lua';
-  access_log /data/logs/demo/access.log  main;
-  error_log  /data/logs/demo/error.log   info;
-  location / {
-    default_type text/html;
-    content_by_lua_file '${LUASTAR_PATH}/src/luastar_content.lua';
-  }
-}
-</code></pre>
-
-<p>配置文件直接使用lua语法，例如：</p>
-
-<div class="highlight highlight-source-lua"><pre><span class="pl-c">--[[</span>
-<span class="pl-c">应用配置文件</span>
-<span class="pl-c">--]]</span>
-mysql <span class="pl-k">=</span> {
-    host <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>localhost<span class="pl-pds">"</span></span>,
-    port <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>3306<span class="pl-pds">"</span></span>,
-    user <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>admin<span class="pl-pds">"</span></span>,
-    password <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>xxx<span class="pl-pds">"</span></span>,
-    database <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>xxx<span class="pl-pds">"</span></span>,
-    timeout <span class="pl-k">=</span> <span class="pl-c1">30000</span>,
-    pool_size <span class="pl-k">=</span> <span class="pl-c1">1000</span>
-}
-redis <span class="pl-k">=</span> {
-    host <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>localhost<span class="pl-pds">"</span></span>,
-    port <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>6379<span class="pl-pds">"</span></span>,
-    auth <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>xxx<span class="pl-pds">"</span></span>,
-    timeout <span class="pl-k">=</span> <span class="pl-c1">30000</span>,
-    pool_size <span class="pl-k">=</span> <span class="pl-c1">1000</span>
-}
-weixin <span class="pl-k">=</span> {
-  access_token_url <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>https://api.weixin.qq.com/sns/oauth2/access_token<span class="pl-pds">"</span></span>,
-  check_token_url <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>https://api.weixin.qq.com/sns/auth<span class="pl-pds">"</span></span>,
-  refresh_token_url <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>https://api.weixin.qq.com/sns/oauth2/refresh_token<span class="pl-pds">"</span></span>,
-  userinfo_url <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>https://api.weixin.qq.com/sns/userinfo<span class="pl-pds">"</span></span>
-}
-_include_ <span class="pl-k">=</span> {
-    <span class="pl-s"><span class="pl-pds">"</span>/config/app_dev_a.lua<span class="pl-pds">"</span></span>,
-    <span class="pl-s"><span class="pl-pds">"</span>/config/app_dev_b.lua<span class="pl-pds">"</span></span>
-}</pre></div>
-
-<p><em>include</em> 是一个特殊的用法，支持配置文件嵌套引入。
-在代码中可通过luastar_config.getConfig来获取：</p>
-
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> access_token_url <span class="pl-k">=</span> luastar_config.<span class="pl-c1">getConfig</span>(<span class="pl-s"><span class="pl-pds">"</span>weixin<span class="pl-pds">"</span></span>)[<span class="pl-s"><span class="pl-pds">"</span>access_token_url<span class="pl-pds">"</span></span>]</pre></div>
-
-<p>也可以在bean.conf中通过${weixin.access_token_url}获取</p>
-
-<div class="highlight highlight-source-lua"><pre>mysql <span class="pl-k">=</span> {
-    class <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>luastar.db.mysql<span class="pl-pds">"</span></span>,
-    arg <span class="pl-k">=</span> {
-        { value <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>${mysql}<span class="pl-pds">"</span></span> }
-    }
-}</pre></div>
-
-<p>配置文件在nginx启动时读取，并存放在缓存中。</p>
-
-<h3>
-<a id="37-路由和拦截器" class="anchor" href="#37-%E8%B7%AF%E7%94%B1%E5%92%8C%E6%8B%A6%E6%88%AA%E5%99%A8" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3.7 路由和拦截器</h3>
-
-<p>路由和拦截器在demo/conf/route.lua文件中配置，例如：</p>
-
-<div class="highlight highlight-source-lua"><pre>route <span class="pl-k">=</span> {
-    { <span class="pl-s"><span class="pl-pds">"</span>/api/test/hello<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>com.luastar.demo.ctrl.test.hello<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>hello<span class="pl-pds">"</span></span> },
-    { <span class="pl-s"><span class="pl-pds">"</span>/api/test/mysql<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>com.luastar.demo.ctrl.test.mysql<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>mysql<span class="pl-pds">"</span></span> },
-    { <span class="pl-s"><span class="pl-pds">"</span>/api/test/mysql/transaction<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>com.luastar.demo.ctrl.test.mysql<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>transaction<span class="pl-pds">"</span></span> },
-    { <span class="pl-s"><span class="pl-pds">"</span>/api/test/redis<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>com.luastar.demo.ctrl.test.redis<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>redis<span class="pl-pds">"</span></span> },
-    { <span class="pl-s"><span class="pl-pds">"</span>/api/test/baidu<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>com.luastar.demo.ctrl.test.httpclient<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>baidu<span class="pl-pds">"</span></span> },
-    { <span class="pl-s"><span class="pl-pds">"</span>/api/test/form<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>com.luastar.demo.ctrl.test.form<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>form<span class="pl-pds">"</span></span> }
-}
-
-interceptor <span class="pl-k">=</span> {
-    {
-        url <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>/api<span class="pl-pds">"</span></span>,
-        class <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>com.luastar.demo.interceptor.common<span class="pl-pds">"</span></span>
-    }
-}</pre></div>
-
-<p>路由是一个二维数组，每一行表示一个接口地址，第一列表示请求地址（目前只支持全匹配），第二列表示对应的处理类，第三列表示处理类中的方法。
-例如：当请求http://localhost:8001/api/test/hello时，由com.luastar.demo.ctrl.test.hello类的hello方法处理。
-拦截器与路由稍有不同，每一行指定了属性，url代表拦截的请求，支持lua的模式匹配，class代表拦截器实现，excludes表示排除不处理的请求。</p>
-
-<div class="highlight highlight-source-lua"><pre>interceptor <span class="pl-k">=</span> {
-  {url<span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>url1<span class="pl-pds">"</span></span>, class<span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>file<span class="pl-pds">"</span></span>},
-  {url<span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>url2<span class="pl-pds">"</span></span>, class<span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>file<span class="pl-pds">"</span></span>, excludes<span class="pl-k">=</span>{<span class="pl-s"><span class="pl-pds">"</span>url1<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>url2<span class="pl-pds">"</span></span>}}
-}</pre></div>
-
-<p>拦截器必须实现beforeHandle和afterHandle方法
-beforeHandle方法返回一个布尔类型的值，返回true继续执行后续处理，返回false中止退出。</p>
-
-<h3>
-<a id="38-bean配置" class="anchor" href="#38-bean%E9%85%8D%E7%BD%AE" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3.8 bean配置</h3>
-
-<p>简化版的spring bean管理，</p>
-
-<div class="highlight highlight-source-lua"><pre>id <span class="pl-k">=</span> {  <span class="pl-c">--bean id</span>
-  class <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>, <span class="pl-c">--类地址</span>
-  arg <span class="pl-k">=</span> { <span class="pl-c">--构造参数注入</span>
-    {value<span class="pl-k">/</span>ref <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>} <span class="pl-c">--value直接赋值，ref引用其他bean</span>
-  },
-  property <span class="pl-k">=</span> { <span class="pl-c">--set方法注入，必须实现set_${name}方法</span>
-    {name <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>,value<span class="pl-k">/</span>ref <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>}
-  },
-  init_method <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>,<span class="pl-c">--初始化方法，默认使用init()</span>
-  single <span class="pl-k">=</span> <span class="pl-c1">0</span>  <span class="pl-c">-- 是否单例，默认是</span>
-}</pre></div>
-
-<p>例如：</p>
-
-<div class="highlight highlight-source-lua"><pre>mysql <span class="pl-k">=</span> {
-    class <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>luastar.db.mysql<span class="pl-pds">"</span></span>,
-    arg <span class="pl-k">=</span> {
-        { value <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>${mysql}<span class="pl-pds">"</span></span> }
-    }
-}
-redis <span class="pl-k">=</span> {
-    class <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>luastar.db.redis<span class="pl-pds">"</span></span>,
-    arg <span class="pl-k">=</span> {
-        { value <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>${redis}<span class="pl-pds">"</span></span> }
-    }
-}
-paramService <span class="pl-k">=</span> {
-    class <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>com.lajin.service.common.paramService<span class="pl-pds">"</span></span>
-}
-testService <span class="pl-k">=</span> {
-    class <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>com.lajin.service.test.testService<span class="pl-pds">"</span></span>,
-    arg <span class="pl-k">=</span> { { ref <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>redis<span class="pl-pds">"</span></span> } }
-}
-_include_ <span class="pl-k">=</span> {
-    <span class="pl-s"><span class="pl-pds">"</span>/config/bean_uc.lua<span class="pl-pds">"</span></span>
-}</pre></div>
-
-<p>bean配置文件也支持<em>include</em>引入其他配置的语法
-注：在类中定义的方法最好使用类的模式，可以使用luastar框架中的class类定义：</p>
-
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> testService <span class="pl-k">=</span> <span class="pl-c1">Class</span>(<span class="pl-s"><span class="pl-pds">"</span>com.luastar.demo.service.test.testService<span class="pl-pds">"</span></span>)
-<span class="pl-k">local</span> table_util <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">"</span>luastar.util.table<span class="pl-pds">"</span></span>)
-
-<span class="pl-k">function</span> <span class="pl-en">testService:</span><span class="pl-en">init</span>(<span class="pl-smi">redis_util</span>)
-    <span class="pl-v">self</span>.<span class="pl-smi">redis_util</span> <span class="pl-k">=</span> redis_util
-<span class="pl-k">end</span>
-
-<span class="pl-c">--[[</span>
-<span class="pl-c">-- 根据uid获取用户信息</span>
-<span class="pl-c">--]]</span>
-<span class="pl-k">function</span> <span class="pl-en">testService:</span><span class="pl-en">getUserInfo</span>(<span class="pl-smi">uid</span>)
-    <span class="pl-k">if</span> _.<span class="pl-c1">isEmpty</span>(uid) <span class="pl-k">then</span>
-        <span class="pl-k">return</span> <span class="pl-c1">nil</span>
-    <span class="pl-k">end</span>
-    <span class="pl-k">local</span> redis <span class="pl-k">=</span> <span class="pl-v">self</span>.<span class="pl-smi">redis_util</span>:<span class="pl-c1">getConnect</span>()
-    <span class="pl-k">local</span> userinfo <span class="pl-k">=</span> table_util.<span class="pl-c1">array_to_hash</span>(redis:<span class="pl-c1">hgetall</span>(<span class="pl-s"><span class="pl-pds">"</span>user:info:<span class="pl-pds">"</span></span> <span class="pl-k">..</span> uid))
-    <span class="pl-v">self</span>.<span class="pl-smi">redis_util</span>:<span class="pl-c1">close</span>(redis)
-    <span class="pl-k">if</span> _.<span class="pl-c1">isEmpty</span>(userinfo) <span class="pl-k">then</span>
-        ngx.<span class="pl-c1">log</span>(logger.<span class="pl-c1">e</span>(<span class="pl-s"><span class="pl-pds">"</span>userinfo is empty, uid=<span class="pl-pds">"</span></span>, uid))
-        <span class="pl-k">return</span> <span class="pl-c1">nil</span>
-    <span class="pl-k">end</span>
-    ngx.<span class="pl-c1">log</span>(logger.<span class="pl-c1">i</span>(cjson.<span class="pl-c1">encode</span>(userinfo)))
-    <span class="pl-k">return</span> userinfo
-<span class="pl-k">end</span>
-
-<span class="pl-k">return</span> testService</pre></div>
-
-<p>在代码中调用：</p>
-
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">local</span> beanFactory <span class="pl-k">=</span> luastar_context.<span class="pl-c1">getBeanFactory</span>()
-<span class="pl-k">local</span> mysql_util <span class="pl-k">=</span> beanFactory:<span class="pl-c1">getBean</span>(<span class="pl-s"><span class="pl-pds">"</span>mysql<span class="pl-pds">"</span></span>)</pre></div>
-
-<h3>
-<a id="39-ctrl类" class="anchor" href="#39-ctrl%E7%B1%BB" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>3.9 ctrl类</h3>
-
-<p>默认给ctrl类的请求处理方法传入了request和response对象，也可通过ngx.ctx.request和ngx.ctx.response获取</p>
-
-<div class="highlight highlight-source-lua"><pre><span class="pl-k">function</span> <span class="pl-en">hello</span>(<span class="pl-smi">request, response</span>)
-    <span class="pl-k">local</span> name <span class="pl-k">=</span> request:<span class="pl-c1">get_arg</span>(<span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>) <span class="pl-k">or</span> <span class="pl-s"><span class="pl-pds">"</span>world, try to give a param with name.<span class="pl-pds">"</span></span>
-    response:<span class="pl-c1">writeln</span>(<span class="pl-s"><span class="pl-pds">"</span>hello, <span class="pl-pds">"</span></span> <span class="pl-k">..</span> name)
-<span class="pl-k">end</span></pre></div>
-
-<p>可以通过request:get_arg("name", "default")获取参数，支持get、post参数，支持文件上传。</p>
-
-<h2>
-<a id="9-联系方式" class="anchor" href="#9-%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>9 联系方式</h2>
-
-<h3>
-<a id="qq群545501138" class="anchor" href="#qq%E7%BE%A4545501138" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>QQ群：545501138</h3>
-
-<h3>
-<a id="email19102630163com" class="anchor" href="#email19102630163com" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Email：<a href="mailto:19102630@163.com">19102630@163.com</a>
-</h3>
-
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/luastar/luastar">luastar</a> is maintained by <a href="https://github.com/luastar">luastar</a>.</span>
-
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
-
-    </section>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/luastar" class="avatar"><img src="https://avatars2.githubusercontent.com/u/12046576?v=3&amp;s=60" width="48" height="48"></a> <a href="https://github.com/luastar">luastar</a> maintains <a href="https://github.com/luastar/luastar">luastar</a></p>
+
+
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br>theme by <a href="https://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/luastar/luastar/tarball/master" class="tar">tar</a><a href="https://github.com/luastar/luastar/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
 
   
-  </body>
+</body>
 </html>
