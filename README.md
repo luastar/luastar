@@ -7,14 +7,36 @@ luastar目前只在macOS和centos系统上测试过。
 请参考官网介绍，建议安装目录：/usr/local/openresty
 ###2.2 luastar 安装
 下载项目到到硬盘上，如：/data/apps/luastar下。
-可修改配置文件(luastar/conf/luastar*.conf)中的相关路径为openresty安装路径和项目存放路径，可配置多个不同环境的配置文件。
+修改配置文件(luastar/conf/luastar*.conf)中的相关路径为openresty安装路径和项目存放路径，如下：
+
+```lua
+# set search paths for pure Lua external libraries (';;' is the default path):
+lua_package_path '/data/apps/luastar/luastar/libs/?.lua;/data/apps/luastar/luastar/src/?.lua;;';
+lua_package_cpath '/data/apps/luastar/luastar/libs/?.so;;';
+
+#init luastar
+init_by_lua_file '/data/apps/luastar/luastar/src/luastar_init.lua';
+
+server {
+  listen 8001;
+  server_name localhost;
+  set $LUASTAR_PATH '/data/apps/luastar/luastar';
+  set $APP_NAME 'demo';
+  set $APP_PATH '/data/apps/luastar/demo';
+  access_log /data/logs/demo/access.log  main;
+  error_log  /data/logs/demo/error.log   info;
+  location / {
+    default_type text/html;
+    content_by_lua_file '${LUASTAR_PATH}/src/luastar_content.lua';
+  }
+}
+```
+这里有多个不同环境的配置文件（luastar_dev.conf/luastar_test.conf/laustar.conf），可以在nginx配置文件中引入所需要的一个。
 例如：
-开发环境（luastar_dev.conf）中增加了调试工具路径并关闭了代码缓存。
-开发调试可使用[ZeroBrane Studio](http://studio.zerobrane.com/)，详细请参考后继章节。
-关闭代码缓存可在修改代码后不必每次重启nginx。
+开发环境（luastar_dev.conf）是在macOS系统上的，增加了特有的"?.dylib"库，同时增加了调试工具[ZeroBrane Studio](http://studio.zerobrane.com/)路径，并且关闭了代码缓存，可在修改代码后不必每次重启nginx。
 ###2.3 nginx 配置
 修改 openresty/nginx/conf/nginx.conf，引入luastar项目配置文件：
-include /data/apps/luastar/luastar/conf/luastar_dev.conf;
+include "/data/apps/luastar/luastar/conf/luastar_test.conf";
 ###2.4 hello world
 启动openresty：
 openresty/nginx/sbin/nginx -c openresty/nginx/conf/nginx.conf
@@ -69,6 +91,7 @@ luastar在初始化时，定义了几个常用的工具，在项目中可以直�
 
 ###3.3 缓存
 在项目中，如果有需要缓存的数据，可使用luastar_cache来存放和读取
+
 ```lua
 luastar_cache.get("app_config")
 luastar_cache.set("app_config", app_config)
@@ -86,12 +109,14 @@ local redis_util = beanFactory:getBean("redis")
 ###3.5 日志
 luastar日志直接使用openresty中提供的ngx.log实现，之前有使用第三方log包写文件，但效果不太理想，容易丢失日志。
 luastar提供了一个辅助类，主要用于日志跟踪。
+
 ```lua
 ngx.log(logger.info(p1,p2,p3,...))
 -- 也可以使用简写
 ngx.log(logger.i(p1,p2,p3,...))
 ```
 设计在每次请求中生成一个request_id，在使用上述方式输出的日志中都会带有该标识，例如：--[MJw7NMaz5cGn6u3TV9hM]--。
+
 ```log
 2016/10/11 17:01:11 [info] 90429#0: *8 [lua] hello.lua:9: --[MJw7NMaz5cGn6u3TV9hM]--name=world, try to give a param with name., client: 127.0.0.1, server: localhost, request: "GET /api/test/hello HTTP/1.1", host: "localhost:8001"
 ```
@@ -99,7 +124,8 @@ ngx.log(logger.i(p1,p2,p3,...))
 项目配置可根据不同环境配置多个，
 例如在测试环境的luastar/conf/luastar_test.conf中设置：
 set $APP_CONFIG '/config/app_test.lua';
-```conf
+
+```lua
 server {
   listen 8001;
   server_name localhost;
@@ -116,6 +142,7 @@ server {
 }
 ```
 配置文件直接使用lua语法，例如：
+
 ```lua
 --[[
 应用配置文件
@@ -149,10 +176,12 @@ _include_ = {
 ```
 _include_ 是一个特殊的用法，支持配置文件嵌套引入。
 在代码中可通过luastar_config.getConfig来获取：
+
 ```lua
 local access_token_url = luastar_config.getConfig("weixin")["access_token_url"]
 ```
 也可以在bean.conf中通过${weixin.access_token_url}获取
+
 ```lua
 mysql = {
     class = "luastar.db.mysql",
@@ -164,6 +193,7 @@ mysql = {
 配置文件在nginx启动时读取，并存放在缓存中。
 ###3.7 路由和拦截器
 路由和拦截器在demo/conf/route.lua文件中配置，例如：
+
 ```lua
 route = {
     { "/api/test/hello", "com.luastar.demo.ctrl.test.hello", "hello" },
@@ -184,6 +214,7 @@ interceptor = {
 路由是一个二维数组，每一行表示一个接口地址，第一列表示请求地址（目前只支持全匹配），第二列表示对应的处理类，第三列表示处理类中的方法。
 例如：当请求http://localhost:8001/api/test/hello时，由com.luastar.demo.ctrl.test.hello类的hello方法处理。
 拦截器与路由稍有不同，每一行指定了属性，url代表拦截的请求，支持lua的模式匹配，class代表拦截器实现，excludes表示排除不处理的请求。
+
 ```lua
 interceptor = {
   {url="url1", class="file"},
@@ -194,6 +225,7 @@ interceptor = {
 beforeHandle方法返回一个布尔类型的值，返回true继续执行后续处理，返回false中止退出。
 ###3.8 bean配置
 简化版的spring bean管理，
+
 ```lua
 id = {	--bean id
   class = "", --类地址
@@ -208,6 +240,7 @@ id = {	--bean id
 }
 ```
 例如：
+
 ```lua
 mysql = {
     class = "luastar.db.mysql",
@@ -234,6 +267,7 @@ _include_ = {
 ```
 bean配置文件也支持_include_引入其他配置的语法
 注：在类中定义的方法最好使用类的模式，可以使用luastar框架中的class类定义：
+
 ```lua
 local testService = Class("com.luastar.demo.service.test.testService")
 local table_util = require("luastar.util.table")
@@ -264,12 +298,14 @@ return testService
 ```
 
 在代码中调用：
+
 ```lua
 local beanFactory = luastar_context.getBeanFactory()
 local mysql_util = beanFactory:getBean("mysql")
 ```
 ###3.9 ctrl类
 默认给ctrl类的请求处理方法传入了request和response对象，也可通过ngx.ctx.request和ngx.ctx.response获取
+
 ```lua
 function hello(request, response)
     local name = request:get_arg("name") or "world, try to give a param with name."
