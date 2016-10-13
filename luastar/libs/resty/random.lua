@@ -1,3 +1,4 @@
+local require    = require
 local ffi        = require "ffi"
 local ffi_cdef   = ffi.cdef
 local ffi_new    = ffi.new
@@ -8,6 +9,8 @@ local type       = type
 local random     = math.random
 local randomseed = math.randomseed
 local concat     = table.concat
+local tostring   = tostring
+local pcall      = pcall
 
 ffi_cdef[[
 typedef unsigned char u_char;
@@ -17,7 +20,7 @@ int RAND_bytes(u_char *buf, int num);
 
 local ok, new_tab = pcall(require, "table.new")
 if not ok then
-    new_tab = function (narr, nrec) return {} end
+    new_tab = function () return {} end
 end
 
 local alnum  = {
@@ -28,7 +31,7 @@ local alnum  = {
     '0','1','2','3','4','5','6','7','8','9'
 }
 
-local t = ffi_typeof("uint8_t[?]")
+local t = ffi_typeof "uint8_t[?]"
 
 local function bytes(len, format)
     local s = ffi_new(t, len)

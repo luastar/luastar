@@ -192,7 +192,7 @@ mysql = {
 ```
 配置文件在nginx启动时读取，并存放在缓存中。
 ###3.7 路由和拦截器
-路由和拦截器在demo/conf/route.lua文件中配置，例如：
+路由和拦截器在demo/config/route.lua文件中配置，例如：
 
 ```lua
 route = {
