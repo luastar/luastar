@@ -79,7 +79,12 @@ function Request:get_post_arg(name, default)
     if not name then return default end
     if not self.post_args then
         ngx.req.read_body()
-        self.post_args = pcall(ngx.req.get_post_args) or {}
+        local call_ok, post_args = pcall(ngx.req.get_post_args)
+        if call_ok then
+            self.post_args = post_args or {}
+        else
+            self.post_args = {}
+        end
     end
     local arg = self.post_args[name]
     if not arg then return default end

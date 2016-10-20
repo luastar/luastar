@@ -5,7 +5,6 @@ local Response = Class("luastar.core.Response")
 
 function Response:init()
     ngx.log(ngx.DEBUG, "[Response:init] start.")
-    self.headers = ngx.header
     self._output = {}
     self._cookies = {}
     self._eof = false
@@ -32,10 +31,18 @@ function Response:redirect(url, status)
     ngx.redirect(url, status)
 end
 
+function Response:set_header(key, value)
+    if _.isEmpty(key) or _.isEmpty(value) then
+        ngx.log(ngx.ERR, "response set header key or value is empty.")
+        return
+    end
+    ngx.header[key] = value
+end
+
 function Response:set_cookie(key, value, encrypt, duration, path)
     local cookie = self:_set_cookie(key, value, encrypt, duration, path)
     self._cookies[key] = cookie
-    ngx.header["Set-Cookie"] = _.values(self._cookies)
+    self:set_header("Set-Cookie", _.values(self._cookies))
 end
 
 function Response:_set_cookie(key, value, encrypt, duration, path)
@@ -64,18 +71,19 @@ function Response:error(info)
         return
     end
     ngx.status = 500
-    self.headers['Content-Type'] = 'text/html; charset=utf-8'
+    self:set_header("Content-Type", "text/html; charset=utf-8")
     self:write(info)
 end
 
 function Response:finish()
     if self._eof then
+        ngx.log(ngx.ERR, "response has been explicitly finished before.")
         return
     end
-    self._eof = true
-    ngx.print(self._output)
-    self._output = nil
-    local ok, ret = pcall(ngx.eof)
+    self._eof = true -- 标记结束
+    ngx.print(self._output) -- 输出
+    self._output = nil -- 清空内容
+    local ok, ret = pcall(ngx.eof) -- 关闭链接
     if not ok then
         ngx.log(ngx.ERR, "ngx.eof() error:" .. ret)
     end
