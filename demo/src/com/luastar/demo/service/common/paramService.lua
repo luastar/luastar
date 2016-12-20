@@ -1,8 +1,7 @@
-#!     /usr/bin/env lua
 --[[
     输入参数检验
-]]
-local paramService = Class("com.luastar.demo.service.common.paramService")
+--]]
+local paramService = Class()
 
 local str_util = require("luastar.util.str")
 local table_util = require("luastar.util.table")

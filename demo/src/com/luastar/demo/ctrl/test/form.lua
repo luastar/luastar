@@ -1,11 +1,11 @@
-#!/usr/bin/env lua
 --[[
 
 --]]
-module(..., package.seeall)
+local _M = {}
+
 local file_util = require("luastar.util.file")
 
-function form(request, response)
+function _M.form(request, response)
     local form = {}
     form["phone"] = request:get_arg("phone") or ""
     form["userName"] = request:get_arg("userName") or ""
@@ -29,3 +29,5 @@ function form(request, response)
     end
     response:writeln(cjson.encode(form))
 end
+
+return _M

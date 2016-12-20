@@ -6,6 +6,13 @@
 -- @release 1.4.0
 -- @module moses
 
+--[[
+ 修改点：
+ 1、修改 isEmpty
+ 2、增加 eachArray方法
+ 3、增加 mapArray方法
+--]]
+
 local _MODULEVERSION = '1.4.0'
 
 -- Internalisation
@@ -80,6 +87,12 @@ local unique_id_counter = -1
 function _.each(t, f, ...)
   for index,value in pairs(t) do
     f(index,value,...)
+  end
+end
+
+function _.eachArray(t, f, ...)
+  for index, value in ipairs(t) do
+    f(index, value, ...)
   end
 end
 
@@ -183,6 +196,17 @@ function _.map(t, f, ...)
   local _t = {}
   for index,value in pairs(t) do
     _t[index] = f(index,value,...)
+  end
+  return _t
+end
+
+--[[
+--  对数组的map操作
+--]]
+function _.mapArray(t, f, ...)
+  local _t = {}
+  for index,value in ipairs(t) do
+    _t[#_t + 1] = f(index, value, ...)
   end
   return _t
 end

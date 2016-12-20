@@ -1,9 +1,9 @@
 --[[
 
 --]]
-module(..., package.seeall)
+local _M = {}
 
-function split(str, delim, maxNb)
+function _M.split(str, delim, maxNb)
     -- Eliminate bad cases...
     if string.find(str, delim) == nil then
         return { str }
@@ -28,7 +28,7 @@ function split(str, delim, maxNb)
     return result
 end
 
-function startsWith(str, substr)
+function _M.startsWith(str, substr)
     if str == nil or substr == nil then
         return false
     end
@@ -39,7 +39,7 @@ function startsWith(str, substr)
     end
 end
 
-function endsWith(str, substr)
+function _M.endsWith(str, substr)
     if str == nil or substr == nil then
         return false
     end
@@ -51,19 +51,47 @@ function endsWith(str, substr)
     end
 end
 
-function indexOf(str, substr)
+function _M.indexOf(str, substr)
     return string.find(str, substr, 1, true)
 end
 
-function lastIndexOf(str, substr)
+function _M.lastIndexOf(str, substr)
     return string.match(str, '.*()' .. substr)
 end
 
-function trim(str)
+function _M.fmtstring(str, data)
+    -- 找出所有${}变量
+    local varAry = {}
+    for word in string.gmatch(str, "%${[%w_]+}") do
+        local var = string.sub(word, 3, string.len(word) - 1) -- sub ${}
+        table.insert(varAry, var)
+    end
+    -- 替换变量
+    for i, key in ipairs(varAry) do
+        local value = data[key]
+        if value ~= nil then
+            value = string.gsub(tostring(value), "%%", "%%%%")
+            str = string.gsub(str, "${" .. key .. "}", value)
+        end
+    end
+    return str
+end
+
+function _M.trim(str)
     return str:match '^()%s*$' and '' or str:match '^%s*(.*%S)'
 end
 
-function encode_url(str)
+function _M.equalsIgnoreCase(str1, str2)
+    if str1 == str2 then
+        return true
+    end
+    if str1 and str2 and string.upper(str1) == string.upper(str2) then
+        return true
+    end
+    return false
+end
+
+function _M.encode_url(str)
     if (str) then
         str = string.gsub(str, "\n", "\r\n")
         str = string.gsub(str, "([^%w %-%_%.%~])",
@@ -74,7 +102,7 @@ function encode_url(str)
     return str
 end
 
-function decode_url(str)
+function _M.decode_url(str)
     str = string.gsub(str, "+", " ")
     str = string.gsub(str, "%%(%x%x)",
         function(h) return string.char(tonumber(h, 16)) end)
@@ -83,38 +111,30 @@ function decode_url(str)
 end
 
 -- encode base64  
-function encode_base64(str)
+function _M.encode_base64(str)
     return ngx.encode_base64(str)
 end
 
 -- decode base64  
-function decode_base64(str)
+function _M.decode_base64(str)
     return ngx.decode_base64(str)
 end
 
 -- md5 
-function md5(str)
+function _M.md5(str)
     return ngx.md5(str)
 end
 
 -- sha1
-function sha1(str)
+function _M.sha1(str)
     local resty_str = require("resty.string")
     return resty_str.to_hex(ngx.sha1_bin(str))
 end
 
 -- hmac_sha1
-function hmac_sha1(secret_key, str)
+function _M.hmac_sha1(secret_key, str)
     local resty_str = require("resty.string")
     return resty_str.to_hex(ngx.hmac_sha1(secret_key, str))
 end
-
-function isNil(obj)
-    if obj == nil then return true end
-    if type(obj) == 'boolean' then return not obj end
-    if type(obj) == 'string' then return #obj == 0 end
-    if type(obj) == 'table' then return _.size(obj) == 0 end
-    if type(obj) == 'userdata' then return true end
-    return false
-end
 	
+return _M

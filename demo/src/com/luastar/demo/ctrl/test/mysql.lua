@@ -1,12 +1,12 @@
-#!/usr/bin/env lua
 --[[
 
 --]]
-module(..., package.seeall)
-local sql_util = require("luastar.util.sql")
-local beanFactory = luastar_context.getBeanFactory()
 
-function mysql(request, response)
+local _M = {}
+
+local sql_util = require("luastar.util.sql")
+
+function _M.mysql(request, response)
     local name = request:get_arg("name") or ""
     local sql_table = {
         sql = [[
@@ -24,6 +24,7 @@ function mysql(request, response)
     }
     local data = { userName = name, start = 0, limit = 10 }
     local sql = sql_util.getsql(sql_table, data)
+    local beanFactory = luastar_context.getBeanFactory()
     local mysql_util = beanFactory:getBean("mysql")
     local mysql = mysql_util:getConnect()
     local res, err, errno, sqlstate = mysql:query(sql)
@@ -37,8 +38,9 @@ function mysql(request, response)
     }))
 end
 
-function transaction(request, response)
+function _M.transaction(request, response)
     local result_table = {}
+    local beanFactory = luastar_context.getBeanFactory()
     local mysql_util = beanFactory:getBean("mysql")
     local mysql = mysql_util:getConnect()
     -- start transaction
@@ -67,3 +69,5 @@ function transaction(request, response)
     mysql_util:close(mysql)
     response:writeln(cjson.encode(result_table))
 end
+
+return _M

@@ -2,11 +2,10 @@
 
 --]]
 --require('mobdebug').start("127.0.0.1")
-
+local resty_random = require("resty.random")
 local Request = require("luastar.core.request")
 local Response = require("luastar.core.response")
 local db_monitor = require("luastar.db.monitor")
-local resty_random = require("resty.random")
 
 -- 执行变量
 local execute_var = {
@@ -45,15 +44,16 @@ function init()
 end
 
 function content()
+    -- 初始化
     init()
+    -- 提前终止
     if execute_var["stop"] then
-        -- openresty/1.7.10.1及以前版本的bug
-        -- 必须调用ngx.req.read_body()或ngx.req.discard_body()处理请求体
-        -- 因为第一个请求的请求体如果没有读取，会被错误地当作下一个请求的请求头来解析
+        -- 清除请求体（openresty-1.7.10.1 bug），如果没有清除，会将请求体放到下次请求的header中
         ngx.req.discard_body()
         ngx.exit(execute_var["status"])
         return
     end
+    -- 执行ctrl方法
     if execute_var["ctrl"].new then
         execute_ctrl_new()
     else
@@ -61,7 +61,9 @@ function content()
     end
     -- 监控数据库连接
     db_monitor.check("redis_connect", "mysql_connect")
+    -- 输出内容
     ngx.ctx.response:finish()
+    -- 清除请求体（openresty-1.7.10.1 bug），如果没有清除，会将请求体放到下次请求的header中
     ngx.req.discard_body()
 end
 
@@ -69,7 +71,9 @@ function execute_ctrl_new()
     local interceptor_ok, interceptor_msg = execute_before()
     if not interceptor_ok then
         ngx.log(ngx.INFO, "interceptor ctrl success.")
-        ngx.ctx.response:writeln(interceptor_msg)
+        if interceptor_msg then
+            ngx.ctx.response:writeln(interceptor_msg)
+        end
         return
     end
     local ctrl_instance = execute_var["ctrl"]:new()
@@ -86,7 +90,9 @@ function execute_ctrl_fun()
     local interceptor_ok, interceptor_msg = execute_before()
     if not interceptor_ok then
         ngx.log(ngx.INFO, "interceptor ctrl success.")
-        ngx.ctx.response:writeln(interceptor_msg)
+        if interceptor_msg then
+            ngx.ctx.response:writeln(interceptor_msg)
+        end
         return
     end
     local ctrl = execute_var["ctrl"]
@@ -111,7 +117,7 @@ function execute_before()
             if call_ok then
                 -- 有一个返回失败，则返回
                 if not rs_ok then
-                    return false, rs_msg or "intercept by interceptor."
+                    return false, rs_msg
                 end
             else
                 ngx.log(ngx.ERR, "interceptor call beforeHandle fail : ", rs_ok)
@@ -120,7 +126,7 @@ function execute_before()
             ngx.log(ngx.ERR, "interceptor require fail : ", interceptor)
         end
     end
-    return true, "not intercept by interceptor."
+    return true, "interceptor ok."
 end
 
 function execute_after(ctrl_call_ok, err_info)
@@ -142,6 +148,8 @@ function execute_after(ctrl_call_ok, err_info)
 end
 
 -- 执行
-content()
+do
+    content()
+end
 
 --require('mobdebug').done()

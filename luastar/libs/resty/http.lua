@@ -1,7 +1,6 @@
 --[[
 -- https://github.com/liseen/lua-resty-http
 --]]
-
 module("resty.http", package.seeall)
 
 _VERSION = '0.2'
@@ -19,7 +18,7 @@ local USERAGENT = 'resty.http/' .. _VERSION
 -- default url parts
 local default = {
     host = "",
-    port = "",
+    port = PORT,
     path ="/",
     scheme = "http"
 }
@@ -39,10 +38,10 @@ local function adjusturi(reqt)
     -- if there is a proxy, we need the full url. otherwise, just a part.
     if not reqt.proxy and not PROXY then
         u = {
-           path = reqt.path,
-           params = reqt.params,
-           query = reqt.query,
-           fragment = reqt.fragment
+            path = reqt.path,
+            params = reqt.params,
+            query = reqt.query,
+            fragment = reqt.fragment
         }
     end
     return url.build(u)
@@ -60,7 +59,7 @@ local function adjustheaders(reqt)
     -- if we have authentication information, pass it along
     if reqt.user and reqt.password then
         lower["authorization"] =
-            "Basic " ..  (base64(reqt.user .. ":" .. reqt.password))
+        "Basic " ..  (base64(reqt.user .. ":" .. reqt.password))
     end
     -- override with user headers
     for i,v in pairs(reqt.headers or lower) do
@@ -152,11 +151,11 @@ local function receiveheaders(sock, headers)
         end
         -- save pair in table
         if headers[name] then
-	    if name == "set-cookie" then
-	        headers[name] = headers[name] .. "," .. value
-	    else
-	        headers[name] = headers[name] .. ", " .. value
-	    end
+            if name == "set-cookie" then
+                headers[name] = headers[name] .. "," .. value
+            else
+                headers[name] = headers[name] .. ", " .. value
+            end
         else headers[name] = value end
     end
     return headers
@@ -202,7 +201,9 @@ local function receivebody(sock, headers, nreqt)
         while true do
             local chunk_header = sock:receiveuntil("\r\n")
             local data, err, partial = chunk_header()
-            if not err then
+            if not data then
+                return nil,err
+            else
                 if data == "0" then
                     return body -- end of chunk
                 else
@@ -241,11 +242,11 @@ end
 
 local function shouldredirect(reqt, code, headers)
     return headers.location and
-           string.gsub(headers.location, "%s", "") ~= "" and
-           (reqt.redirect ~= false) and
-           (code == 301 or code == 302) and
-           (not reqt.method or reqt.method == "GET" or reqt.method == "HEAD")
-           and (not reqt.nredirects or reqt.nredirects < 5)
+            string.gsub(headers.location, "%s", "") ~= "" and
+            (reqt.redirect ~= false) and
+            (code == 301 or code == 302) and
+            (not reqt.method or reqt.method == "GET" or reqt.method == "HEAD")
+            and (not reqt.nredirects or reqt.nredirects < 5)
 end
 
 
@@ -285,7 +286,7 @@ function request(self, reqt)
     if req_body then
         req_body_type = type(req_body)
         if req_body_type == 'string' then -- fixed Content-Length
-            nreqt.headers['content-length'] = #req_body
+        nreqt.headers['content-length'] = #req_body
         end
     end
 
@@ -295,24 +296,24 @@ function request(self, reqt)
     for i, v in pairs(nreqt.headers) do
         -- fix cookie is a table value
         if type(v) == "table" then
-    		if i == "cookie" then
-				v = table.concat(v, "; ")
-			else
-				v = table.concat(v, ", ")
-			end
+            if i == "cookie" then
+                v = table.concat(v, "; ")
+            else
+                v = table.concat(v, ", ")
+            end
         end
         h = i .. ": " .. v .. "\r\n" .. h
     end
 
     h = h .. '\r\n' -- close headers
 
-	-- @modify: add ssl support
-	if nreqt.scheme == 'https' then
-		local sess, err = sock:sslhandshake();
-		if err then
-			return nil, err;
-		end
-	end
+    -- @modify: add ssl support
+    if nreqt.scheme == 'https' then
+        local sess, err = sock:sslhandshake();
+        if err then
+            return nil, err;
+        end
+    end
 
     bytes, err = sock:send(reqline .. h)
     if err then
@@ -330,13 +331,13 @@ function request(self, reqt)
     elseif req_body_type == 'file' then
         local buf = nil
         while true do -- TODO chunked maybe better
-            buf = req_body:read(8192)
-            if not buf then break end
-            bytes, err = sock:send(buf)
-            if err then
-                sock:close()
-                return nil, err
-            end
+        buf = req_body:read(8192)
+        if not buf then break end
+        bytes, err = sock:send(buf)
+        if err then
+            sock:close()
+            return nil, err
+        end
         end
     elseif req_body_type == 'function' then
         err = req_body(sock) -- as callback(sock)
@@ -393,8 +394,13 @@ function request(self, reqt)
         end
     end
 
+    -- read CR/LF or LF otherwise thorw 'unread data in buffer' error
+    sock:receive("*l")
     if nreqt.keepalive then
-        sock:setkeepalive(nreqt.keepalive)
+        local ok, err = sock:setkeepalive(nreqt.keepalive)
+        if not ok then
+            ngx.log(ngx.WARN, "failed to set keepalive: " .. err)
+        end
     else
         sock:close()
     end

@@ -11,8 +11,8 @@ mysql = {
     pool_size = 1000
 }
 redis = {
-    host = "10.1.1.2",
-    port = "6379",
+    host = "10.1.1.4",
+    port = "6382",
     auth = "lajin@2015",
     timeout = 30000,
     pool_size = 1000

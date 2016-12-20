@@ -1,13 +1,12 @@
-#!/usr/bin/env lua
 --[[
 
 --]]
-module(..., package.seeall)
+local _M = {}
 
 --[[
  获取普通参数/文件参数/请求体例子
 --]]
-function hello(request, response)
+function _M.hello(request, response)
     -- request:get_arg 支持获取get,post（含文件）方式传过来的参数
     local name = request:get_arg("name") or "world, try to give a param with name."
     ngx.log(logger.i("name=", name))
@@ -30,8 +29,8 @@ end
 --[[
  输出图片
 --]]
-function pic(request, response)
-    local file = io.open("/Users/zhuminghua/Downloads/output/a.jpg","rb")
+function _M.pic(request, response)
+    local file = io.open("/Users/zhuminghua/Desktop/测试/图像/01/pic_001.jpg","rb")
     local file_content = file:read("*a")
     file:close()
     --[[
@@ -42,3 +41,5 @@ function pic(request, response)
     response:set_header("Pragma","no-cache")
     response:write(file_content)
 end
+
+return _M

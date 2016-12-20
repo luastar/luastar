@@ -1,8 +1,7 @@
-#!/usr/bin/env lua
 --[[
 
 --]]
-local testService = Class("com.luastar.demo.service.test.testService")
+local testService = Class()
 local table_util = require("luastar.util.table")
 
 function testService:init(redis_util)

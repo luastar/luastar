@@ -1,4 +1,3 @@
-#!     /usr/bin/env lua
 --[[
 id = {
   class = "",

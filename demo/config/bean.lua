@@ -1,15 +1,14 @@
-#!     /usr/bin/env lua
 --[[
-id = {
-  class = "",
-  arg = {
-    {value/ref = ""}
+id = { -- bean id
+  class = "", -- 类地址
+  arg = { -- 构造参数注入
+    {value/ref = ""} -- value赋值，ref引用其他bean
   },
-  property = {
+  property = { -- set方法注入，实现set_${name}方法
     {name = "",value/ref = ""}
   },
-  init_method = "",
-  single = 0  -- default 1
+  init_method = "", -- 初始化方法，默认使用init()
+  single = 0  -- 是否单例，默认是1
 }
 --]]
 mysql = {
@@ -25,10 +24,10 @@ redis = {
     }
 }
 paramService = {
-    class = "com.lajin.service.common.paramService"
+    class = "com.luastar.demo.service.common.paramService"
 }
 testService = {
-    class = "com.lajin.service.test.testService",
+    class = "com.luastar.demo.service.test.testService",
     arg = { { ref = "redis" } }
 }
 

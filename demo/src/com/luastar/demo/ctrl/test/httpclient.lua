@@ -1,13 +1,15 @@
 --[[
     httpclient使用示例
 --]]
-module(..., package.seeall)
+
+local _M = {}
+
 local httpclient = require("luastar.util.httpclient")
 
 --[[
     访问百度
 --]]
-function baidu(request, response)
+function _M.baidu(request, response)
     --[[
         httpclient.request_http({
             url = url,
@@ -33,7 +35,7 @@ end
 --[[
     代理转发
 --]]
-function proxy(request, response)
+function _M.proxy(request, response)
     local request_method = request.request_method
     local query_string = request.query_string or ""
     local headers = request.headers
@@ -56,3 +58,5 @@ function proxy(request, response)
     end
     response:writeln(res_body)
 end
+
+return _M

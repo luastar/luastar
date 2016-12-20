@@ -1,3 +1,6 @@
+--[[
+https://github.com/bungle/lua-resty-random
+--]]
 local require    = require
 local ffi        = require "ffi"
 local ffi_cdef   = ffi.cdef

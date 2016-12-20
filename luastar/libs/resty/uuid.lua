@@ -1,14 +1,19 @@
-local ffi          = require "ffi"
-local ffi_new      = ffi.new
-local ffi_str      = ffi.string
-local ffi_load     = ffi.load
-local ffi_cdef     = ffi.cdef
-local C            = ffi.C
-local os           = ffi.os
-local tonumber     = tonumber
+--[[
+https://github.com/bungle/lua-resty-uuid
+--]]
+local ffi = require "ffi"
+local ffi_new = ffi.new
+local ffi_str = ffi.string
+local ffi_load = ffi.load
+local ffi_cdef = ffi.cdef
+local C = ffi.C
+local OSX = ffi.os == "OSX"
+local pcall = pcall
+local assert = assert
+local tonumber = tonumber
 local setmetatable = setmetatable
 
-ffi_cdef[[
+ffi_cdef [[
 typedef unsigned char uuid_t[16];
 typedef long time_t;
 typedef struct timeval {
@@ -26,19 +31,25 @@ typedef struct timeval {
  time_t uuid_time(const uuid_t uu, struct timeval *ret_tv);
 ]]
 
-local lib = os == "OSX" and C or ffi_load("uuid")
-local uid = ffi_new("uuid_t")
+local function L(n)
+    local ok, lib = pcall(ffi_load, n)
+    if ok then return lib end
+    ok, lib = pcall(ffi_load, n .. '.so.1')
+    assert(ok, lib)
+    return lib
+end
+
+local lib = OSX and C or L "uuid"
+local uid = ffi_new "uuid_t"
+local tvl = ffi_new "timeval"
 local buf = ffi_new("char[?]", 36)
-local tvl = ffi_new("timeval")
 
 local uuid = {}
-local mt   = {}
+local mt = {}
 
 local function unparse(id)
     lib.uuid_unparse(id, buf)
-	local str_utils,err2 = require("luastar.util.str")
-	local u = ffi_str(buf, 36)
-    return str_utils.remove(u,"-") 
+    return ffi_str(buf, 36)
 end
 
 local function parse(id)
@@ -61,21 +72,33 @@ function uuid.generate_time()
 end
 
 function uuid.generate_time_safe()
+    assert(not OSX, "uuid_generate_time_safe is not supported on OS X.")
     local safe = lib.uuid_generate_time_safe(uid) == 0
     return unparse(uid), safe
 end
 
 function uuid.type(id)
-    return lib.uuid_type(parse(id))
+    assert(not OSX, "uuid_type is not supported on OS X.")
+    local parsed = parse(id)
+    return parsed and lib.uuid_type(parsed)
 end
 
 function uuid.variant(id)
-    return lib.uuid_variant(parse(id))
+    assert(not OSX, "uuid_variant is not supported on OS X.")
+    local parsed = parse(id)
+    return parsed and lib.uuid_variant(parsed)
 end
 
 function uuid.time(id)
-    local secs = lib.uuid_time(parse(id), tvl)
-    return tonumber(secs), tonumber(tvl.tv_usec)
+    local parsed = parse(id)
+    if parsed then
+        local secs = lib.uuid_time(parsed, tvl)
+        return tonumber(secs), tonumber(tvl.tv_usec)
+    end
+end
+
+function uuid.is_valid(id)
+    return not not parse(id)
 end
 
 mt.__call = uuid.generate
