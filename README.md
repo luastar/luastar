@@ -2,6 +2,7 @@
 luastar是一个基于openresty的高性能高并发开发框架，支持http接口和web开发
 luastar使用openresty-1.7.10.2在macOS和centos6.5系统上测试过。
 luastar主要特性如下：
+
 1. request/response封装
 2. 缓存管理
 3. 配置文件管理
