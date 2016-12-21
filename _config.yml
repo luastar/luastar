@@ -2,7 +2,7 @@ title: luastar
 description: 一个用lua实现的基于openresty的接口(api)开发框架
 google_analytics: 
 show_downloads: true
-theme: jekyll-theme-time-machine
+theme: jekyll-theme-architect
 
 gems:
   - jekyll-mentions
