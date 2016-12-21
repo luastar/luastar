@@ -1,5 +1,5 @@
 title: luastar
-description: 一个用lua实现的基于openresty的接口(api)开发框架
+description: 一个基于openresty的api和web开发框架
 google_analytics: 
 show_downloads: true
 theme: jekyll-theme-architect
