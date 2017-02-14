@@ -15,5 +15,7 @@ luastar主要特性如下：
 7. httpclient等常用工具封装
 8. web支持session和页面模板
 
-详情请查看 [luastar开发文档](https://www.gitbook.com/read/book/luastar/luastar)
+[luastar开发文档](https://www.gitbook.com/read/book/luastar/luastar)
+
+[luastar开发文档.pdf](https://github.com/luastar/luastar/blob/master/luastar.pdf)
 
