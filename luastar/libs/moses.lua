@@ -9,8 +9,9 @@
 --[[
  修改点：
  1、修改 isEmpty
- 2、增加 eachArray方法
- 3、增加 mapArray方法
+ 2、增加 ifEmpty方法
+ 3、增加 eachArray方法
+ 4、增加 mapArray方法
 --]]
 
 local _MODULEVERSION = '1.4.0'
@@ -1608,6 +1609,15 @@ function _.isEmpty(obj)
   if _.isTable(obj) then return _.size(obj)==0 end
   if type(obj) == 'userdata' then return true end
   return false
+end
+
+--- 为空时返回默认值
+function _.ifEmpty(obj, val)
+  if _.isEmpty(obj) then
+    return val
+  else
+    return obj
+  end
 end
 
 --- Checks if the given argument is a *string*.

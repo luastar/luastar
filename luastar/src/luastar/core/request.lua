@@ -178,7 +178,7 @@ function Request:get_request_body()
 		end
 	else
 		self.request_body = ""
-		ngx.log(logger.i("no body found"))
+		-- ngx.log(logger.d("no body found"))
 	end
 	return self.request_body
 end
@@ -207,7 +207,7 @@ function Request:get_header_table(...)
 end
 
 function Request:get_cookie(key, decrypt)
-	local value = ngx.var['cookie_' .. key]
+	local value = ngx.var["cookie_" .. key]
 	if value and value ~= "" and decrypt == true then
 		value = ndk.set_var.set_decode_base64(value)
 		value = ndk.set_var.set_decrypt_session(value)

@@ -11,6 +11,7 @@ LUASTAR_C = {}
 --常用库
 Class = require("luastar.core.class")
 cjson = require("cjson")
+cjson.encode_empty_table_as_object(false)
 _ = require("moses")
 template = require("resty.template")
 template._ = _

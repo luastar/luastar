@@ -16,6 +16,7 @@ function Route:init(config_file)
 	local config = util_file.loadlua(self.config_file)
 	-- 初始化路由配置
 	self.config_route = config["route"] or {}
+	self.config_route_pattern = config["route_pattern"] or {}
 	-- ngx.log(ngx.INFO, "[Route:init] config_route : ", cjson.encode(self.config_route))
 	-- 初始化拦截器配置
 	self.config_interceptor = config["interceptor"] or {}
@@ -27,9 +28,16 @@ function Route:getRoute(uri)
 		ngx.log(ngx.ERR, "[Route:getRoute] uri is nil.")
 		return nil
 	end
+	-- 全匹配
 	for i, val in ipairs(self.config_route) do
-		-- local is,ie = string.find(uri, val)
 		if uri == val[1] or uri == (val[1] .. "/") then
+			return { class = val[2], method = val[3] }
+		end
+	end
+	-- 模式匹配
+	for i, val in ipairs(self.config_route_pattern) do
+		local is, ie = string.find(uri, val[1])
+		if is ~= nil then
 			return { class = val[2], method = val[3] }
 		end
 	end
@@ -45,7 +53,7 @@ function Route:getInterceptor(uri)
 	local interceptorAry = {}
 	_.each(self.config_interceptor, function(i, val)
 		local is, ie = string.find(uri, val["url"])
-		if not is then
+		if is == nil then
 			return
 		end
 		if val["excludes"] and _.contains(val["excludes"], uri) then

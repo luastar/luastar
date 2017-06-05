@@ -3,29 +3,24 @@
 --]]
 local _M = {}
 
-function _M.split(str, delim, maxNb)
-    -- Eliminate bad cases...
-    if string.find(str, delim) == nil then
-        return { str }
-    end
-    if maxNb == nil or maxNb < 1 then
-        maxNb = 0 -- No limit
-    end
+function _M.split(str, sep)
     local result = {}
-    local pat = "(.-)" .. delim .. "()"
-    local nb = 0
-    local lastPos
-    for part, pos in string.gfind(str, pat) do
-        nb = nb + 1
-        result[nb] = part
-        lastPos = pos
-        if nb == maxNb then break end
-    end
-    -- Handle the last field
-    if nb ~= maxNb then
-        result[nb + 1] = string.sub(str, lastPos)
+    local regex = ("([^%s]+)"):format(sep)
+    for each in str:gmatch(regex) do
+        table.insert(result, each)
     end
     return result
+end
+
+function split(inputstr, sep)
+    sep = sep or '%s'
+    local t = {}
+    for field, s in string.gmatch(inputstr, "([^" .. sep .. "]*)(" .. sep .. "?)") do
+        table.insert(t, field)
+        if s == "" then
+            return t
+        end
+    end
 end
 
 function _M.startsWith(str, substr)
@@ -136,5 +131,5 @@ function _M.hmac_sha1(secret_key, str)
     local resty_str = require("resty.string")
     return resty_str.to_hex(ngx.hmac_sha1(secret_key, str))
 end
-	
+
 return _M
