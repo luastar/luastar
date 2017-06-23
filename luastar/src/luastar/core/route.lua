@@ -23,7 +23,19 @@ function Route:init(config_file)
 	-- ngx.log(ngx.INFO, "[Route:init] config_interceptor : ", cjson.encode(self.config_interceptor))
 end
 
-function Route:getRoute(uri)
+--[===[
+全匹配路由，优先级高
+route = {
+  {"url1","file1","method"},
+  {"url2","file2","method"}
+}
+模式匹配路由
+route_pattern = {
+  {"url1","file1","method"},
+  {"url2","file2","method"}
+}
+--]===]
+function Route:getRoute(uri, method)
 	if _.isEmpty(uri) then
 		ngx.log(ngx.ERR, "[Route:getRoute] uri is nil.")
 		return nil
@@ -45,21 +57,73 @@ function Route:getRoute(uri)
 	return nil
 end
 
-function Route:getInterceptor(uri)
+--[===[
+拦截器配置，注：拦截器必须实现beforeHandle和afterHandle方法
+interceptor = {
+    {
+        url = {
+            { "*", "url1", true },  -- method, url, pattern
+            { "POST", "url2", false },
+        },
+        class = "file",
+        excludes = {
+            "url1",
+            "url2"
+        }
+    }
+}
+--]===]
+function Route:getInterceptor(uri, method)
 	if _.isEmpty(uri) then
 		ngx.log(ngx.ERR, "[Route:getRoute] uri is nil.")
 		return nil
 	end
+	if not _.isArray(self.config_interceptor) then
+		ngx.log(ngx.ERR, "[Route:getInterceptor] config is not a array.")
+		return nil
+	end
 	local interceptorAry = {}
-	_.each(self.config_interceptor, function(i, val)
-		local is, ie = string.find(uri, val["url"])
-		if is == nil then
+	_.eachArray(self.config_interceptor, function(idx, interceptor)
+		if not _.isArray(interceptor["url"]) then
+			ngx.log(ngx.ERR, "[Route:getInterceptor] config url ", cjson.encode(interceptor), " is not a array.")
 			return
 		end
-		if val["excludes"] and _.contains(val["excludes"], uri) then
+		-- 是否拦截
+		local is_interceptor = false
+		for idx2, url in ipairs(interceptor["url"]) do
+			if not url[3] then
+				-- url全匹配,并且method为*或与请求method相同
+				if uri == url[2] or uri == url[2] .. "/" then
+					if url[1] == "*" or string.upper(url[1]) == string.upper(method) then
+						is_interceptor = true
+						break
+					end
+				end
+			else
+				-- url模式匹配,并且method为*或与请求method相同
+				local is, ie = string.find(uri, url[2])
+				if is ~= nil then
+					if url[1] == "*" or string.upper(url[1]) == string.upper(method) then
+						is_interceptor = true
+						break
+					end
+				end
+			end
+		end
+		-- 不拦截
+		if not is_interceptor then
 			return
 		end
-		table.insert(interceptorAry, val["class"])
+		-- 排除不需要拦截的
+		if not _.isEmpty(interceptor["excludes"]) then
+			for idx3, exclude_url in ipairs(interceptor["excludes"]) do
+				if uri == exclude_url or uri == exclude_url .. "/" then
+					return
+				end
+			end
+		end
+		-- 拦截
+		table.insert(interceptorAry, interceptor["class"])
 	end)
 	return interceptorAry
 end
