@@ -2,82 +2,42 @@
 <title>用户管理</title>
 {-page_title-}
 
-{-page_css-}
-{-page_css-}
-
 {-page_content-}
-<!-- BEGIN 用户列表 -->
-<div id="content_user_list" class="row" data-sign="content">
-    <div class="col-md-12">
-        <div class="portlet box blue">
-            <div class="portlet-title">
-                <div class="caption">
-                    <i class="fa fa-list"></i>用户管理
-                </div>
-            </div>
-            <div class="portlet-body">
-                <div class="table-toolbar">
-                    <!-- BEGIN 操作按钮-->
-                    <div class="row margin-bottom-10">
-                        <div class="col-md-12">
-                            <div class="btn-group">
-                                <button id="btn_user_new" class="btn green">新增</button>
-                            </div>
-                        </div>
+<div class="layui-fluid">
+    <!--用户查询-->
+    <div class="layui-row margin-top-15">
+        <div class="layui-col-md12">
+            <div id="form_user_query" class="layui-form">
+                <div class="layui-inline">
+                    <div class="layui-input-inline">
+                        <input type="text" class="layui-input" name="username" placeholder="登录名或用户名" autocomplete="off">
                     </div>
-                    <!-- END 操作按钮 -->
-                    <!-- BEGIN 查询表单 -->
-                    <div class="row">
-                        <div class="col-md-12">
-                            <form id="form_user_query" class="form-inline" role="form">
-                                <div class="form-group">
-                                    <div class="input">
-                                        <input type="text" class="form-control" name="query_username" placeholder="登录名或用户名">
-                                    </div>
-                                </div>
-                                <button id="btn_user_query" type="button" class="btn default">查询</button>
-                            </form>
-                        </div>
-                    </div>
-                    <!-- END 查询表单 -->
                 </div>
-                <table id="table_user_list" class="table table-striped table-bordered table-hover">
-                    <thead>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                <div class="layui-inline">
+                    <div class="layui-input-inline">
+                        <button class="layui-btn" lay-submit lay-filter="btn_query">查询</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-<!-- END 用户列表 -->
-<!-- BEGIN 用户编辑 -->
-<div id="content_user_edit" class="row" data-sign="content">
-    <div class="col-md-12">
-        <div class="portlet box blue">
-            <div class="portlet-title">
-                <div class="caption"><i class="fa fa-edit"></i>用户信息</div>
-            </div>
-            <div id="div_user_edit" class="portlet-body form">
+    <!--用户操作-->
+    <div class="layui-row margin-top-15">
+        <div class="layui-col-md12">
+            <div class="layui-btn-group">
+                <button class="layui-btn" id="btn_add">增加</button>
             </div>
         </div>
     </div>
+    <!--用户列表-->
+    <div class="layui-row">
+        <div class="layui-col-md12">
+            <table id="table_user" lay-filter="event_table_user"></table>
+        </div>
+    </div>
 </div>
-<!-- END 用户编辑 -->
 {-page_content-}
-
-{-page_plugins-}
-{-page_plugins-}
 
 {-page_js-}
-<script src="/assets/pages/scripts/app_init.js" type="text/javascript"></script>
-<script>
-    jQuery(document).ready(function () {
-        AppInit.init();
-        seajs.use("pages/scripts/system/user/user", function (User) {
-            new User().init();
-        });
-    });
-</script>
+<script src="/assets/custom/js/system/user.js" type="text/javascript"></script>
 {-page_js-}

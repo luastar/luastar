@@ -11,6 +11,7 @@ function Redis:init(datasource)
 		host = "127.0.0.1",
 		port = "6379",
 		auth = nil,
+		db_index = 0,
 		timeout = 30000,
 		max_idle_timeout = 60000,
 		pool_size = 50
@@ -24,14 +25,17 @@ function Redis:getConnect()
 		ngx.log(ngx.ERR, "[Redis:getConnect] failed to create redis : ", err)
 		return nil
 	end
-	connect:set_timeout(self.datasource.timeout)
-	local ok, err = connect:connect(self.datasource.host, self.datasource.port)
+	connect:set_timeout(self.datasource["timeout"])
+	local ok, err = connect:connect(self.datasource["host"], self.datasource["port"])
 	if not ok then
 		ngx.log(ngx.ERR, "[Redis:getConnect] failed to connect redis : ", err)
 		return nil
 	end
-	if self.datasource.auth then
-		local res, err = connect:auth(self.datasource.auth)
+	if self.datasource["auth"] then
+		connect:auth(self.datasource["auth"])
+	end
+	if self.datasource["db_index"] >= 0 then
+		connect:select(self.datasource["db_index"])
 	end
 	db_monitor.add("redis_connect")
 	return connect
@@ -43,12 +47,12 @@ function Redis:close(connect)
 		return
 	end
 	-- 连接池为空时，直接关闭
-	if self.datasource.pool_size <= 0 then
+	if self.datasource["pool_size"] <= 0 then
 		connect:close()
 		return
 	end
 	-- 将连接放入到连接池中，下次申请直接从连接池中获取
-	local ok, err = connect:set_keepalive(self.datasource.max_idle_timeout, self.datasource.pool_size)
+	local ok, err = connect:set_keepalive(self.datasource["max_idle_timeout"], self.datasource["pool_size"])
 	if not ok then
 		ngx.log(ngx.ERR, "[Redis:close] set keepalive failed : ", err)
 	else
@@ -151,7 +155,6 @@ function Redis:subscribe(channel)
 		self:close(connect)
 		return
 	end
-
 	return do_read_func
 end
 

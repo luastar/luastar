@@ -16,10 +16,11 @@ function _M.index(request, response)
 end
 
 function _M.list(request, response)
+	local page = tonumber(_.ifEmpty(request:get_arg("page"), 1))
+	local limit = tonumber(_.ifEmpty(request:get_arg("limit"), 20))
 	local param = {
-		draw = request:get_arg("draw"),
-		start = tonumber(request:get_arg("start")) or 0,
-		limit = tonumber(request:get_arg("length")) or 10,
+		start = (page - 1) * limit,
+		limit = limit,
 		keyword = request:get_arg("query_username")
 	}
 	-- 查询结果
@@ -32,9 +33,9 @@ function _M.list(request, response)
 	end
 	-- 返回结果
 	local result = {
-		draw = param["draw"],
-		recordsTotal = num,
-		recordsFiltered = num,
+		code = 0,
+		msg = "ok",
+		count = num,
 		data = data
 	}
 	response:writeln(json_util.toJson(result, true))

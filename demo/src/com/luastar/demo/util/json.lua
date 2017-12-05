@@ -7,7 +7,7 @@ function _M.success(data, needFormat)
 	local body = data or {}
 	local rs = {
 		head = {
-			status = 1,
+			code = 1,
 			msg = "ok.",
 			request_id = ngx.ctx.request_id,
 			timestamp = ngx.time()
@@ -23,7 +23,7 @@ end
 function _M.illegal_argument(msg)
 	local rs = {
 		head = {
-			status = 2,
+			code = 2,
 			msg = msg or "参数错误。",
 			request_id = ngx.ctx.request_id,
 			timestamp = ngx.time()
@@ -35,7 +35,7 @@ end
 function _M.exp(msg)
 	local rs = {
 		head = {
-			status = 3,
+			code = 3,
 			msg = msg or "系统异常。",
 			request_id = ngx.ctx.request_id,
 			timestamp = ngx.time()
@@ -47,7 +47,7 @@ end
 function _M.fail(msg)
 	local rs = {
 		head = {
-			status = 4,
+			code = 4,
 			msg = msg or "处理失败。",
 			request_id = ngx.ctx.request_id,
 			timestamp = ngx.time()
@@ -59,7 +59,7 @@ end
 function _M.illegal_token(msg)
 	local rs = {
 		head = {
-			status = 5,
+			code = 5,
 			msg = msg or "登录超时。",
 			request_id = ngx.ctx.request_id,
 			timestamp = ngx.time()
