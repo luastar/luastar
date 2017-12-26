@@ -86,12 +86,18 @@ local unique_id_counter = -1
 -- @tparam[opt] vararg ... Optional extra-args to be passed to function `f`
 -- @see eachi
 function _.each(t, f, ...)
-  for index,value in pairs(t) do
-    f(index,value,...)
+  if _.isNil(t) or (not _.isTable(t)) then
+    return
+  end
+  for index, value in pairs(t) do
+    f(index, value, ...)
   end
 end
 
 function _.eachArray(t, f, ...)
+  if _.isNil(t) or (not _.isTable(t)) then
+    return
+  end
   for index, value in ipairs(t) do
     f(index, value, ...)
   end
