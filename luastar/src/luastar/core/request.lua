@@ -183,6 +183,18 @@ function Request:get_request_body()
 	return self.request_body
 end
 
+function Request:get_request_body_json()
+	local request_body = self:get_request_body()
+	if _.isEmpty(request_body) then
+		return nil
+	end
+	local call_ok, request_body_json = pcall(cjson.decode, request_body)
+	if call_ok then
+		return request_body_json
+	end
+	return nil
+end
+
 function Request:get_header(key, default)
 	if not self.headers then
 		return default

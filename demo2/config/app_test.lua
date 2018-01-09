@@ -2,16 +2,16 @@
 应用配置文件
 --]]
 mysql = {
-    host = "localhost",
+    host = "127.0.0.1",
     port = "3306",
-    user = "admin",
+    user = "root",
     password = "xxx",
     database = "xxx",
     timeout = 30000,
     pool_size = 1000
 }
 redis = {
-    host = "localhost",
+    host = "127.0.0.1",
     port = "6379",
     auth = "xxx",
     timeout = 30000,

@@ -3,6 +3,8 @@
 --]]
 local _M = {}
 
+local json_util = require("com.luastar.demo2.util.json")
+
 function _M.beforeHandle()
 	-- 开发环境禁用缓存
 	template.caching(false)
@@ -14,7 +16,13 @@ function _M.beforeHandle()
 		return true
 	end
 	ngx.log(logger.i("用户session验证不通过"))
-	template.render("login.html", { message = "login timeout!" })
+	local xRequestedWith = ngx.ctx.request:get_header("x-requested-with")
+	if _.isEmpty(xRequestedWith) then
+		template.render("login.html", { message = "登录超时！" })
+	else
+		ngx.ctx.response:set_header("session-status", "timeout");
+		ngx.ctx.response:writeln(json_util.timeout())
+	end
 	return false
 end
 

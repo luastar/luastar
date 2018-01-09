@@ -121,7 +121,7 @@ function _M.request_http(reqTable)
     -- 设置默认值
     reqTable = _.defaults(reqTable, {
         method = "GET",
-        timeout = 30000
+        timeout = 60000
     })
     -- 处理参数和头信息
     if not _.isEmpty(reqTable["params"]) then

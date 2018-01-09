@@ -14,6 +14,8 @@ function Route:init(config_file)
 		return
 	end
 	local config = util_file.loadlua(self.config_file)
+	-- 初始化限制
+	self.config_limit = config["limit"] or {}
 	-- 初始化路由配置
 	self.config_route = config["route"] or {}
 	self.config_route_pattern = config["route_pattern"] or {}
@@ -21,6 +23,14 @@ function Route:init(config_file)
 	-- 初始化拦截器配置
 	self.config_interceptor = config["interceptor"] or {}
 	-- ngx.log(ngx.INFO, "[Route:init] config_interceptor : ", cjson.encode(self.config_interceptor))
+end
+
+--[===[
+访问限制策略
+limit = { file = "", method = "" }
+--]===]
+function Route:getLimit()
+	return self.config_limit
 end
 
 --[===[

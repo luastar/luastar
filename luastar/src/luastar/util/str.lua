@@ -3,6 +3,10 @@
 --]]
 local _M = {}
 
+function _M.trim(str)
+    return str:match '^()%s*$' and '' or str:match '^%s*(.*%S)'
+end
+
 function _M.split(str, sep)
     local result = {}
     local regex = ("([^%s]+)"):format(sep)
@@ -12,15 +16,14 @@ function _M.split(str, sep)
     return result
 end
 
-function split(inputstr, sep)
-    sep = sep or '%s'
-    local t = {}
-    for field, s in string.gmatch(inputstr, "([^" .. sep .. "]*)(" .. sep .. "?)") do
-        table.insert(t, field)
-        if s == "" then
-            return t
-        end
+function _M.equalsIgnoreCase(str1, str2)
+    if str1 == str2 then
+        return true
     end
+    if str1 and str2 and string.upper(str1) == string.upper(str2) then
+        return true
+    end
+    return false
 end
 
 function _M.startsWith(str, substr)
@@ -70,20 +73,6 @@ function _M.fmtstring(str, data)
         end
     end
     return str
-end
-
-function _M.trim(str)
-    return str:match '^()%s*$' and '' or str:match '^%s*(.*%S)'
-end
-
-function _M.equalsIgnoreCase(str1, str2)
-    if str1 == str2 then
-        return true
-    end
-    if str1 and str2 and string.upper(str1) == string.upper(str2) then
-        return true
-    end
-    return false
 end
 
 function _M.encode_url(str)

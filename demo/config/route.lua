@@ -1,15 +1,20 @@
 --[[
-全匹配路由，优先级高
+-- 频次限制
+limit = { class = "xxx.yyy.zzz", method = "limit" }
+
+-- 全匹配路由，优先级高
 route = {
   {"url1","file1","method"},
   {"url2","file2","method"}
 }
-模式匹配路由
+
+-- 模式匹配路由
 route_pattern = {
   {"url1","file1","method"},
   {"url2","file2","method"}
 }
-拦截器配置，注：拦截器必须实现beforeHandle和afterHandle方法
+
+-- 拦截器配置，注：拦截器必须实现beforeHandle和afterHandle方法
 interceptor = {
     {
         url = {
@@ -24,6 +29,8 @@ interceptor = {
     }
 }
 --]]
+limit = { class = "com.luastar.demo.ctrl.test.limit", method = "limit" }
+
 route = {
     { "/api/test/hello", "com.luastar.demo.ctrl.test.hello", "hello" },
     { "/api/test/pic", "com.luastar.demo.ctrl.test.hello", "pic" },

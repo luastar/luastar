@@ -3,146 +3,157 @@
 --]]
 --require('mobdebug').start("127.0.0.1")
 local resty_random = require("resty.random")
+local db_monitor = require("luastar.db.monitor")
 local Request = require("luastar.core.request")
 local Response = require("luastar.core.response")
-local db_monitor = require("luastar.db.monitor")
-
--- 执行变量
-local execute_var = {
-    stop = false,
-    status = 200
-}
-
-function init()
-    -- 生成request_id
-    ngx.ctx.request_id = resty_random.token(20)
-    -- 初始化应用包路径
-    luastar_context.init_pkg_path()
-    -- 获取路由
-    execute_var["route"] = luastar_context.getRoute()
-    execute_var["ctrl_config"] = execute_var["route"]:getRoute(ngx.var.uri)
-    if not execute_var["ctrl_config"] then
-        ngx.log(ngx.ERR, "no ctrl find for : ", ngx.var.uri)
-        execute_var["stop"] = true
-        execute_var["status"] = 404
-        return
-    end
-    -- 加载ctrl
-    local ok, ctrl = pcall(require, execute_var["ctrl_config"].class)
-    if not ok then
-        ngx.log(ngx.ERR, "ctrl import fail :", ctrl)
-        execute_var["stop"] = true
-        execute_var["status"] = 404
-        return
-    end
-    execute_var["ctrl"] = ctrl
-    -- 初始化输入输出
-    ngx.ctx.request = Request:new()
-    ngx.ctx.response = Response:new()
-    -- 获取拦截器
-    execute_var["interceptorAry"] = execute_var["route"]:getInterceptor(ngx.var.uri)
-end
 
 function content()
-    -- 初始化
-    init()
-    -- 提前终止
-    if execute_var["stop"] then
-        -- 清除请求体（openresty-1.7.10.1 bug），如果没有清除，会将请求体放到下次请求的header中
-        ngx.req.discard_body()
-        ngx.exit(execute_var["status"])
-        return
+    -- 初始化应用包路径，有缓存，只初始化一次
+    luastar_context.init_pkg_path()
+    -- 初始化输入输出
+    ngx.ctx.request_id = resty_random.token(20)
+    ngx.ctx.request = Request:new()
+    ngx.ctx.response = Response:new()
+    -- 获取路由相关配置
+    local route = luastar_context.getRoute()
+    -- 限制策略
+    local limit_config = route:getLimit()
+    local is_limit, limit_msg = limit(limit_config)
+    if is_limit then
+        ngx.log(ngx.ERR, "请求[", ngx.var.uri, "]被限制：", limit_msg)
+        ngx.status = 403
+        ngx.print(limit_msg)
+        return ngx.exit(403)
     end
-    -- 执行ctrl方法
-    if execute_var["ctrl"].new then
-        execute_ctrl_new()
-    else
-        execute_ctrl_fun()
+    -- 路由处理器
+    local ctrl_config = route:getRoute(ngx.var.uri, ngx.var.request_method)
+    if not ctrl_config then
+        ngx.log(ngx.ERR, "请求[", ngx.var.uri, "]找不到处理类！")
+        ngx.status = 404
+        return ngx.exit(404)
     end
+    -- 路由拦截器
+    local interceptorAry = route:getInterceptor(ngx.var.uri, ngx.var.request_method)
+    -- 执行处理方法
+    execute_ctrl(ctrl_config, interceptorAry)
     -- 监控数据库连接
     db_monitor.check("redis_connect", "mysql_connect")
     -- 输出内容
     ngx.ctx.response:finish()
-    -- 清除请求体（openresty-1.7.10.1 bug），如果没有清除，会将请求体放到下次请求的header中
-    ngx.req.discard_body()
 end
 
-function execute_ctrl_new()
-    local interceptor_ok, interceptor_msg = execute_before()
-    if not interceptor_ok then
-        ngx.log(ngx.INFO, "interceptor ctrl success.")
-        if interceptor_msg then
-            ngx.ctx.response:writeln(interceptor_msg)
-        end
-        return
+function limit(limit_config)
+    if _.isEmpty(limit_config) then
+        return false, nil
     end
-    local ctrl_instance = execute_var["ctrl"]:new()
-    local ctrl_method = ctrl_instance[execute_var["ctrl_config"].method]
-    if ctrl_method and _.isFunction(ctrl_method) then
-        local call_ok, err_info = pcall(ctrl_method, ctrl_instance, ngx.ctx.request, ngx.ctx.response)
-        execute_after(call_ok, err_info)
-    else
-        ngx.log(ngx.ERR, "ctrl has no method.")
-    end
-end
-
-function execute_ctrl_fun()
-    local interceptor_ok, interceptor_msg = execute_before()
-    if not interceptor_ok then
-        ngx.log(ngx.INFO, "interceptor ctrl success.")
-        if interceptor_msg then
-            ngx.ctx.response:writeln(interceptor_msg)
-        end
-        return
-    end
-    local ctrl = execute_var["ctrl"]
-    local ctrl_method = ctrl[execute_var["ctrl_config"].method]
-    if ctrl_method and _.isFunction(ctrl_method) then
-        local call_ok, err_info = pcall(ctrl_method, ngx.ctx.request, ngx.ctx.response)
-        execute_after(call_ok, err_info)
-    else
-        ngx.log(ngx.ERR, "ctrl has no method.")
-    end
-end
-
-function execute_before()
-    if _.size(execute_var["interceptorAry"]) == 0 then
-        return true, "no interceptor."
-    end
-    local call_ok, interceptor, rs_ok = true, nil, true
-    for key, value in pairs(execute_var["interceptorAry"]) do
-        call_ok, interceptor = pcall(require, value)
-        if call_ok and _.isFunction(interceptor["beforeHandle"]) then
-            call_ok, rs_ok, rs_msg = pcall(interceptor["beforeHandle"])
+    local is_limit, limit_msg = false, nil
+    local require_ok, limit = pcall(require, limit_config["class"])
+    if require_ok then
+        local limit_method = limit[limit_config["method"]]
+        if limit_method and _.isFunction(limit_method) then
+            local call_ok, call_res_1, call_res_2 = pcall(limit_method, ngx.ctx.request)
             if call_ok then
-                -- 有一个返回失败，则返回
-                if not rs_ok then
-                    return false, rs_msg
+                is_limit, limit_msg = call_res_1, call_res_2
+            else
+                ngx.log(ngx.ERR, "调用limit[", limit_config["class"], "][", limit_config["method"], "]失败：", call_res_1)
+            end
+        end
+    else
+        ngx.log(ngx.ERR, "加载limit[", limit_config["class"], "]失败!")
+    end
+    return is_limit, limit_msg
+end
+
+--[[
+-- 执行处理类
+--]]
+function execute_ctrl(ctrl_config, interceptorAry)
+    -- 执行拦截前方法
+    local interceptor_ok, interceptor_msg, interceptor_code = execute_before(interceptorAry)
+    if not interceptor_ok then
+        ngx.log(ngx.INFO, "拦截处理类成功！")
+        if interceptor_msg then
+            ngx.ctx.response:writeln(interceptor_msg)
+        end
+        if interceptor_code then
+            ngx.status = interceptor_code
+        end
+        return
+    end
+    -- 执行处理类方法
+    local call_ok, err_info = false, nil
+    local require_ok, ctrl = pcall(require, ctrl_config["class"])
+    if require_ok then
+        local ctrl_method = ctrl[ctrl_config["method"]]
+        if ctrl_method and _.isFunction(ctrl_method) then
+            call_ok, err_info = pcall(ctrl_method, ngx.ctx.request, ngx.ctx.response)
+        else
+            call_ok = false
+            err_info = table.concat({ "找不到处理类方法：", ctrl_config["method"] }, "")
+        end
+    else
+        call_ok = false
+        err_info = table.concat({ "加载[", ngx.var.uri, "]处理类[", ctrl_config["class"], "]失败！" }, "")
+    end
+    if not call_ok then
+        ngx.log(ngx.ERR, "ctrl执行失败：", err_info)
+    end
+    -- 执行拦截后方法
+    execute_after(interceptorAry, call_ok, err_info)
+end
+
+--[[
+-- 拦截器执行前处理
+--]]
+function execute_before(interceptorAry)
+    if _.size(interceptorAry) == 0 then
+        return true
+    end
+    for key, value in pairs(interceptorAry) do
+        local require_ok, interceptor = pcall(require, value)
+        if require_ok then
+            local before_handle_method = interceptor["beforeHandle"]
+            if before_handle_method and _.isFunction(before_handle_method) then
+                local call_ok, rs_ok, rs_msg, rs_code = pcall(before_handle_method)
+                if call_ok then
+                    -- 只要返回失败，就返回
+                    if not rs_ok then
+                        return false, rs_msg, rs_code
+                    end
+                else
+                    ngx.log(ngx.ERR, "调用拦截器[", value, "]方法[beforeHandle]失败：", rs_ok)
                 end
             else
-                ngx.log(ngx.ERR, "interceptor call beforeHandle fail : ", rs_ok)
+                ngx.log(ngx.ERR, "拦截器[", value, "][beforeHandle]方法不存在")
             end
         else
-            ngx.log(ngx.ERR, "interceptor require fail : ", interceptor)
+            ngx.log(ngx.ERR, "加载拦截器[", value, "]失败: ", interceptor)
         end
     end
-    return true, "interceptor ok."
+    return true
 end
 
-function execute_after(ctrl_call_ok, err_info)
-    if not ctrl_call_ok then
-        ngx.log(ngx.ERR, "ctrl execute error : ", err_info)
-    end
-    if _.size(execute_var["interceptorAry"]) == 0 then
+--[[
+-- 拦截器执行后处理
+--]]
+function execute_after(interceptorAry, ctrl_call_ok, err_info)
+    if _.size(interceptorAry) == 0 then
         return
     end
-    local call_ok, interceptor = true, nil
-    for key, value in pairs(execute_var["interceptorAry"]) do
-        call_ok, interceptor = pcall(require, value)
-        if call_ok and _.isFunction(interceptor["afterHandle"]) then
-            pcall(interceptor["afterHandle"], ctrl_call_ok, err_info)
+    for key, value in pairs(interceptorAry) do
+        local require_ok, interceptor = pcall(require, value)
+        if require_ok then
+            local after_handle_method = interceptor["afterHandle"]
+            if after_handle_method and _.isFunction(after_handle_method) then
+                local call_ok, res = pcall(after_handle_method, ctrl_call_ok, err_info)
+                if not call_ok then
+                    ngx.log(ngx.ERR, "调用拦截器[", value, "]方法[afterHandle]失败：", res)
+                end
+            else
+                ngx.log(ngx.ERR, "拦截器[", value, "][afterHandle]方法不存在")
+            end
         else
-            ngx.log(ngx.ERR, "interceptor require fail : ", interceptor)
+            ngx.log(ngx.ERR, "加载拦截器[", value, "]失败: ", interceptor)
         end
     end
 end

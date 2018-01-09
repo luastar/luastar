@@ -24,10 +24,10 @@ redis = {
     }
 }
 paramService = {
-    class = "com.luastar.demo.service.common.paramService"
+    class = "com.luastar.demo.service.common.param_service"
 }
 testService = {
-    class = "com.luastar.demo.service.test.testService",
+    class = "com.luastar.demo.service.test.test_service",
     arg = { { ref = "redis" } }
 }
 

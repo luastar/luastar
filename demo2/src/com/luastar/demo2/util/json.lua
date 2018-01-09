@@ -13,15 +13,22 @@ end
 
 function _M.success(rsMsg)
 	return _M.toJson({
-		rsCode = "1",
-		rsMsg = rsMsg or "success!"
+		code = "0",
+		msg = rsMsg or "success!"
 	})
 end
 
 function _M.fail(rsMsg)
 	return _M.toJson({
-		rsCode = "0",
-		rsMsg = rsMsg or "fail!"
+		code = "1",
+		msg = rsMsg or "fail!"
+	})
+end
+
+function _M.timeout(rsMsg)
+	return _M.toJson({
+		code = "99",
+		msg = rsMsg or "timeout!"
 	})
 end
 
