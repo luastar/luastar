@@ -42,7 +42,6 @@ end
 
 function Response:set_header(key, value)
     if _.isEmpty(key) or _.isEmpty(value) then
-        ngx.log(ngx.ERR, "response set header key or value is empty.")
         return
     end
     ngx.header[key] = value
@@ -50,12 +49,11 @@ end
 
 function Response:set_headers(headers)
     if _.isEmpty(headers) then
-        ngx.log(ngx.ERR, "response set headers is empty.")
         return
     end
-    _.each(headers, function(key, value)
-        ngx.header[key] = value
-    end)
+    for k, v in pairs(headers) do
+        self:set_header(k, v)
+    end
 end
 
 function Response:set_cookie(key, value, encrypt, duration, path)

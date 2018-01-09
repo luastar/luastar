@@ -38,14 +38,14 @@ function Mysql:getConnect()
 		ngx.log(ngx.ERR, "[Mysql:initConnect] failed to create mysql : ", err)
 		return nil
 	end
-	connect:set_timeout(self.datasource.timeout)
+	connect:set_timeout(self.datasource["timeout"])
 	local ok, err, errno, sqlstate = connect:connect(self.datasource)
 	if not ok then
 		ngx.log(ngx.ERR, "[Mysql:getConnect] failed to connect mysql : ", err)
 		return nil
 	end
 	-- set charset
-	local res, err, errno, sqlstate = connect:query("SET NAMES " .. self.datasource.charset)
+	local res, err, errno, sqlstate = connect:query("SET NAMES " .. self.datasource["charset"])
 	if not res then
 		ngx.log(ngx.ERR, "[Mysql:getConnect] set charset fail : ", err)
 	end
@@ -116,14 +116,13 @@ function Mysql:close(connect)
 	if connect == nil then
 		return
 	end
-	if self.datasource.pool_size <= 0 then
+	if self.datasource["pool_size"] <= 0 then
 		connect:close()
 		return
 	end
 	-- put it into the connection pool of size 100,
 	-- with 10 seconds max idle timeout
-	local ok, err = connect:set_keepalive(self.datasource.max_idle_timeout,
-		self.datasource.pool_size)
+	local ok, err = connect:set_keepalive(self.datasource["max_idle_timeout"], self.datasource["pool_size"])
 	if not ok then
 		ngx.log(ngx.ERR, "[Mysql:close] set keepalive failed : ", err)
 	else

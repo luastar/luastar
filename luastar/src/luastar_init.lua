@@ -8,11 +8,16 @@ LUASTAR_G = _G
 --luastar全局配置table
 LUASTAR_C = {}
 
---常用库
+-- class
 Class = require("luastar.core.class")
+-- cjson
 cjson = require("cjson")
 cjson.encode_empty_table_as_object(false)
+
+-- underscore
 _ = require("moses")
+
+-- template
 template = require("resty.template")
 template._ = _
 
@@ -20,11 +25,11 @@ template._ = _
 luastar_cache = require("luastar.core.cache")
 --luastar配置模块
 luastar_config = require("luastar.core.config")
---luastar消息模块
-luastar_msg = require("luastar.core.message")
 --luastar上下文模块
 luastar_context = require("luastar.core.context")
 --luastar日志模块
 logger = require("luastar.util.logger")
 --luastar session
 session = require("luastar.core.session")
+
+
