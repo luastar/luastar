@@ -17,7 +17,6 @@ function _M.beforeHandle()
 	end
 	ngx.log(logger.i("用户session验证不通过"))
 	local xRequestedWith = ngx.ctx.request:get_header("x-requested-with")
-	ngx.log(logger.i("==========xRequestedWith=", xRequestedWith))
 	if _.isEmpty(xRequestedWith) then
 		template.render("login.html", { message = "登录超时！" })
 	else

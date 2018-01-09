@@ -63,11 +63,12 @@ local function getMsgConfig(k)
 end
 
 --[[
-提示消息配置
+普通消息
+local message = luastar_context.getMsg("msg_live", "100001")
 占位直接使用string的格式化方法，例如%s, %d等
-local message = luastar_context.getMsg("msg_live", "400002"):format("30")
+local message = luastar_context.getMsg("msg_live", "100002"):format(100.00)
 多级配置消息获取方法
-local message = luastar_context.getMsg("msg_live", "600", "01")
+local message = luastar_context.getMsg("msg_live", "100003", "001")
 --]]
 function _M.getMsg(k, ...)
 	local val = getMsgConfig(k)
