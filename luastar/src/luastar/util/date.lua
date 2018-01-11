@@ -43,4 +43,17 @@ function _M.parse_time(t)
 	})
 end
 
+-- 解析'%Y-%m-%d %H:%M:%S'的时间格式
+function _M.parse_time2(t)
+	local now = _M.parse_time(t)
+	return {
+		year = os.date('%Y', now),
+		month = os.date('%m', now),
+		day = os.date('%d', now),
+		hour = os.date('%H', now),
+		min = os.date('%M', now),
+		sec = os.date('%S', now)
+	}
+end
+
 return _M
