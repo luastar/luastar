@@ -27,6 +27,14 @@ function Response:writeln(content)
     table.insert(self._output, "\r\n")
 end
 
+function Response:get_output()
+    return self._output
+end
+
+function Response:reset_output()
+    self._output = {}
+end
+
 function Response:redirect(url, status)
     ngx.redirect(url, status)
 end
