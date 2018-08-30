@@ -6,10 +6,12 @@ local _M = {}
 --[[
  获取普通参数/文件参数/请求体例子
 --]]
-function _M.hello(request, response)
+function _M.hello(request, response, param)
     -- request:get_arg 支持获取get,post（含文件）方式传过来的参数
     local name = request:get_arg("name") or "world, try to give a param with name."
     ngx.log(logger.i("name=", name))
+    -- 自定义参数
+    ngx.log(logger.i("param=", cjson.encode(param)))
     -- 获取到的文件类型是table类型，包含filename（文件名）和value（文件内容）属性
     local file = request:get_arg("file")
     if not _.isEmpty(file) then

@@ -26,6 +26,16 @@ function _M.equalsIgnoreCase(str1, str2)
     return false
 end
 
+function _M.containsIgnoreCase(str1, str2)
+    if str1 == str2 then
+        return true
+    end
+    if str1 and str2 and string.find(string.upper(str1), string.upper(str2)) ~= nil then
+        return true
+    end
+    return false
+end
+
 function _M.startsWith(str, substr)
     if str == nil or substr == nil then
         return false
@@ -55,6 +65,42 @@ end
 
 function _M.lastIndexOf(str, substr)
     return string.match(str, '.*()' .. substr)
+end
+
+function _M.uri_is_macth(uri_req, uri_config, is_pattern)
+    if is_pattern then
+        -- 模糊匹配
+        local is, ie = string.find(uri_req, uri_config)
+        if is ~= nil then
+            return true
+        end
+    else
+        -- 全匹配
+        if uri_req == uri_config or uri_req == uri_config .. "/" then
+            return true
+        end
+    end
+    return false
+end
+
+function _M.method_and_uri_is_macth(method_req, uri_req, method_config, uri_config, is_pattern)
+    if is_pattern then
+        -- 模糊匹配
+        if method_config == "*" or _M.containsIgnoreCase(method_config, method_req) then
+            local is, ie = string.find(uri_req, uri_config)
+            if is ~= nil then
+                return true
+            end
+        end
+    else
+        -- 全匹配
+        if method_config == "*" or _M.containsIgnoreCase(method_config, method_req) then
+            if uri_req == uri_config or uri_req == uri_config .. "/" then
+                return true
+            end
+        end
+    end
+    return false
 end
 
 function _M.fmtstring(str, data)
