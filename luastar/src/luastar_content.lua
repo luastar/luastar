@@ -21,9 +21,9 @@ function content()
     local is_limit, limit_msg = limit(limit_config)
     if is_limit then
         ngx.log(ngx.ERR, "请求[", ngx.var.uri, "]被限制：", limit_msg)
-        ngx.status = 403
+        -- ngx.status = 403
         ngx.print(limit_msg)
-        return ngx.exit(403)
+        return ngx.exit(200)
     end
     -- 路由处理器
     local ctrl_config = route:getRoute(ngx.var.uri, ngx.var.request_method)
