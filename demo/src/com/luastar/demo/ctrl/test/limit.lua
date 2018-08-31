@@ -4,25 +4,9 @@
 
 local _M = {}
 
+local str_util = require("luastar.util.str")
 local limit_util = require("luastar.util.limit")
 local json_util = require("com.luastar.demo.util.json")
-
---[[
--- url是否匹配
-]]
-local function is_macth(uri, url, is_pattern)
-    if is_pattern then
-        local is, ie = string.find(uri, url)
-        if is ~= nil then
-            return true
-        end
-    else
-        if uri == url or uri == url .. "/" then
-            return true
-        end
-    end
-    return false
-end
 
 --[[
     limit
@@ -51,7 +35,7 @@ function _M.limit(request)
     local limit_config_count2 = {}
     _.eachArray(limit_config_count, function(idx, val)
         -- 是否满足配置条件
-        if is_macth(uri, val["url"][1], val["url"][2]) then
+        if str_util.uri_is_macth(uri, val["url"][1], val["url"][2]) then
             table.insert(limit_config_count2, {
                 key = uid .. uri,
                 time = val["time"],
@@ -72,7 +56,7 @@ function _M.limit(request)
     local limit_config_req2 = {}
     _.eachArray(limit_config_req1, function(idx, val)
         -- 是否满足配置条件
-        if is_macth(uri, val["url"][1], val["url"][2]) then
+        if str_util.uri_is_macth(uri, val["url"][1], val["url"][2]) then
             table.insert(limit_config_req2, {
                 key = uid .. uri,
                 dict_name = limit_config["dict_limit_req"],

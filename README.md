@@ -368,19 +368,19 @@ limit = { class = "com.luastar.demo.ctrl.test.limit", method = "limit" }
 
 -- 全匹配路由，优先级高
 route = {
-	{"/api/test/hello", "com.luastar.demo.ctrl.test.hello", "hello" },
-	{ "/api/test/pic", "com.luastar.demo.ctrl.test.hello", "pic" },
-	{ "/api/test/mysql", "com.luastar.demo.ctrl.test.mysql", "mysql" },
-	{ "/api/test/mysql/transaction", "com.luastar.demo.ctrl.test.mysql", "transaction" },
-	{ "/api/test/redis", "com.luastar.demo.ctrl.test.redis", "redis" }
+	{ "*", "/api/test/hello", "com.luastar.demo.ctrl.test.hello", "hello", { p1="v1", p2="v2" } },
+	{ "POST", "/api/test/pic", "com.luastar.demo.ctrl.test.hello", "pic" },
+	{ "*", "/api/test/mysql", "com.luastar.demo.ctrl.test.mysql", "mysql" },
+	{ "*", "/api/test/mysql/transaction", "com.luastar.demo.ctrl.test.mysql", "transaction" },
+	{ "GET,POST", "/api/test/redis", "com.luastar.demo.ctrl.test.redis", "redis" }
 }
 
 -- 模式匹配路由
 route_pattern = {
-	{"/aaa/.*", "com.luastar.demo.ctrl.test.dispatcher", "aaa" }, -- aaa
-	{ "/bbb/.*", "com.luastar.demo.ctrl.test.dispatcher", "bbb" }, -- bbb
-	{ "/ccc/.*", "com.luastar.demo.ctrl.test.dispatcher", "ccc" }, -- ccc
-	{ "/.*", "com.luastar.demo.ctrl.test.dispatcher", "other" } -- 默认
+	{ "*", "/aaa/.*", "com.luastar.demo.ctrl.test.dispatcher", "aaa", { p1="v1", p2="v2" } }, -- aaa
+	{ "*", "/bbb/.*", "com.luastar.demo.ctrl.test.dispatcher", "bbb" }, -- bbb
+	{ "*", "/ccc/.*", "com.luastar.demo.ctrl.test.dispatcher", "ccc" }, -- ccc
+	{ "*", "/.*", "com.luastar.demo.ctrl.test.dispatcher", "other" } -- 默认
 }
 
 -- 拦截器配置，注：拦截器必须实现beforeHandle和afterHandle方法
@@ -404,9 +404,9 @@ demo/src/com/luastar/demo/ctrl/test/limit.lua
 ### 3.7.2 路由
 路由分为全匹配路由和模式匹配路由，全匹配优先级高，不支持路径取值（不建议），模式使用lua自带的模式。
 
-路由是一个二维数组，每一行表示一个接口地址，第一列表示请求地址，第二列表示对应的处理类，第三列表示处理类中的方法。
+路由是一个二维数组，每一行表示一个接口地址，第一列表示请求方式（*表示不限制，多个请求方式用逗号分隔，v1.4版本新增），第二列表示请求地址，第三列表示对应的处理类，第四列表示处理类中的方法，第五列表示自定义参数（以第三个参数传到处理类方法中）
 
-luastar默认给ctrl类请求处理方法传入了request和response对象（其他地方可通过ngx.ctx.request和ngx.ctx.response获取），用于处理输入和输出。
+luastar默认给ctrl类请求处理方法传入了request/response对象（其他地方可通过ngx.ctx.request和ngx.ctx.response获取）和路由中第五列的自定义参数，用于处理输入和输出和路由扩展。
 
 参考：
 demo/src/com/luastar/demo/ctrl/test/hello.lua
@@ -656,7 +656,7 @@ sql_table = {
 		[[
 			and USER_NAME like concat('%',#{userName},'%') -- userName为nil时该语句忽略
 		]]
-}
+    },
 	limit = {
 		start = "${start}", -- start和limit为nil时忽略
 		limit = "${limit}"

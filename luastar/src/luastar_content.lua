@@ -26,14 +26,14 @@ function content()
         return ngx.exit(200)
     end
     -- 路由处理器
-    local ctrl_config = route:getRoute(ngx.var.uri, ngx.var.request_method)
+    local ctrl_config = route:getRoute(ngx.var.request_method, ngx.var.uri)
     if not ctrl_config then
         ngx.log(ngx.ERR, "请求[", ngx.var.uri, "]找不到处理类！")
         ngx.status = 404
         return ngx.exit(404)
     end
     -- 路由拦截器
-    local interceptorAry = route:getInterceptor(ngx.var.uri, ngx.var.request_method)
+    local interceptorAry = route:getInterceptor(ngx.var.request_method, ngx.var.uri)
     -- 执行处理方法
     execute_ctrl(ctrl_config, interceptorAry)
     -- 监控数据库连接
@@ -86,14 +86,14 @@ function execute_ctrl(ctrl_config, interceptorAry)
     if require_ok then
         local ctrl_method = ctrl[ctrl_config["method"]]
         if ctrl_method and _.isFunction(ctrl_method) then
-            call_ok, err_info = pcall(ctrl_method, ngx.ctx.request, ngx.ctx.response)
+            call_ok, err_info = pcall(ctrl_method, ngx.ctx.request, ngx.ctx.response, ctrl_config["param"])
         else
             call_ok = false
-            err_info = table.concat({ "找不到处理类方法：", ctrl_config["method"] }, "")
+            err_info = table.concat({ "找不到处理类方法：", ctrl_config["method"] })
         end
     else
         call_ok = false
-        err_info = table.concat({ "加载[", ngx.var.uri, "]处理类[", ctrl_config["class"], "]失败！" }, "")
+        err_info = table.concat({ "加载[", ngx.var.uri, "]处理类[", ctrl_config["class"], "]失败！" })
     end
     if not call_ok then
         ngx.log(ngx.ERR, "ctrl执行失败：", err_info)

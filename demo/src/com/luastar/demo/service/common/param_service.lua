@@ -35,7 +35,7 @@ function paramService:checkSign(checkParam)
     -- 按参数名排序
     table.sort(param_array)
     -- 拼接密钥
-    local param_base = table.concat(param_array, "") .. "UJMpkYFiq4YDMLkEXgqYUltbfWCb7p67"
+    local param_base = table.concat(param_array) .. "UJMpkYFiq4YDMLkEXgqYUltbfWCb7p67"
     -- ngx.log(logger.i("sign str is ", param_base))
     -- url编码
     local param_encode = str_util.encode_url(param_base)
