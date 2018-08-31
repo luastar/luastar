@@ -89,11 +89,11 @@ function execute_ctrl(ctrl_config, interceptorAry)
             call_ok, err_info = pcall(ctrl_method, ngx.ctx.request, ngx.ctx.response, ctrl_config["param"])
         else
             call_ok = false
-            err_info = table.concat({ "找不到处理类方法：", ctrl_config["method"] }, "")
+            err_info = table.concat({ "找不到处理类方法：", ctrl_config["method"] })
         end
     else
         call_ok = false
-        err_info = table.concat({ "加载[", ngx.var.uri, "]处理类[", ctrl_config["class"], "]失败！" }, "")
+        err_info = table.concat({ "加载[", ngx.var.uri, "]处理类[", ctrl_config["class"], "]失败！" })
     end
     if not call_ok then
         ngx.log(ngx.ERR, "ctrl执行失败：", err_info)
