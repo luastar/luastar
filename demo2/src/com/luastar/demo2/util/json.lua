@@ -36,7 +36,7 @@ function _M.jsonp(callback, json)
 	if _.isEmpty(callback) then
 		return json
 	end
-	return table.concat({ callback, "(", json, ")" }, "")
+	return table.concat({ callback, "(", json, ")" })
 end
 
 return _M
