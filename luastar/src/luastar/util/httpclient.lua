@@ -108,7 +108,7 @@ end
     body = "", -- 请求体
     keepalive = true, -- 是否保持连接
     keepalive_timeout = 600000, -- 连接池超时时间
-    keepalive_pool = 100 -- 连接池大小
+    keepalive_pool = 256 -- 连接池大小
 }
 返回结果：
 res_status, res_headers, res_body
@@ -126,7 +126,7 @@ function _M.request_http(reqTable)
         timeout = 60000,
         keepalive = true,
         keepalive_timeout = 300000,
-        keepalive_pool = 64
+        keepalive_pool = 256
     })
     -- 处理参数和头信息
     if not _.isEmpty(reqTable["params"]) then
