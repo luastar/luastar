@@ -1,6 +1,7 @@
 --[[
--- https://github.com/pintsized/lua-resty-http 0.1.1
+-- https://github.com/pintsized/lua-resty-http 0.1.3
 --]]
+
 local http_headers = require "resty.http_headers"
 
 local ngx = ngx
@@ -9,7 +10,6 @@ local ngx_req = ngx.req
 local ngx_req_socket = ngx_req.socket
 local ngx_req_get_headers = ngx_req.get_headers
 local ngx_req_get_method = ngx_req.get_method
-local str_gmatch = string.gmatch
 local str_lower = string.lower
 local str_upper = string.upper
 local str_find = string.find
@@ -18,6 +18,8 @@ local tbl_concat = table.concat
 local tbl_insert = table.insert
 local ngx_encode_args = ngx.encode_args
 local ngx_re_match = ngx.re.match
+local ngx_re_gmatch = ngx.re.gmatch
+local ngx_re_sub = ngx.re.sub
 local ngx_re_gsub = ngx.re.gsub
 local ngx_re_find = ngx.re.find
 local ngx_log = ngx.log
@@ -101,7 +103,7 @@ end
 
 
 local _M = {
-    _VERSION = '0.11',
+    _VERSION = '0.13',
 }
 _M._USER_AGENT = "lua-resty-http/" .. _M._VERSION .. " (Lua) ngx_lua/" .. ngx.config.ngx_lua_version
 
@@ -113,6 +115,7 @@ local HTTP = {
     [1.1] = " HTTP/1.1\r\n",
 }
 
+
 local DEFAULT_PARAMS = {
     method = "GET",
     path = "/",
@@ -120,7 +123,7 @@ local DEFAULT_PARAMS = {
 }
 
 
-function _M.new(self)
+function _M.new(_)
     local sock, err = ngx_socket_tcp()
     if not sock then
         return nil, err
@@ -231,7 +234,7 @@ local function _should_receive_body(method, code)
 end
 
 
-function _M.parse_uri(self, uri, query_in_path)
+function _M.parse_uri(_, uri, query_in_path)
     if query_in_path == nil then query_in_path = true end
 
     local m, err = ngx_re_match(uri, [[^(?:(http[s]?):)?//([^:/\?]+)(?::(\d+))?([^\?]*)\??(.*)]], "jo")
@@ -339,7 +342,9 @@ local function _receive_headers(sock)
             return nil, err
         end
 
-        local m, err = ngx_re_match(line, "([^:\\s]+):\\s*(.+)", "jo")
+        local m, err = ngx_re_match(line, "([^:\\s]+):\\s*(.*)", "jo")
+        if err then ngx_log(ngx_ERR, err) end
+
         if not m then
             break
         end
@@ -564,7 +569,7 @@ end
 
 
 local function _handle_continue(sock, body)
-    local status, version, reason, err = _receive_status(sock)
+    local status, version, reason, err = _receive_status(sock) --luacheck: no unused
     if not status then
         return nil, nil, err
     end
@@ -593,7 +598,7 @@ function _M.send_request(self, params)
     if params_headers then
         -- We assign one by one so that the metatable can handle case insensitivity
         -- for us. You can blame the spec for this inefficiency.
-        for k,v in pairs(params_headers) do
+        for k, v in pairs(params_headers) do
             headers[k] = v
         end
     end
@@ -663,7 +668,7 @@ function _M.read_response(self, params)
         if not _status then
             return nil, _err
         elseif _status ~= 100 then
-            status, version, err = _status, _version, _err
+            status, version, err = _status, _version, _err -- luacheck: no unused
         end
     end
 
@@ -684,8 +689,8 @@ function _M.read_response(self, params)
     -- keepalive is true by default. Determine if this is correct or not.
     local ok, connection = pcall(str_lower, res_headers["Connection"])
     if ok then
-        if  (version == 1.1 and connection == "close") or
-            (version == 1.0 and connection ~= "keep-alive") then
+        if (version == 1.1 and str_find(connection, "close", 1, true)) or
+           (version == 1.0 and not str_find(connection, "keep-alive", 1, true)) then
             self.keepalive = false
         end
     else
@@ -701,18 +706,35 @@ function _M.read_response(self, params)
 
     -- Receive the body_reader
     if _should_receive_body(params.method, status) then
-        local ok, encoding = pcall(str_lower, res_headers["Transfer-Encoding"])
-        if ok and version == 1.1 and encoding == "chunked" then
-            body_reader, err = _chunked_body_reader(sock)
-            has_body = true
-        else
+        has_body = true
 
-            local ok, length = pcall(tonumber, res_headers["Content-Length"])
-            if ok then
-                body_reader, err = _body_reader(sock, length)
-                has_body = true
-            end
+        local te = res_headers["Transfer-Encoding"]
+
+        -- Handle duplicate headers
+        -- This shouldn't happen but can in the real world
+        if type(te) == "table" then
+            te = tbl_concat(te, "")
         end
+
+        local ok, encoding = pcall(str_lower, te)
+        if not ok then
+            encoding = ""
+        end
+
+        if version == 1.1 and str_find(encoding, "chunked", 1, true) ~= nil then
+            body_reader, err = _chunked_body_reader(sock)
+
+        else
+            local ok, length = pcall(tonumber, res_headers["Content-Length"])
+            if not ok then
+                -- No content-length header, read until connection is closed by server
+                length = nil
+            end
+
+            body_reader, err = _body_reader(sock, length)
+
+        end
+
     end
 
     if res_headers["Trailer"] then
@@ -737,7 +759,7 @@ end
 
 
 function _M.request(self, params)
-    params = tbl_copy(params)  -- Take by value
+    params = tbl_copy(params) -- Take by value
     local res, err = self:send_request(params)
     if not res then
         return res, err
@@ -748,7 +770,7 @@ end
 
 
 function _M.request_pipeline(self, requests)
-    requests = tbl_copy(requests)  -- Take by value
+    requests = tbl_copy(requests) -- Take by value
 
     for _, params in ipairs(requests) do
         if params.headers and params.headers["Expect"] == "100-continue" then
@@ -792,7 +814,7 @@ end
 
 
 function _M.request_uri(self, uri, params)
-    params = tbl_copy(params or {})  -- Take by value
+    params = tbl_copy(params or {}) -- Take by value
 
     local parsed_uri, err = self:parse_uri(uri, false)
     if not parsed_uri then
@@ -803,44 +825,120 @@ function _M.request_uri(self, uri, params)
     if not params.path then params.path = path end
     if not params.query then params.query = query end
 
-    local c, err = self:connect(host, port)
+    -- See if we should use a proxy to make this request
+    local proxy_uri = self:get_proxy_uri(scheme, host)
+
+    -- Make the connection either through the proxy or directly
+    -- to the remote host
+    local c, err
+
+    if proxy_uri then
+        local proxy_authorization
+        if scheme == "https" then
+            if params.headers and params.headers["Proxy-Authorization"] then
+                proxy_authorization = params.headers["Proxy-Authorization"]
+            else
+                proxy_authorization = self.proxy_opts.https_proxy_authorization
+            end
+        end
+
+        c, err = self:connect_proxy(proxy_uri, scheme, host, port, proxy_authorization)
+    else
+        c, err = self:connect(host, port)
+    end
+
     if not c then
         return nil, err
     end
 
+    if proxy_uri then
+        if scheme == "http" then
+            -- When a proxy is used, the target URI must be in absolute-form
+            -- (RFC 7230, Section 5.3.2.). That is, it must be an absolute URI
+            -- to the remote resource with the scheme, host and an optional port
+            -- in place.
+            --
+            -- Since _format_request() constructs the request line by concatenating
+            -- params.path and params.query together, we need to modify the path
+            -- to also include the scheme, host and port so that the final form
+            -- in conformant to RFC 7230.
+            if port == 80 then
+                params.path = scheme .. "://" .. host .. path
+            else
+                params.path = scheme .. "://" .. host .. ":" .. port .. path
+            end
+
+            if self.proxy_opts.http_proxy_authorization then
+                if not params.headers then
+                    params.headers = {}
+                end
+
+                if not params.headers["Proxy-Authorization"] then
+                    params.headers["Proxy-Authorization"] = self.proxy_opts.http_proxy_authorization
+                end
+            end
+        elseif scheme == "https" then
+            -- don't keep this connection alive as the next request could target
+            -- any host and re-using the proxy tunnel for that is not possible
+            self.keepalive = false
+        end
+
+        -- self:connect_uri() set the host and port to point to the proxy server. As
+        -- the connection to the proxy has been established, set the host and port
+        -- to point to the actual remote endpoint at the other end of the tunnel to
+        -- ensure the correct Host header added to the requests.
+        self.host = host
+        self.port = port
+    end
+
     if scheme == "https" then
         local verify = true
+
         if params.ssl_verify == false then
             verify = false
         end
+
         local ok, err = self:ssl_handshake(nil, host, verify)
         if not ok then
+            self:close()
             return nil, err
         end
+
     end
 
     local res, err = self:request(params)
     if not res then
+        self:close()
         return nil, err
     end
 
     local body, err = res:read_body()
     if not body then
+        self:close()
         return nil, err
     end
 
     res.body = body
 
-    local ok, err = self:set_keepalive()
-    if not ok then
-        ngx_log(ngx_ERR, err)
+    if params.keepalive == false then
+        local ok, err = self:close()
+        if not ok then
+            ngx_log(ngx_ERR, err)
+        end
+
+    else
+        local ok, err = self:set_keepalive(params.keepalive_timeout, params.keepalive_pool)
+        if not ok then
+            ngx_log(ngx_ERR, err)
+        end
+
     end
 
     return res, nil
 end
 
 
-function _M.get_client_body_reader(self, chunksize, sock)
+function _M.get_client_body_reader(_, chunksize, sock)
     chunksize = chunksize or 65536
 
     if not sock then
@@ -869,22 +967,22 @@ function _M.get_client_body_reader(self, chunksize, sock)
         -- Not yet supported by ngx_lua but should just work...
         return _chunked_body_reader(sock, chunksize)
     else
-       return nil
+        return nil
     end
 end
 
 
 function _M.proxy_request(self, chunksize)
-    return self:request{
+    return self:request({
         method = ngx_req_get_method(),
         path = ngx_re_gsub(ngx_var.uri, "\\s", "%20", "jo") .. ngx_var.is_args .. (ngx_var.query_string or ""),
         body = self:get_client_body_reader(chunksize),
         headers = ngx_req_get_headers(),
-    }
+    })
 end
 
 
-function _M.proxy_response(self, response, chunksize)
+function _M.proxy_response(_, response, chunksize)
     if not response then
         ngx_log(ngx_ERR, "no response provided")
         return
@@ -893,7 +991,7 @@ function _M.proxy_response(self, response, chunksize)
     ngx.status = response.status
 
     -- Filter out hop-by-hop headeres
-    for k,v in pairs(response.headers) do
+    for k, v in pairs(response.headers) do
         if not HOP_BY_HOP_HEADERS[str_lower(k)] then
             ngx_header[k] = v
         end
@@ -915,6 +1013,111 @@ function _M.proxy_response(self, response, chunksize)
             end
         end
     until not chunk
+end
+
+
+function _M.set_proxy_options(self, opts)
+    self.proxy_opts = tbl_copy(opts) -- Take by value
+end
+
+
+function _M.get_proxy_uri(self, scheme, host)
+    if not self.proxy_opts then
+        return nil
+    end
+
+    -- Check if the no_proxy option matches this host. Implementation adapted
+    -- from lua-http library (https://github.com/daurnimator/lua-http)
+    if self.proxy_opts.no_proxy then
+        if self.proxy_opts.no_proxy == "*" then
+            -- all hosts are excluded
+            return nil
+        end
+
+        local no_proxy_set = {}
+        -- wget allows domains in no_proxy list to be prefixed by "."
+        -- e.g. no_proxy=.mit.edu
+        for host_suffix in ngx_re_gmatch(self.proxy_opts.no_proxy, "\\.?([^,]+)") do
+            no_proxy_set[host_suffix[1]] = true
+        end
+
+        -- From curl docs:
+        -- matched as either a domain which contains the hostname, or the
+        -- hostname itself. For example local.com would match local.com,
+        -- local.com:80, and www.local.com, but not www.notlocal.com.
+        --
+        -- Therefore, we keep stripping subdomains from the host, compare
+        -- them to the ones in the no_proxy list and continue until we find
+        -- a match or until there's only the TLD left
+        repeat
+            if no_proxy_set[host] then
+                return nil
+            end
+
+            -- Strip the next level from the domain and check if that one
+            -- is on the list
+            host = ngx_re_sub(host, "^[^.]+\\.", "")
+        until not ngx_re_find(host, "\\.")
+    end
+
+    if scheme == "http" and self.proxy_opts.http_proxy then
+        return self.proxy_opts.http_proxy
+    end
+
+    if scheme == "https" and self.proxy_opts.https_proxy then
+        return self.proxy_opts.https_proxy
+    end
+
+    return nil
+end
+
+
+function _M.connect_proxy(self, proxy_uri, scheme, host, port, proxy_authorization)
+    -- Parse the provided proxy URI
+    local parsed_proxy_uri, err = self:parse_uri(proxy_uri, false)
+    if not parsed_proxy_uri then
+        return nil, err
+    end
+
+    -- Check that the scheme is http (https is not supported for
+    -- connections between the client and the proxy)
+    local proxy_scheme = parsed_proxy_uri[1]
+    if proxy_scheme ~= "http" then
+        return nil, "protocol " .. proxy_scheme .. " not supported for proxy connections"
+    end
+
+    -- Make the connection to the given proxy
+    local proxy_host, proxy_port = parsed_proxy_uri[2], parsed_proxy_uri[3]
+    local c, err = self:connect(proxy_host, proxy_port)
+    if not c then
+        return nil, err
+    end
+
+    if scheme == "https" then
+        -- Make a CONNECT request to create a tunnel to the destination through
+        -- the proxy. The request-target and the Host header must be in the
+        -- authority-form of RFC 7230 Section 5.3.3. See also RFC 7231 Section
+        -- 4.3.6 for more details about the CONNECT request
+        local destination = host .. ":" .. port
+        local res, err = self:request({
+            method = "CONNECT",
+            path = destination,
+            headers = {
+                ["Host"] = destination,
+                ["Proxy-Authorization"] = proxy_authorization,
+            }
+        })
+
+        if not res then
+            return nil, err
+        end
+
+        if res.status < 200 or res.status > 299 then
+            return nil, "failed to establish a tunnel through a proxy: " .. res.status
+        end
+    end
+
+    return c, nil
 end
 
 

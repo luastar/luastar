@@ -4,7 +4,6 @@
 local _M = {}
 
 local http = require("resty.http")
-local str_util = require("luastar.util.str")
 
 local fmt = function(p, ...)
     if select('#', ...) == 0 then
@@ -106,7 +105,10 @@ end
     timeout = timeout, -- 请求超时时间，默认：30秒
     headers = { content-type="application/x-www-form-urlencoded" }, -- 请求头信息
     params = { a="1", b="2" }, -- 请求参数
-    body = "" -- 请求体
+    body = "", -- 请求体
+    keepalive = true, -- 是否保持连接
+    keepalive_timeout = 600000, -- 连接池超时时间
+    keepalive_pool = 256 -- 连接池大小
 }
 返回结果：
 res_status, res_headers, res_body
@@ -121,7 +123,10 @@ function _M.request_http(reqTable)
     -- 设置默认值
     reqTable = _.defaults(reqTable, {
         method = "GET",
-        timeout = 60000
+        timeout = 60000,
+        keepalive = true,
+        keepalive_timeout = 300000, -- 单位是ms
+        keepalive_pool = 256
     })
     -- 处理参数和头信息
     if not _.isEmpty(reqTable["params"]) then
@@ -143,6 +148,10 @@ function _M.request_http(reqTable)
     local http_instance = http:new()
     http_instance:set_timeout(reqTable["timeout"])
     local res, err = http_instance:request_uri(reqTable["url"], reqTable)
+    if err == "closed" then
+        ngx.log(logger.e("request_http connection closed，retry"))
+        res, err = http_instance:request_uri(reqTable["url"], reqTable)
+    end
     if not res then
         ngx.log(logger.e("request_http fail，url=", reqTable["url"], ", err=", err))
         return 500, nil, err
