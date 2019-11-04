@@ -125,7 +125,7 @@ function _M.request_http(reqTable)
         method = "GET",
         timeout = 60000,
         keepalive = true,
-        keepalive_timeout = 300000,
+        keepalive_timeout = 300000, -- 单位是ms
         keepalive_pool = 256
     })
     -- 处理参数和头信息
@@ -148,6 +148,10 @@ function _M.request_http(reqTable)
     local http_instance = http:new()
     http_instance:set_timeout(reqTable["timeout"])
     local res, err = http_instance:request_uri(reqTable["url"], reqTable)
+    if err == "closed" then
+        ngx.log(logger.e("request_http connection closed，retry"))
+        res, err = http_instance:request_uri(reqTable["url"], reqTable)
+    end
     if not res then
         ngx.log(logger.e("request_http fail，url=", reqTable["url"], ", err=", err))
         return 500, nil, err
