@@ -40,105 +40,7 @@ function _M.limit_ip(limit_config)
             end
         end
     end
-    ngx.log(logger.i("=====limit_ip success====="))
     return true
-end
-
---[[
-    限制访问次数，基于基于resty.limit.count实现，有openresty高版本限制
-    local limit_config = {
-        {
-            key = "",
-            time = 120, -- 2分钟
-            count = 5,  -- 5次
-            dict_name = "limit_count_store"
-        }
-    }
---]]
-function _M.limit_count(limit_config)
-    if _.isEmpty(limit_config) then
-        -- ngx.log(logger.i("limit_count param is empty."))
-        return false
-    end
-    -- ngx.log(logger.i("limit_count param is ：", cjson.encode(limit_config)))
-    -- 创建次数限制
-    local resty_limit_count = require("resty.limit.count")
-    for idx, config in ipairs(limit_config) do
-        local lim, err = resty_limit_count.new(config["dict_name"], config["count"], config["time"])
-        if not lim then
-            ngx.log(logger.e("failed to instantiate a resty.limit.count object: ", err))
-        else
-            local delay, err = lim:incoming(config["key"], true)
-            if not delay then
-                if err == "rejected" then
-                    ngx.log(logger.e("key[", config["key"], "] limit count [", config["count"], "] per [", config["time"], "] seconds remaining [", 0, "]"))
-                    ngx.log(logger.i("=====limit_count success====="))
-                    return true
-                else
-                    ngx.log(logger.e("failed to limit count: ", err))
-                end
-            else
-                -- the 2nd return value holds the current remaining number of requests for the specified key.
-                ngx.log(logger.e("key[", config["key"], "] limit count [", config["count"], "] per [", config["time"], "] seconds remaining [", err, "]"))
-            end
-        end
-    end
-    return false
-end
-
---[[
-    限制访问次数，基于redis实现
-    local limit_config = {
-        {
-            key = "",
-            time = 120, -- 2分钟
-            count = 5  -- 5次
-        }
-    }
---]]
-function _M.limit_count_redis(limit_config, redis_bean_name)
-    if _.isEmpty(limit_config) then
-        -- ngx.log(logger.i("limit_count_redis param is empty."))
-        return false
-    end
-    -- ngx.log(logger.i("limit_count_redis param is :", cjson.encode(limit_config)))
-    local beanFactory = luastar_context.getBeanFactory()
-    local redis_service = beanFactory:getBean(redis_bean_name)
-    if _.isNil(redis_service) then
-        ngx.log(logger.e("limit_count_redis redis service bean is nil."))
-        return false
-    end
-    local redis = redis_service:getConnect()
-    for idx, config in ipairs(limit_config) do
-        local current_count = redis:get(config["key"])
-        if _.isEmpty(current_count) then
-            current_count = 1
-            ngx.log(logger.i("key[", config["key"], "] limit count [", config["count"], "] per [", config["time"], "] seconds remaining [", (config["count"] - current_count), "]"))
-            -- 用redis事务执行，保证incr和expire同时生效
-            local multi_ok, multi_err = redis:multi()
-            if not multi_ok then
-                ngx.log(logger.e("multi error:", multi_err))
-            else
-                redis:incr(config["key"]) -- 访问次数+1
-                redis:expire(config["key"], config["time"]) -- 过期时间
-                local exec_ans, exec_err = redis:exec()
-                ngx.log(logger.i("incr and expire key ans=", cjson.encode(exec_ans), ", err=", exec_err))
-            end
-        else
-            -- 访问次数+1
-            local incr_ok, incr_err = redis:incr(config["key"])
-            ngx.log(logger.i("incr_ok=", incr_ok, ", incr_err=", incr_err))
-            current_count = tonumber(current_count) + 1
-            ngx.log(logger.i("key[", config["key"], "] limit count [", config["count"], "] per [", config["time"], "] seconds remaining [", (config["count"] - current_count), "]"))
-            if current_count > config["count"] then
-                ngx.log(logger.i("=====limit_count_redis success====="))
-                redis_service:close(redis)
-                return true
-            end
-        end
-    end
-    redis_service:close(redis)
-    return false
 end
 
 --[[
@@ -181,7 +83,6 @@ function _M.limit_req(limit_config)
     local delay, err = resty_limit_traffic.combine(limit_ary, limit_key_ary, limit_state_ary)
     if not delay then
         if err == "rejected" then
-            ngx.log(logger.i("=====limit_req success====="))
             return true
         else
             ngx.log(logger.e("failed to limit traffic: ", err))
@@ -192,6 +93,90 @@ function _M.limit_req(limit_config)
             -- ngx.sleep(delay)
         end
     end
+    return false
+end
+
+--[[
+    限制访问次数，基于基于resty.limit.count实现，有openresty高版本限制
+    local limit_config = {
+        {
+            key = "",
+            time = 120, -- 2分钟
+            count = 5,  -- 5次
+            dict_name = "limit_count_store"
+        }
+    }
+--]]
+function _M.limit_count(limit_config)
+    if _.isEmpty(limit_config) then
+        -- ngx.log(logger.i("limit_count param is empty."))
+        return false
+    end
+    -- ngx.log(logger.i("limit_count param is ：", cjson.encode(limit_config)))
+    -- 创建次数限制
+    local resty_limit_count = require("resty.limit.count")
+    for idx, config in ipairs(limit_config) do
+        local lim, err = resty_limit_count.new(config["dict_name"], config["count"], config["time"])
+        if not lim then
+            ngx.log(logger.e("failed to instantiate a resty.limit.count object: ", err))
+        else
+            local delay, err = lim:incoming(config["key"], true)
+            if not delay then
+                if err == "rejected" then
+                    ngx.log(logger.e("key[", config["key"], "] limit count [", config["count"], "] per [", config["time"], "] seconds remaining [", 0, "]"))
+                    return true
+                else
+                    ngx.log(logger.e("failed to limit count: ", err))
+                end
+            else
+                -- the 2nd return value holds the current remaining number of requests for the specified key.
+                ngx.log(logger.e("key[", config["key"], "] limit count [", config["count"], "] per [", config["time"], "] seconds remaining [", err, "]"))
+            end
+        end
+    end
+    return false
+end
+
+--[[
+    限制访问次数，基于redis实现
+    local limit_config = {
+        {
+            key = "",
+            time = 120, -- 2分钟
+            count = 5  -- 5次
+        }
+    }
+--]]
+function _M.limit_count_redis(limit_config, redis_bean_name)
+    if _.isEmpty(limit_config) then
+        -- ngx.log(logger.i("limit_count_redis param is empty."))
+        return false
+    end
+    -- ngx.log(logger.i("limit_count_redis param is :", cjson.encode(limit_config)))
+    local beanFactory = luastar_context.getBeanFactory()
+    local redis_service = beanFactory:getBean(redis_bean_name)
+    if _.isNil(redis_service) then
+        ngx.log(logger.e("limit_count_redis redis service bean is nil."))
+        return false
+    end
+    local redis = redis_service:getConnect()
+    for idx, config in ipairs(limit_config) do
+        local current_count, current_count_err = redis:incr(config["key"])
+        if _.isNil(current_count) then
+            ngx.log(logger.i("incr key", config["key"], "error : ", current_count_err))
+        else
+            ngx.log(logger.i("key[", config["key"], "] limit count [", config["count"], "] per [", config["time"], "] seconds remaining [", (config["count"] - current_count), "]"))
+            if current_count == 1 then
+                ngx.log(logger.i("expire key ", config["key"], ", time=", config["time"]))
+                redis:expire(config["key"], config["time"])
+            end
+            if current_count > config["count"] then
+                redis_service:close(redis)
+                return true
+            end
+        end
+    end
+    redis_service:close(redis)
     return false
 end
 
