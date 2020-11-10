@@ -14,10 +14,11 @@ function content()
     ngx.ctx.request = Request:new()
     ngx.ctx.response = Response:new()
     -- 获取 request_id
-    local request_id = ngx.ctx.request["headers"]["X-FB-Request-ID"]
+    local request_id = ngx.ctx.request:get_header["X-FB-Request-ID"]
     if _.isEmpty(request_id) then
         request_id = resty_random.token(20)
-        ngx.ctx.request["headers"]["X-FB-Request-ID"] = request_id
+    elseif _.isArray[request_id] then
+        request_id = request_id[1]
     end
     ngx.ctx.request_id = request_id
     -- 获取路由相关配置
