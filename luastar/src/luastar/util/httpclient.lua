@@ -130,6 +130,7 @@ function _M.request_http(reqTable)
         keepalive_pool = 256
     })
     -- 设置 request_id
+    reqTable["headers"]["X-FB-Request-ID"] = ngx.ctx.request_id
     reqTable["headers"]["request_id"] = ngx.ctx.request_id
     -- 处理参数和头信息
     if not _.isEmpty(reqTable["params"]) then
