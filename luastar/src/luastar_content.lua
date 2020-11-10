@@ -17,7 +17,7 @@ function content()
     local request_id = ngx.ctx.request:get_header("X-FB-Request-ID")
     if _.isEmpty(request_id) then
         request_id = resty_random.token(20)
-    elseif _.isArray[request_id] then
+    elseif _.isArray(request_id) then
         request_id = request_id[1]
     end
     ngx.ctx.request_id = request_id
