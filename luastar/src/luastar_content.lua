@@ -11,9 +11,15 @@ function content()
     -- 初始化应用包路径，有缓存，只初始化一次
     luastar_context.init_pkg_path()
     -- 初始化输入输出
-    ngx.ctx.request_id = resty_random.token(20)
     ngx.ctx.request = Request:new()
     ngx.ctx.response = Response:new()
+    -- 获取 request_id
+    local request_id = ngx.ctx.request["headers"]["X-FB-Request-ID"]
+    if _.isEmpty(request_id) then
+        request_id = resty_random.token(20)
+        ngx.ctx.request["headers"]["X-FB-Request-ID"] = request_id
+    end
+    ngx.ctx.request_id = request_id
     -- 获取路由相关配置
     local route = luastar_context.getRoute()
     -- 限制策略
@@ -21,7 +27,7 @@ function content()
     local is_limit, limit_msg = limit(limit_config)
     if is_limit then
         ngx.log(ngx.ERR, "请求[", ngx.var.uri, "]被限制：", limit_msg)
-        -- ngx.status = 503
+        ngx.status = 200
         ngx.print(limit_msg)
         return ngx.exit(200)
     end
