@@ -1,5 +1,5 @@
 --[[
--- https://github.com/pintsized/lua-resty-http v0.14
+-- https://github.com/pintsized/lua-resty-http 0.14
 --]]
 
 local http_headers = require "resty.http_headers"
