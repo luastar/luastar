@@ -1,5 +1,5 @@
 --[[
--- https://github.com/pintsized/lua-resty-http 0.1.3
+-- https://github.com/pintsized/lua-resty-http 0.14
 --]]
 
 local http_headers = require "resty.http_headers"
@@ -59,6 +59,13 @@ local HOP_BY_HOP_HEADERS = {
 }
 
 
+local EXPECTING_BODY = {
+    POST  = true,
+    PUT   = true,
+    PATCH = true,
+}
+
+
 -- Reimplemented coroutine.wrap, returning "nil, err" if the coroutine cannot
 -- be resumed. This protects user code from inifite loops when doing things like
 -- repeat
@@ -103,7 +110,7 @@ end
 
 
 local _M = {
-    _VERSION = '0.13',
+    _VERSION = '0.14',
 }
 _M._USER_AGENT = "lua-resty-http/" .. _M._VERSION .. " (Lua) ngx_lua/" .. ngx.config.ngx_lua_version
 
@@ -123,12 +130,20 @@ local DEFAULT_PARAMS = {
 }
 
 
+local DEBUG = false
+
+
 function _M.new(_)
     local sock, err = ngx_socket_tcp()
     if not sock then
         return nil, err
     end
     return setmetatable({ sock = sock, keepalive = true }, mt)
+end
+
+
+function _M.debug(d)
+    DEBUG = (d == true)
 end
 
 
@@ -305,13 +320,16 @@ local function _format_request(params)
 
     -- Append headers
     for key, values in pairs(headers) do
-        if type(values) ~= "table" then
-            values = {values}
-        end
-
         key = tostring(key)
-        for _, value in pairs(values) do
-            req[c] = key .. ": " .. tostring(value) .. "\r\n"
+
+        if type(values) == "table" then
+            for _, value in pairs(values) do
+                req[c] = key .. ": " .. tostring(value) .. "\r\n"
+                c = c + 1
+            end
+
+        else
+            req[c] = key .. ": " .. tostring(values) .. "\r\n"
             c = c + 1
         end
     end
@@ -604,8 +622,13 @@ function _M.send_request(self, params)
     end
 
     -- Ensure minimal headers are set
-    if type(body) == 'string' and not headers["Content-Length"] then
-        headers["Content-Length"] = #body
+
+    if not headers["Content-Length"] then
+        if type(body) == 'string' then
+            headers["Content-Length"] = #body
+        elseif body == nil and EXPECTING_BODY[str_upper(params.method)] then
+            headers["Content-Length"] = 0
+        end
     end
     if not headers["Host"] then
         if (str_sub(self.host, 1, 5) == "unix:") then
@@ -636,7 +659,7 @@ function _M.send_request(self, params)
 
     -- Format and send request
     local req = _format_request(params)
-    ngx_log(ngx_DEBUG, "\n", req)
+    if DEBUG then ngx_log(ngx_DEBUG, "\n", req) end
     local bytes, err = sock:send(req)
 
     if not bytes then

@@ -124,10 +124,14 @@ function _M.request_http(reqTable)
     reqTable = _.defaults(reqTable, {
         method = "GET",
         timeout = 60000,
+        headers = {},
         keepalive = true,
-        keepalive_timeout = 300000, -- 单位是ms
-        keepalive_pool = 256
+        keepalive_timeout = 600000, -- 单位是ms
+        keepalive_pool = 512
     })
+    -- 设置 request_id
+    reqTable["headers"]["X-FB-Request-ID"] = ngx.ctx.request_id
+    reqTable["headers"]["request_id"] = ngx.ctx.request_id
     -- 处理参数和头信息
     if not _.isEmpty(reqTable["params"]) then
         if reqTable["method"] == "GET" then
