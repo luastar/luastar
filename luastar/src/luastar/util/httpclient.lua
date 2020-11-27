@@ -127,7 +127,7 @@ function _M.request_http(reqTable)
         headers = {},
         keepalive = true,
         keepalive_timeout = 600000, -- 单位是ms
-        keepalive_pool = 1024
+        keepalive_pool = 512
     })
     -- 设置 request_id
     reqTable["headers"]["X-FB-Request-ID"] = ngx.ctx.request_id
