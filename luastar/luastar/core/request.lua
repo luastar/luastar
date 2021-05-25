@@ -301,6 +301,17 @@ function Request:get_header(name, default)
 end
 
 --[[
+	获取 请求头 中的最后一个值
+--]]
+function Request:get_header_single(name, default)
+	local header_value = self:get_header(name, default)
+	if _.isArray(header_value) then
+		return header_value[#header_value]
+	end
+	return header_value
+end
+
+--[[
  获取多个header，返回一个table
  eg. request: get_header_table("appkey","devid","devmac")
  retrun {appkey="aa", devid="bb", devmac="cc"} 

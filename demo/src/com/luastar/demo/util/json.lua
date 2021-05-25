@@ -9,7 +9,7 @@ function _M.success(data, needFormat)
 		head = {
 			code = 1,
 			msg = "ok.",
-			request_id = ngx.ctx.request_id,
+			trace_id = ngx.ctx.trace_id,
 			timestamp = ngx.time()
 		},
 		body = body
@@ -25,7 +25,7 @@ function _M.illegal_argument(msg)
 		head = {
 			code = 2,
 			msg = msg or "参数错误。",
-			request_id = ngx.ctx.request_id,
+			trace_id = ngx.ctx.trace_id,
 			timestamp = ngx.time()
 		}
 	}
@@ -37,7 +37,7 @@ function _M.exp(msg)
 		head = {
 			code = 3,
 			msg = msg or "系统异常。",
-			request_id = ngx.ctx.request_id,
+			trace_id = ngx.ctx.trace_id,
 			timestamp = ngx.time()
 		}
 	}
@@ -49,7 +49,7 @@ function _M.fail(msg)
 		head = {
 			code = 4,
 			msg = msg or "处理失败。",
-			request_id = ngx.ctx.request_id,
+			trace_id = ngx.ctx.trace_id,
 			timestamp = ngx.time()
 		}
 	}
@@ -61,7 +61,7 @@ function _M.illegal_token(msg)
 		head = {
 			code = 5,
 			msg = msg or "登录超时。",
-			request_id = ngx.ctx.request_id,
+			trace_id = ngx.ctx.trace_id,
 			timestamp = ngx.time()
 		}
 	}

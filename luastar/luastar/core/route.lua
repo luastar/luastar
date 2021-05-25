@@ -30,7 +30,7 @@ end
 访问限制策略
 limit = { file = "", method = "" }
 --]===]
-function Route:getLimit()
+function Route:get_limit()
     return self.config_limit
 end
 
@@ -49,7 +49,7 @@ route_pattern = {
   { "GET", "url2", "file2", "method" }
 }
 --]===]
-function Route:getRoute(method, uri)
+function Route:get_route(method, uri)
     if _.isEmpty(method) or _.isEmpty(uri) then
         ngx.log(ngx.ERR, "[Route:getRoute] method or uri is nil.")
         return nil
@@ -86,7 +86,7 @@ interceptor = {
     }
 }
 --]===]
-function Route:getInterceptor(method, uri)
+function Route:get_interceptor(method, uri)
     if _.isEmpty(method) or _.isEmpty(uri) then
         ngx.log(ngx.ERR, "[Route:getRoute] uri is nil.")
         return nil
@@ -95,36 +95,34 @@ function Route:getInterceptor(method, uri)
         ngx.log(ngx.ERR, "[Route:getInterceptor] config is not a array.")
         return nil
     end
-    local interceptorAry = {}
-    _.eachArray(self.config_interceptor, function(idx, interceptor)
-        if not _.isArray(interceptor["url"]) then
-            ngx.log(ngx.ERR, "[Route:getInterceptor] config url ", cjson.encode(interceptor), " is not a array.")
-            return
-        end
-        -- 是否拦截
-        local is_interceptor = false
-        for idx2, url in ipairs(interceptor["url"]) do
-            if util_str.method_and_uri_is_macth(method, uri, url[1], url[2], url[3]) then
-                is_interceptor = true
-                break
-            end
-        end
-        -- 不拦截
-        if not is_interceptor then
-            return
-        end
-        -- 排除不需要拦截的
-        if not _.isEmpty(interceptor["excludes"]) then
-            for idx3, exclude_url in ipairs(interceptor["excludes"]) do
-                if util_str.method_and_uri_is_macth(method, uri, "*", exclude_url, false) then
-                    return
+    local interceptor_ary = {}
+    for idx, interceptor in ipairs(self.config_interceptor) do
+        if _.isArray(interceptor["url"]) then
+            -- 是否拦截
+            local is_interceptor = false
+            -- 请求方式 和 uri 是否匹配
+            for idx2, url in ipairs(interceptor["url"]) do
+                if util_str.method_and_uri_is_macth(method, uri, url[1], url[2], url[3]) then
+                    is_interceptor = true
+                    if _.isArray(interceptor["excludes"]) then
+                        -- 是否被排除
+                        for idx3, exclude_url in ipairs(interceptor["excludes"]) do
+                            if util_str.method_and_uri_is_macth(method, uri, "*", exclude_url, false) then
+                                is_interceptor = false
+                                break
+                            end
+                        end
+                    end
+                    break
                 end
             end
+            -- 添加到拦截器列表
+            if is_interceptor then
+                table.insert(interceptor_ary, interceptor["class"])
+            end
         end
-        -- 拦截
-        table.insert(interceptorAry, interceptor["class"])
-    end)
-    return interceptorAry
+    end
+    return interceptor_ary
 end
 
 return Route

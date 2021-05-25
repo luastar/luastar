@@ -16,7 +16,7 @@ function _M.split(str, sep)
     return result
 end
 
-function _M.equalsIgnoreCase(str1, str2)
+function _M.equals_ignore_case(str1, str2)
     if str1 == str2 then
         return true
     end
@@ -26,7 +26,7 @@ function _M.equalsIgnoreCase(str1, str2)
     return false
 end
 
-function _M.containsIgnoreCase(str1, str2)
+function _M.contains_ignore_case(str1, str2)
     if str1 == str2 then
         return true
     end
@@ -36,7 +36,7 @@ function _M.containsIgnoreCase(str1, str2)
     return false
 end
 
-function _M.startsWith(str, substr)
+function _M.start_with(str, substr)
     if str == nil or substr == nil then
         return false
     end
@@ -47,7 +47,7 @@ function _M.startsWith(str, substr)
     end
 end
 
-function _M.endsWith(str, substr)
+function _M.end_with(str, substr)
     if str == nil or substr == nil then
         return false
     end
@@ -59,11 +59,11 @@ function _M.endsWith(str, substr)
     end
 end
 
-function _M.indexOf(str, substr)
+function _M.index_of(str, substr)
     return string.find(str, substr, 1, true)
 end
 
-function _M.lastIndexOf(str, substr)
+function _M.last_index_of(str, substr)
     return string.match(str, '.*()' .. substr)
 end
 
@@ -86,7 +86,7 @@ end
 function _M.method_and_uri_is_macth(method_req, uri_req, method_config, uri_config, is_pattern)
     if is_pattern then
         -- 模糊匹配
-        if method_config == "*" or _M.containsIgnoreCase(method_config, method_req) then
+        if method_config == "*" or _M.contains_ignore_case(method_config, method_req) then
             local is, ie = string.find(uri_req, uri_config)
             if is ~= nil then
                 return true
@@ -94,7 +94,7 @@ function _M.method_and_uri_is_macth(method_req, uri_req, method_config, uri_conf
         end
     else
         -- 全匹配
-        if method_config == "*" or _M.containsIgnoreCase(method_config, method_req) then
+        if method_config == "*" or _M.contains_ignore_case(method_config, method_req) then
             if uri_req == uri_config or uri_req == uri_config .. "/" then
                 return true
             end
@@ -103,7 +103,7 @@ function _M.method_and_uri_is_macth(method_req, uri_req, method_config, uri_conf
     return false
 end
 
-function _M.fmtstring(str, data)
+function _M.fmt_string(str, data)
     -- 找出所有${}变量
     local varAry = {}
     for word in string.gmatch(str, "%${[%w_]+}") do

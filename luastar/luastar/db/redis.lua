@@ -18,16 +18,16 @@ function Redis:init(datasource)
 	ngx.log(ngx.DEBUG, "[Redis:init] datasource : ", cjson.encode(self.datasource))
 end
 
-function Redis:getConnect()
+function Redis:get_connect()
 	local connect, err = resty_redis:new()
 	if not connect then
-		ngx.log(ngx.ERR, "[Redis:getConnect] failed to create redis : ", err)
+		ngx.log(ngx.ERR, "[Redis:get_connect] failed to create redis : ", err)
 		return nil
 	end
 	connect:set_timeout(self.datasource["timeout"])
 	local ok, err = connect:connect(self.datasource["host"], self.datasource["port"])
 	if not ok then
-		ngx.log(ngx.ERR, "[Redis:getConnect] failed to connect redis : ", err)
+		ngx.log(ngx.ERR, "[Redis:get_connect] failed to connect redis : ", err)
 		return nil
 	end
 	if self.datasource["auth"] then

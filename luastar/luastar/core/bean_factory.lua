@@ -17,25 +17,25 @@ function BeanFactory:init(config_file)
 	end
 	self.config = util_file.loadlua_nested(self.config_file) or {}
 	-- single bean cache
-	self.beanCache = {}
+	self.bean_cache = {}
 end
 
-function BeanFactory:getBeanObj(id, ctime)
+function BeanFactory:get_bean_obj(id, ctime)
 	local bean_config = self.config[id] or {}
 	if bean_config.single == 0 then
-		return self:createBean(id, ctime)
+		return self:create_bean(id, ctime)
 	end
-	local bean = self.beanCache[id]
+	local bean = self.bean_cache[id]
 	if not bean then
-		bean = self:createBean(id, ctime)
-		self.beanCache[id] = bean
+		bean = self:create_bean(id, ctime)
+		self.bean_cache[id] = bean
 		return bean
 	end
 	return bean
 end
 
-function BeanFactory:getBean(id)
-	local bean = self:getBeanObj(id)
+function BeanFactory:get_bean(id)
+	local bean = self:get_bean_obj(id)
 	if not bean then
 		return nil
 	end
@@ -45,8 +45,8 @@ function BeanFactory:getBean(id)
 	return nil
 end
 
-function BeanFactory:getRef(id, ctime)
-	local bean = self:getBeanObj(id, ctime)
+function BeanFactory:get_ref(id, ctime)
+	local bean = self:get_bean_obj(id, ctime)
 	if not bean then
 		return nil
 	end
@@ -56,29 +56,29 @@ function BeanFactory:getRef(id, ctime)
 	return nil
 end
 
-function BeanFactory:createBean(id, ctime)
+function BeanFactory:create_bean(id, ctime)
 	if not ctime then ctime = {} end -- 一次创建bean的时机，记录依赖bean的状态
 	local bean = { id = id, status = bean_status.init_ing }
 	if ctime[id] == bean_status.init_ing then
 		bean.status = bean_status.init_fail
 		ctime[id] = nil
-		ngx.log(ngx.ERR, "[BeanFactory:createBean] id ", id, " has circular dependency.")
+		ngx.log(ngx.ERR, "[BeanFactory:create_bean] id ", id, " has circular dependency.")
 		return bean
 	end
 	ctime[id] = bean_status.init_ing
 	local bean_config = self.config[id] or {}
-	ngx.log(ngx.DEBUG, "[BeanFactory:createBean] ", id, " config : " .. cjson.encode(bean_config))
+	ngx.log(ngx.DEBUG, "[BeanFactory:create_bean] ", id, " config : " .. cjson.encode(bean_config))
 	if not bean_config.class then
 		bean.status = bean_status.init_fail
 		ctime[id] = nil
-		ngx.log(ngx.ERR, "[BeanFactory:createBean] ", id, " config class is null.")
+		ngx.log(ngx.ERR, "[BeanFactory:create_bean] ", id, " config class is null.")
 		return bean
 	end
 	local ok, bean_class = pcall(require, bean_config.class)
 	if not ok then
 		bean.status = bean_status.init_fail
 		ctime[id] = nil
-		ngx.log(ngx.ERR, "[BeanFactory:createBean] ", id, "  require class fail.")
+		ngx.log(ngx.ERR, "[BeanFactory:create_bean] ", id, "  require class fail.")
 		ngx.log(ngx.ERR, bean_class)
 		return bean
 	end
@@ -88,9 +88,9 @@ function BeanFactory:createBean(id, ctime)
 		local bean_arg = {}
 		_.each(bean_config.arg, function(index, arg)
 			if arg.value then
-				table.insert(bean_arg, self:getValue(arg.value))
+				table.insert(bean_arg, self:get_value(arg.value))
 			elseif arg.ref then
-				table.insert(bean_arg, self:getRef(arg.ref, ctime))
+				table.insert(bean_arg, self:get_ref(arg.ref, ctime))
 			end
 		end)
 		bean_obj = bean_class:new(unpack(bean_arg))
@@ -103,14 +103,14 @@ function BeanFactory:createBean(id, ctime)
 			local method = bean_obj["set_" .. property.name]
 			if _.isCallable(method) then
 				if property.vale then
-					pcall(method, bean_obj, self:getValue(property.value))
+					pcall(method, bean_obj, self:get_value(property.value))
 				elseif property.ref then
-					pcall(method, bean_obj, self:getRef(property.ref, ctime))
+					pcall(method, bean_obj, self:get_ref(property.ref, ctime))
 				else
-					ngx.log(ngx.WARN, "[BeanFactory:createBean] ", id, " property[", property.name, "] value is nil.")
+					ngx.log(ngx.WARN, "[BeanFactory:create_bean] ", id, " property[", property.name, "] value is nil.")
 				end
 			else
-				ngx.log(ngx.WARN, "[BeanFactory:createBean] ", id, " method[", property.name, "] not exist.")
+				ngx.log(ngx.WARN, "[BeanFactory:create_bean] ", id, " method[", property.name, "] not exist.")
 			end
 		end)
 	end
@@ -123,25 +123,25 @@ function BeanFactory:createBean(id, ctime)
 	return bean
 end
 
-function BeanFactory:getValue(key)
+function BeanFactory:get_value(key)
 	local var = string.match(key, "${.+}")
 	if not var then
-		ngx.log(ngx.DEBUG, "[BeanFactory:getValue] key[", key, "] value : ", key)
+		ngx.log(ngx.DEBUG, "[BeanFactory:get_value] key[", key, "] value : ", key)
 		return key
 	end
 	var = string.sub(var, 3, string.len(var) - 1) -- sub ${}
-	local varAry = util_str.split(var, "%.")
-	local varLen = _.size(varAry)
-	local val = luastar_config.getConfig(varAry[1])
-	if varLen == 1 then
-		ngx.log(ngx.DEBUG, "[BeanFactory:getValue] key[", key, "] value : ", cjson.encode(val))
+	local var_ary = util_str.split(var, "%.")
+	local var_len = _.size(var_ary)
+	local val = luastar_config.get_config(var_ary[1])
+	if var_len == 1 then
+		ngx.log(ngx.DEBUG, "[BeanFactory:get_value] key[", key, "] value : ", cjson.encode(val))
 		return val
 	end
-	local varAry2 = _.last(varAry, varLen - 1)
-	local rs = _.reduce(varAry2, function(s, v)
+	local var_ary2 = _.last(var_ary, var_len - 1)
+	local rs = _.reduce(var_ary2, function(s, v)
 		return s[v]
 	end, val)
-	ngx.log(ngx.DEBUG, "[BeanFactory:getValue] key[", key, "] value : ", cjson.encode(rs))
+	ngx.log(ngx.DEBUG, "[BeanFactory:get_value] key[", key, "] value : ", cjson.encode(rs))
 	return rs
 end
 

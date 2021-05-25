@@ -113,15 +113,15 @@ end
 返回结果：
 res_status, res_headers, res_body
 --]===]
-function _M.request_http(reqTable)
+function _M.request_http(req_table)
     -- 参数校验
-    if _.isEmpty(reqTable)
-            or not _.isTable(reqTable)
-            or _.isEmpty(reqTable["url"]) then
+    if _.isEmpty(req_table)
+            or not _.isTable(req_table)
+            or _.isEmpty(req_table["url"]) then
         return nil, "IllegalArgument."
     end
     -- 设置默认值
-    reqTable = _.defaults(reqTable, {
+    req_table = _.defaults(req_table, {
         method = "GET",
         timeout = 60000,
         headers = {},
@@ -129,35 +129,34 @@ function _M.request_http(reqTable)
         keepalive_timeout = 600000, -- 单位是ms
         keepalive_pool = 512
     })
-    -- 设置 request_id
-    reqTable["headers"]["X-FB-Request-ID"] = ngx.ctx.request_id
-    reqTable["headers"]["request_id"] = ngx.ctx.request_id
+    -- 设置 trace_id
+    req_table["headers"]["trace_id"] = ngx.ctx.trace_id
     -- 处理参数和头信息
-    if not _.isEmpty(reqTable["params"]) then
-        if reqTable["method"] == "GET" then
-            local queryString = _M.gen_common_params(reqTable["params"])
-            local pos_s, pos_e = string.find(reqTable["url"], "?")
+    if not _.isEmpty(req_table["params"]) then
+        if req_table["method"] == "GET" then
+            local queryString = _M.gen_common_params(req_table["params"])
+            local pos_s, pos_e = string.find(req_table["url"], "?")
             if pos_s == nil then
-                reqTable["url"] = reqTable["url"] .. "?" .. queryString
+                req_table["url"] = req_table["url"] .. "?" .. queryString
             else
-                reqTable["url"] = reqTable["url"] .. "&" .. queryString
+                req_table["url"] = req_table["url"] .. "&" .. queryString
             end
         else
-            local body, content_type = _M.gen_post_params(reqTable["params"])
-            reqTable["body"] = body
-            reqTable["headers"]["Content-Type"] = content_type
+            local body, content_type = _M.gen_post_params(req_table["params"])
+            req_table["body"] = body
+            req_table["headers"]["Content-Type"] = content_type
         end
     end
     -- 请求http
     local http_instance = http:new()
-    http_instance:set_timeout(reqTable["timeout"])
-    local res, err = http_instance:request_uri(reqTable["url"], reqTable)
+    http_instance:set_timeout(req_table["timeout"])
+    local res, err = http_instance:request_uri(req_table["url"], req_table)
     if err == "closed" then
         ngx.log(logger.e("request_http connection closed，retry"))
-        res, err = http_instance:request_uri(reqTable["url"], reqTable)
+        res, err = http_instance:request_uri(req_table["url"], req_table)
     end
     if not res then
-        ngx.log(logger.e("request_http fail，url=", reqTable["url"], ", err=", err))
+        ngx.log(logger.e("request_http fail，url=", req_table["url"], ", err=", err))
         return 500, nil, err
     end
     return res.status, res.headers, res.body

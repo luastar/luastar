@@ -22,7 +22,7 @@ function _M.set(k, v)
 	LUASTAR_C[app_name][k] = v
 end
 
-function setG(k, v)
+function set_g(k, v)
 	LUASTAR_G[k] = v
 end
 

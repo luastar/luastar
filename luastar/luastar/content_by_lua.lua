@@ -2,51 +2,51 @@
 
 --]]
 --require('mobdebug').start("127.0.0.1")
+
+local _M = {}
+
 local resty_random = require("resty.random")
 local Request = require("luastar.core.request")
 local Response = require("luastar.core.response")
 
-function content()
+function _M.content()
     -- 初始化应用包路径，有缓存，只初始化一次
     luastar_context.init_pkg_path()
     -- 初始化输入输出
     ngx.ctx.request = Request:new()
     ngx.ctx.response = Response:new()
-    -- 获取 request_id
-    local request_id = ngx.ctx.request:get_header("X-FB-Request-ID")
-    if _.isEmpty(request_id) then
-        request_id = resty_random.token(20)
-    elseif _.isArray(request_id) then
-        request_id = request_id[1]
+    -- 获取 trace_id
+    local trace_id = ngx.ctx.request:get_header_single("trace_id")
+    if _.isEmpty(trace_id) then
+        trace_id = resty_random.token(20)
     end
-    ngx.ctx.request_id = request_id
+    ngx.ctx.trace_id = trace_id
     -- 获取路由相关配置
-    local route = luastar_context.getRoute()
+    local route = luastar_context.get_route()
     -- 限制策略
-    local limit_config = route:getLimit()
-    local is_limit, limit_msg = limit(limit_config)
+    local limit_config = route:get_limit()
+    local is_limit, limit_msg = _M.execute_limit(limit_config)
     if is_limit then
         ngx.log(ngx.ERR, "请求[", ngx.var.uri, "]被限制：", limit_msg)
-        ngx.status = 200
         ngx.print(limit_msg)
-        return ngx.exit(200)
+        return ngx.exit(403)
     end
     -- 路由处理器
-    local ctrl_config = route:getRoute(ngx.var.request_method, ngx.var.uri)
+    local ctrl_config = route:get_route(ngx.var.request_method, ngx.var.uri)
     if not ctrl_config then
         ngx.log(ngx.ERR, "请求[", ngx.var.uri, "]找不到处理类！")
         ngx.status = 404
         return ngx.exit(404)
     end
     -- 路由拦截器
-    local interceptorAry = route:getInterceptor(ngx.var.request_method, ngx.var.uri)
+    local interceptor_config = route:get_interceptor(ngx.var.request_method, ngx.var.uri)
     -- 执行处理方法
-    execute_ctrl(ctrl_config, interceptorAry)
+    _M.execute_ctrl(ctrl_config, interceptor_config)
     -- 输出内容
     ngx.ctx.response:finish()
 end
 
-function limit(limit_config)
+function _M.execute_limit(limit_config)
     if _.isEmpty(limit_config) then
         return false, nil
     end
@@ -71,9 +71,9 @@ end
 --[[
 -- 执行处理类
 --]]
-function execute_ctrl(ctrl_config, interceptorAry)
+function _M.execute_ctrl(ctrl_config, interceptor_config)
     -- 执行拦截前方法
-    local interceptor_ok, interceptor_msg, interceptor_code = execute_before(interceptorAry)
+    local interceptor_ok, interceptor_msg, interceptor_code = _M.execute_before(interceptor_config)
     if not interceptor_ok then
         ngx.log(ngx.INFO, "拦截处理类成功！")
         if interceptor_msg then
@@ -103,17 +103,17 @@ function execute_ctrl(ctrl_config, interceptorAry)
         ngx.log(ngx.ERR, "ctrl执行失败：", err_info)
     end
     -- 执行拦截后方法
-    execute_after(interceptorAry, call_ok, err_info)
+    _M.execute_after(interceptor_config, call_ok, err_info)
 end
 
 --[[
 -- 拦截器执行前处理
 --]]
-function execute_before(interceptorAry)
-    if _.size(interceptorAry) == 0 then
+function _M.execute_before(interceptor_config)
+    if _.size(interceptor_config) == 0 then
         return true
     end
-    for key, value in pairs(interceptorAry) do
+    for key, value in pairs(interceptor_config) do
         local require_ok, interceptor = pcall(require, value)
         if require_ok then
             local before_handle_method = interceptor["beforeHandle"]
@@ -140,11 +140,11 @@ end
 --[[
 -- 拦截器执行后处理
 --]]
-function execute_after(interceptorAry, ctrl_call_ok, err_info)
-    if _.size(interceptorAry) == 0 then
+function _M.execute_after(interceptor_config, ctrl_call_ok, err_info)
+    if _.size(interceptor_config) == 0 then
         return
     end
-    for key, value in pairs(interceptorAry) do
+    for key, value in pairs(interceptor_config) do
         local require_ok, interceptor = pcall(require, value)
         if require_ok then
             local after_handle_method = interceptor["afterHandle"]
@@ -164,7 +164,7 @@ end
 
 -- 执行
 do
-    content()
+    _M.content()
 end
 
 --require('mobdebug').done()

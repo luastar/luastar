@@ -32,7 +32,7 @@ sql 带有#{}或${}变量的语句
 data 变量值对象
 nv 变量值为空的时候是否处理为null
 --]]
-local function getsql_value(sql, data, nv)
+local function get_sql_value(sql, data, nv)
 	local var, var1, var2 = nil, {}, {}
 	-- #{}
 	for word in string.gmatch(sql, "#{[%w_]+}") do
@@ -78,7 +78,7 @@ local function getsql_value(sql, data, nv)
 	return sql
 end
 
-local function getsql_set(set, data)
+local function get_sql_set(set, data)
 	if not set then
 		return " "
 	end
@@ -87,7 +87,7 @@ local function getsql_set(set, data)
 	end
 	local s, st = nil, {}
 	for i, key in ipairs(set) do
-		s = getsql_value(key, data, true)
+		s = get_sql_value(key, data, true)
 		if s and s ~= "" then
 			table.insert(st, s)
 		end
@@ -95,7 +95,7 @@ local function getsql_set(set, data)
 	return " set " .. table.concat(st, ",")
 end
 
-local function getsql_where(where, data)
+local function get_sql_where(where, data)
 	if not where then
 		return " "
 	end
@@ -104,7 +104,7 @@ local function getsql_where(where, data)
 	end
 	local w, wt = nil, {}
 	for i, key in ipairs(where) do
-		w = getsql_value(key, data, true)
+		w = get_sql_value(key, data, true)
 		if w and w ~= "" then
 			table.insert(wt, w)
 		end
@@ -113,20 +113,20 @@ local function getsql_where(where, data)
 		return " "
 	end
 	local rs = util_str.trim(table.concat(wt, " \n"))
-	if util_str.startsWith(rs, "and") then
+	if util_str.start_with(rs, "and") then
 		rs = string.sub(rs, 4, string.len(rs))
-	elseif util_str.startsWith(rs, "or") then
+	elseif util_str.start_with(rs, "or") then
 		rs = string.sub(rs, 3, string.len(rs))
 	end
 	return " where " .. rs
 end
 
-local function getsql_limit(limit, data)
+local function get_sql_limit(limit, data)
 	if not limit then
 		return " "
 	end
-	local start = tonumber(getsql_value(limit["start"], data, false))
-	local limit = tonumber(getsql_value(limit["limit"], data, false))
+	local start = tonumber(get_sql_value(limit["start"], data, false))
+	local limit = tonumber(get_sql_value(limit["limit"], data, false))
 	if start == nil or limit == nil then
 		return " "
 	end
@@ -151,17 +151,17 @@ function _M.getsql(sql_table, data)
 	for i, key in ipairs(tag) do
 		local value = ""
 		if key == "set" then
-			value = getsql_set(sql_table["set"], data)
+			value = get_sql_set(sql_table["set"], data)
 		elseif key == "where" then
-			value = getsql_where(sql_table["where"], data)
+			value = get_sql_where(sql_table["where"], data)
 		elseif key == "limit" then
-			value = getsql_limit(sql_table["limit"], data)
+			value = get_sql_limit(sql_table["limit"], data)
 		end
 		value = string.gsub(value, "%%", "%%%%")
 		sql = string.gsub(sql, "@{" .. key .. "}", value)
 	end
 	-- set var value
-	return getsql_value(sql, data, false)
+	return get_sql_value(sql, data, false)
 end
 
 return _M

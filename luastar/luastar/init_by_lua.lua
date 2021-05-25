@@ -8,24 +8,20 @@ LUASTAR_G = _G
 -- luastar 全局配置table
 LUASTAR_C = {}
 
--- class
-Class = require("luastar.core.class")
 -- cjson
 cjson = require("cjson")
 cjson.encode_empty_table_as_object(false)
-
--- underscore
+-- 常用函数
 _ = require("moses")
-
--- luastar 缓存模块
+-- class类
+Class = require("luastar.core.class")
+-- 缓存
 luastar_cache = require("luastar.core.cache")
--- luastar 配置模块
+-- 配置
 luastar_config = require("luastar.core.config")
--- luastar 上下文模块
+-- 上下文
 luastar_context = require("luastar.core.context")
--- luastar session
-session = require("luastar.core.session")
--- luastar 日志模块
+-- 日志
 logger = require("luastar.util.logger")
 
 

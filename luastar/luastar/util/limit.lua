@@ -62,19 +62,19 @@ function _M.limit_req(limit_config)
     local limit_ary = {}
     local limit_key_ary = {}
     local resty_limit_req = require("resty.limit.req")
-    _.eachArray(limit_config, function(i, v)
+    for idx, val in ipairs(limit_config) do
         -- limit the requests under 200 req/sec with a burst of 100 req/sec,
         -- that is, we delay requests under 300 req/sec and above 200
         -- req/sec, and reject any requests exceeding 300 req/sec.
         -- local lim, err = limit_req.new("my_limit_req_store", 200, 100)
-        local lim, err = resty_limit_req.new(v["dict_name"], v["rate"], v["burst"])
+        local lim, err = resty_limit_req.new(val["dict_name"], val["rate"], val["burst"])
         if lim then
             table.insert(limit_ary, lim)
-            table.insert(limit_key_ary, v["key"])
+            table.insert(limit_key_ary, val["key"])
         else
-            ngx.log(logger.e("failed to instantiate a resty.limit.req object, dict is ", v["dict_name"], ", err is ", err))
+            ngx.log(logger.e("failed to instantiate a resty.limit.req object, dict is ", val["dict_name"], ", err is ", err))
         end
-    end)
+    end
     if _.isEmpty(limit_ary) then
         return false
     end
@@ -154,13 +154,13 @@ function _M.limit_count_redis(limit_config, redis_bean_name)
         return false
     end
     -- ngx.log(logger.i("limit_count_redis param is :", cjson.encode(limit_config)))
-    local beanFactory = luastar_context.getBeanFactory()
-    local redis_service = beanFactory:getBean(redis_bean_name)
+    local bean_factory = luastar_context.get_bean_factory()
+    local redis_service = bean_factory:get_bean(redis_bean_name)
     if _.isNil(redis_service) then
         ngx.log(logger.e("limit_count_redis redis service bean is nil."))
         return false
     end
-    local redis = redis_service:getConnect()
+    local redis = redis_service:get_connect()
     for idx, config in ipairs(limit_config) do
         local current_count, current_count_err = redis:incr(config["key"])
         if _.isNil(current_count) then

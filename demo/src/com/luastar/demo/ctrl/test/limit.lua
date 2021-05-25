@@ -12,7 +12,7 @@ local json_util = require("com.luastar.demo.util.json")
     limit
 --]]
 function _M.limit(request)
-    local limit_config = luastar_config.getConfig("limit_config")
+    local limit_config = luastar_config.get_config("limit_config")
     -- uid
     local uid = _.ifEmpty(request:get_header("uid"), "")
     local uri = request.uri
@@ -33,7 +33,7 @@ function _M.limit(request)
         limit_config_count = limit_config[uid]["limit_count"]
     end
     local limit_config_count2 = {}
-    _.eachArray(limit_config_count, function(idx, val)
+    for idx, val in ipairs(limit_config_count) do
         -- 是否满足配置条件
         if str_util.uri_is_macth(uri, val["url"][1], val["url"][2]) then
             table.insert(limit_config_count2, {
@@ -42,7 +42,7 @@ function _M.limit(request)
                 count = val["count"]
             })
         end
-    end)
+    end
     local is_limit = limit_util.limit_count_redis(limit_config_count2, "redis")
     if is_limit then
         return is_limit, json_util.fail("请求次数受限制")
@@ -54,7 +54,7 @@ function _M.limit(request)
         limit_config_req1 = limit_config[uid]["limit_req"]
     end
     local limit_config_req2 = {}
-    _.eachArray(limit_config_req1, function(idx, val)
+    for idx, val in ipairs(limit_config_req1) do
         -- 是否满足配置条件
         if str_util.uri_is_macth(uri, val["url"][1], val["url"][2]) then
             table.insert(limit_config_req2, {
@@ -64,7 +64,7 @@ function _M.limit(request)
                 burst = val["burst"]
             })
         end
-    end)
+    end
     local is_limit = limit_util.limit_req(limit_config_req2)
     if is_limit then
         return is_limit, json_util.fail("请求频次受限制")

@@ -2,9 +2,7 @@
 # 1. luastar简介
 ## 1.1 luastar是一个基于openresty的高性能高并发高效率http接口和web网站开发框架
 
-## 1.2 luastar在macOS和CentOS6.5+系统，openresty-1.7.10.2+环境测试通过。
-
-## 1.3 luastar主要特性：
+## 1.2 luastar主要特性：
 * request/response封装
 * 缓存管理
 * 配置文件管理
@@ -12,37 +10,36 @@
 * 类似 spring bean 服务管理
 * mysql和redis访问封装
 * httpclient等常用工具封装
-* web系统支持
 
 # 2.  luastar安装
 ## 2.1 openresty 安装
 请参考官网介绍，https://openresty.org/cn/installation.html
 
-建议安装目录：/usr/local/openresty
+建议安装目录：/data/apps/openresty
 
 ## 2.2 luastar 安装
 ### 2.2.1 下载luastar
 从github下载luastar到本地目录，例如：/data/apps/luastar下。
 
 ### 2.2.2 修改luastar配置
-替换配置文件『/yourpath/luastar/conf/luastar*.conf』中的openresty安装路径和luastar存放路径，如下：
+替换配置文件『/yourpath/luastar/demo/config-ng/luastar*.conf』中的openresty安装路径和luastar存放路径，如下：
 
 ``` conf
 ## 该配置文件最好放到openresty/nginx/conf/**/下统一进行管理
 ## 设置lua包路径(';;'是默认路径，?.dylib是macos上的库，?.so是centos上的库)
-lua_package_path '/Users/zhuminghua/Documents/work-private/luastar/luastar/libs/?.lua;/Users/zhuminghua/Documents/work-private/luastar/luastar/src/?.lua;;';
-lua_package_cpath '/Users/zhuminghua/Documents/work-private/luastar/luastar/libs/?.dylib;/Users/zhuminghua/Documents/work-private/luastar/luastar/libs/?.so;;';
+lua_package_path '/Users/zhuminghua/Documents/code-zmh/luastar/luastar/?.lua;;';
+lua_package_cpath '/Users/zhuminghua/Documents/code-zmh/luastar/luastar/?.dylib;/Users/zhuminghua/Documents/code-zmh/luastar/luastar/?.so;;';
 
 ## luastar初始化
-init_by_lua_file '/Users/zhuminghua/Documents/work-private/luastar/luastar/src/luastar_init.lua';
+init_by_lua_file '/Users/zhuminghua/Documents/code-zmh/luastar/luastar/luastar/init_by_lua.lua';
 
 ## 设置成一样避免获取request_body时可能会缓存到临时文件
-#client_max_body_size 50m;
-#client_body_buffer_size 50m;
+#client_max_body_size 64m;
+#client_body_buffer_size 64m;
 
 ## 请求频次限制字典
-lua_shared_dict dict_limit_req 100m;
-lua_shared_dict dict_limit_count 100m;
+lua_shared_dict dict_limit_req 64m;
+lua_shared_dict dict_limit_count 64m;
 
 server {
   listen 8001;
@@ -50,50 +47,20 @@ server {
   #lua_code_cache off;
   server_name localhost;
   ## luastar路径
-  set $LUASTAR_PATH '/Users/zhuminghua/Documents/work-private/luastar/luastar';
+  set $LUASTAR_PATH '/Users/zhuminghua/Documents/code-zmh/luastar/luastar';
   ## 应用名称
   set $APP_NAME 'demo';
   ## 应用路径
-  set $APP_PATH '/Users/zhuminghua/Documents/work-private/luastar/demo';
+  set $APP_PATH '/Users/zhuminghua/Documents/code-zmh/luastar/demo';
   ## 应用使用的配置，可区分开发/生产环境，默认使用app.lua
   set $APP_CONFIG '/config/app_dev.lua';
   ## 访问日志
-  access_log  '/Users/zhuminghua/logs/nginx/demo/access.log' main;
+  access_log  '/Users/zhuminghua/Documents/logs/luastar_demo/access.log' main;
   ## 错误/输出日志
-  error_log   '/Users/zhuminghua/logs/nginx/demo/error.log'  info;
+  error_log   '/Users/zhuminghua/Documents/logs/luastar_demo/error.log'  info;
   location / {
     default_type text/html;
-    content_by_lua_file '${LUASTAR_PATH}/src/luastar_content.lua';
-  }
-}
-
-server {
-  listen 8002;
-  ## web项目关闭lua_code_cache后session会失效
-  #lua_code_cache off;
-  server_name localhost;
-  ## luastar路径
-  set $LUASTAR_PATH '/Users/zhuminghua/Documents/work-private/luastar/luastar';
-  ## 应用名称
-  set $APP_NAME 'demo2';
-  ## 应用路径
-  set $APP_PATH '/Users/zhuminghua/Documents/work-private/luastar/demo2';
-  ## 应用使用的配置，可区分开发/生产环境，默认使用app.lua
-  set $APP_CONFIG '/config/app_dev.lua';
-  ## template模板跟路径，web项目需要配置
-  set $template_root '/Users/zhuminghua/Documents/work-private/luastar/demo2/views';
-  ## 访问日志
-  access_log  '/Users/zhuminghua/logs/nginx/demo2/access.log' main;
-  ## 错误/输出日志
-  error_log   '/Users/zhuminghua/logs/nginx/demo2/error.log'  info;
-  location / {
-    default_type text/html;
-    content_by_lua_file '${LUASTAR_PATH}/src/luastar_content.lua';
-  }
-  ## 静态文件目录(*.js,*.css...)
-  location /assets {
-    root '/Users/zhuminghua/Documents/work-private/luastar/demo2';
-    index index.html index.htm;
+    content_by_lua_file '${LUASTAR_PATH}/luastar/content_by_lua.lua';
   }
 }
 ```
@@ -103,7 +70,7 @@ luastar/conf/目录下多个文件分别对应不同环境，例如luastar_dev.c
 修改openresty/nginx/conf/nginx.conf，引入luastar项目配置文件：
 
 ```conf
-include /Users/zhuminghua/Documents/work-private/luastar/luastar/conf/luastar_dev.conf;
+include /Users/zhuminghua/Documents/code-zmh/luastar/demo/config-ng/luastar_dev.conf;
 ```
 
 ### 2.2.4 启动nignx
@@ -118,29 +85,26 @@ http://localhost:8001/api/test/hello?name=haha
 # 3 api开发
 ## 3.1 luastar 项目结构
 ```
-luastar	//luastar项目
-	conf		//可移到openresty/nginx/conf/下
-	libs		//第三方库
-	src		//luastar源码
-demo	//api项目
-	config	//配置目录
-		app*.lua		//配置文件
-		bean.lua		//bean配置
-		msg.lua		//文案配置
-		route.lua		//路由/频次控制/拦截器配置
+luastar	// luastar项目
+	luastar		// luastar源码
+	**		// 第三方库，可自行添加
+demo	// demo项目
+	config	// 配置目录
+		app*.lua		// 配置文件
+		bean.lua		// bean配置
+		msg.lua		// 文案配置
+		route.lua		// 路由/频次控制/拦截器配置
+	config-ng	// nginx配置文件
+		luastar.lua		// 生产环境
+		luastar_dev.lua		// 开发环境
 	src		// 源码目录
 		com
 			luastar
-				demo	//包
-					ctrl			//控制类目录
-					interceptor	//拦截器
-					service		//服务类
-					util			//辅助类
-demo2	//web项目
-	config	//配置目录
-	src		//源码目录
-	views	//template视图目录
-	assets	//静态文件目录
+				demo	// 包
+					ctrl			// 控制类目录
+					interceptor	// 拦截器
+					service		// 服务类
+					util			// 辅助类
 ```
 
 ## 3.2 luastar 全局变量
@@ -148,15 +112,13 @@ luastar 在初始化时，定义了几个常用的全局变量，在项目中可
 
 |全局变量 | 说明 |
 | :--- | :--- |
-| Class | luastar中的类定义 |
 | cjson | json工具类 |
-| _ | moses工具类（luastar修改过） |
-| template | html模板类 |
+| _ | moses工具类（部分修改） |
+| Class | luastar中的类定义 |
 | luastar_cache | luastar缓存 |
 | luastar_config | luastar配置 |
 | luastar_context | luastar上下文 |
-| logger | 日志辅助 |
-| session | web session |
+| logger | luastar日志 |
 
 ## 3.3 缓存
 luastar提供了lua内存缓存，根据openresty机制，每个worker存有一份，所以在使用缓存前，需要先判断是否存在（即使初始化存储过），luastar中使用缓存存储了配置文件信息、bean信息、路由和拦截器信息等等。
@@ -167,7 +129,7 @@ local _M = {}
 
 local util_file = require("luastar.util.file")
 
-function _M.getConfig(k, default_v)
+function _M.get_config(k, default_v)
 	-- 从缓存中获取配置信息
 	local app_config = luastar_cache.get("app_config")
 	if app_config then
@@ -199,15 +161,15 @@ return _M
 ### 3.4.1 初始化项目包路径和获取路由
 初始化项目包路径和获取路由已经在请问入口类中调用了，实际项目中应该不会调用，详见：luastar/src/luastar/luastar_content.lua
 
-### 3.4.2 获取beanFactory
-beanFactory是参考spring中的bean管理实现的一套lua bean，用于服务层，和require进来的对象相比，最大的区别是lua bean是用类实例化出来的对象，可以是单例的，也可以是多实例的，有自己的属性和方法。
+### 3.4.2 获取bean_factory
+bean_factory是参考spring中的bean管理实现的一套lua bean，用于服务层，和require进来的对象相比，最大的区别是lua bean是用类实例化出来的对象，可以是单例的，也可以是多实例的，有自己的属性和方法。
 
 ``` lua
 -- 获取mysql服务
-local beanFactory = luastar_context.getBeanFactory()
-local mysql_util = beanFactory:getBean("mysql")
+local bean_factory = luastar_context.get_bean_factory()
+local mysql_util = bean_factory:get_bean("mysql")
 -- 创建链接
-local mysql = mysql_util:getConnect()
+local mysql = mysql_util:get_connect()
 -- 执行sql
 local res, err, errno, sqlstate = mysql:query("select * from user")
 ngx.log(logger.i(cjson.encode({
@@ -229,11 +191,11 @@ mysql_util:close(mysql)
 --[[
 提示消息配置
 普通消息
-local message = luastar_context.getMsg("msg_live", "100001")
+local message = luastar_context.get_msg("msg_live", "100001")
 占位直接使用string的格式化方法，例如%s, %d等
-local message = luastar_context.getMsg("msg_live", "100002"):format(100.00)
+local message = luastar_context.get_msg("msg_live", "100002"):format(100.00)
 多级配置消息获取方法
-local message = luastar_context.getMsg("msg_live", "100003", "001")
+local message = luastar_context.get_msg("msg_live", "100003", "001")
 --]]
 msg_pub = {
     ["100001"] = "错误1！", --
@@ -281,7 +243,7 @@ require('mobdebug').done()
 
 luastar直接使用ngx.log输出，之前也有用过第三方库 [https://github.com/Neopallium/lualogging](https://github.com/Neopallium/lualogging) 在多worker模式中容易造成日志丢失。ngx.log的缺点是不能个性化按天输出（可以用脚本定时分割），输出大小有限制，不过一般也够用了。
 
-luastar只是简单封装了固定输出request_id和简化的方法，不包装起来是为了直观的输出日志的位置
+luastar只是简单封装了固定输出trace_id和简化的方法，不包装起来是为了直观的输出日志的位置
 
 ```
 ngx.log(logger.info("name=", name))
@@ -294,7 +256,7 @@ ngx.log(logger.i("name=", name))
 ```
 2016/12/19 17:01:50 [info] 14545#0: *553 [lua] hello.lua:12: --[2y6hNDFGd4Nxi7FE9UAP]--name=world, try to give a param with name., client: 127.0.0.1, server: localhost, request: "GET /api/test/hello HTTP/1.1", host: "localhost:8001"
 ```
-[2y6hNDFGd4Nxi7FE9UAP]是本次请求的request_id，便于在日志量大的情况下定位一次请求的所有日志。
+[2y6hNDFGd4Nxi7FE9UAP]是本次请求的trace_id，便于在日志量大的情况下定位一次请求的所有日志。
 
 ## 3.6 项目配置
 一般项目都会有配置文件，在luastar项目中，配置文件放在demo/config/目录下，可以通过在luastar.conf文件中指定不同环境的配置，默认使用app.lua文件
@@ -339,11 +301,11 @@ _include_ = {
 
 _include_ 是一个特殊的用法，支持配置文件嵌套引入。
 
-配置文件的内容在代码中，可以通过luastar_config.getConfig来获取：
+配置文件的内容在代码中，可以通过luastar_config.get_config来获取：
 
 ```lua
-local mysqlDataSource = luastar_config.getConfig("mysql")
-local mysqlDataSourceHost = luastar_config.getConfig("mysql")["host"]
+local mysqlDataSource = luastar_config.get_config("mysql")
+local mysqlDataSourceHost = luastar_config.get_config("mysql")["host"]
 ```
 
 配置文件的内容也可以直接在bean.lua中使用，
@@ -492,8 +454,8 @@ function _M.list(request, response)
 		keyword = request:get_arg("query_username")
 	}
 	-- 查询结果
-	local beanFactory = luastar_context.getBeanFactory()
-	local userService = beanFactory:getBean("userService")
+	local bean_factory = luastar_context.get_bean_factory()
+	local userService = bean_factory:get_bean("userService")
 	local num = userService:countUser(param);
 	local data = {}
 	if num > 0 then
@@ -520,7 +482,6 @@ luastar中对mysql和redis提供了以下功能：
 3. 关闭连接（使用连接池）
 4. mysql事务
 5. sql语句动态拼装
-6. 未关闭连接监控
 
 ### 3.9.1 配置数据源
 demo2/conf/app.lua中配置相关数据源，例如：
@@ -566,21 +527,21 @@ redis = {
 
 ```lua
 -- 获取封装类
-local beanFactory = luastar_context.getBeanFactory()
-local mysql_util = beanFactory:getBean("mysql")
-local redis_util = beanFactory:getBean("redis")
+local bean_factory = luastar_context.get_bean_factory()
+local mysql_util = bean_factory:get_bean("mysql")
+local redis_util = bean_factory:get_bean("redis")
 
 -- 对于单次请求操作，可直接使用下列语句，不用获取和关闭连接
 mysql_util.query("sql")
 redis_util.hgetall("key")
 
 -- 对于多次请求操作，需要先获取到连接，依次执行，最后关闭连接
-local mysql = mysql_util:getConnect()
+local mysql = mysql_util:get_connect()
 local res1, err1, errno1, sqlstate1 = mysql:query(sql1)
 local res2, err2, errno2, sqlstate2 = mysql:query(sql2)
 mysql_util:close(mysql)
 
-local redis = redis_util:getConnect()
+local redis = redis_util:get_connect()
 local userinfo = table_util.array_to_hash(redis:hgetall("user:info:" .. uid))
 redis_util:close(redis)
 ```
@@ -609,9 +570,9 @@ function _M.mysql(request, response)
 	}
 	local data = { userName = name, start = 0, limit = 10 }
 	local sql = sql_util.getsql(sql_table, data)
-	local beanFactory = luastar_context.getBeanFactory()
-	local mysql_util = beanFactory:getBean("mysql")
-	local mysql = mysql_util:getConnect()
+	local bean_factory = luastar_context.get_bean_factory()
+	local mysql_util = bean_factory:get_bean("mysql")
+	local mysql = mysql_util:get_connect()
 	local res, err, errno, sqlstate = mysql:query(sql)
 	mysql_util:close(mysql)
 	response:writeln(cjson.encode({
@@ -624,13 +585,13 @@ function _M.mysql(request, response)
 end
 
 function _M.transaction(request, response)
-	local beanFactory = luastar_context.getBeanFactory()
-	local mysql_util = beanFactory:getBean("mysql")
+	local bean_factory = luastar_context.get_bean_factory()
+	local mysql_util = bean_factory:get_bean("mysql")
 	local sqlArray = {
 		"update SYS_USER set USER_NAME='管理员1' where ID=1",
 		"update SYS_USER set USER_NAME_A='管理员2' where ID=1" -- USER_NAME_A not exists
 	}
-	local result_table = mysql_util:queryTransaction(sqlArray)
+	local result_table = mysql_util:query_transaction(sqlArray)
 	response:writeln(cjson.encode(result_table))
 end
 
@@ -664,80 +625,7 @@ sql_table = {
 }
 ```
 
-### 3.9.4 链接监控
-luastar默认开启了mysql和redis的未关闭连接监控，如果有没有关闭的连接，会输出错误日志：
-
-```
-2016/12/20 16:34:23 [error] 40144#0: *45 [lua] monitor.lua:42: check(): check info +...luastar/db/mysql.lua:73, client: 127.0.0.1, server: localhost, request: "GET /api/test/mysql/transaction HTTP/1.1", host: "localhost:8001"
-```
-
-加号代表开启了连接的位置，减号代表关闭了连接的位置，如果有不匹配的+和-，则能定位到未关闭的位置，如果一次请求中开启和关闭的次数太多，日志可能输出不全（ngx.log的限制）。
-
-## 4 web 开发
-### 4.1 session 实现
-luastar中session的管理使用的是第三方库：
-[lua-resty-session](https://github.com/bungle/lua-resty-session)
-
-session已放入到全局变量中，可以在代码中直接使用，支持cookie、shm、memcache和redis持久化方式。
-
-session保存
-
-```lua
--- session保存
-ngx.log(logger.i("保存session: ", cjson.encode(userInfo)))
-session.save("user", userInfo)
-```
-
-session校验
-
-```lua
-function _M.beforeHandle()
-	-- session校验
-	if session.check() then
-		local data = session.getData("user")
-		ngx.log(logger.i("用户session验证通过", cjson.encode(data)))
-		return true
-	end
-	ngx.log(logger.i("用户session验证不通过"))
-	local xRequestedWith = ngx.ctx.request:get_header("x-requested-with")
-	if _.isEmpty(xRequestedWith) then
-		template.render("login.html", { message = "登录超时！" })
-	else
-		ngx.ctx.response:set_header("session-status", "timeout");
-		ngx.ctx.response:writeln(json_util.timeout())
-	end
-	return false
-end
-```
-
-session数据获取
-
-```lua
--- 登录用户信息
-local userInfo = session.getData("user")
-```
-
-session销毁
-
-```lua
--- 销毁session
-session.destroy()
-```
-
-其他用法可参考官方文档
-
-### 4.2 页面布局和渲染
-luastar中页面布局和渲染使用第三方库
- [lua-resty-template ](https://github.com/bungle/lua-resty-template)
-
-配置web相关目录，相比api项目，需要额外配置template模板根路径和静态文件访问，
-详见：luastar/conf/luastar.conf 中 demo2 的配置
-
-template页面渲染语法在这里不多介绍了，请参考 [lua-resty-template ](https://github.com/bungle/lua-resty-template) 和 demo2 中的实现。
-
-sql语句在 demo2/src/resources/luastar-cms.sql 中，配置好数据源后可使用 admin / admin 登录系统，目前只实现了登录和用户管理的简单功能，1.3版本中前端框架改用 [layui](http://www.layui.com/)，整体简洁了不少。
-
-## 5 联系方式
+## 4 联系方式
 luastar 完全开源，不限制，欢迎使用和交流。
 
 QQ交流群：545501138

@@ -17,24 +17,24 @@ function _M.init_pkg_path()
 	luastar_cache.set("pkg_path_init", true)
 end
 
-function _M.getRoute()
+function _M.get_route()
 	local route = luastar_cache.get("route")
 	if route then
 		return route
 	end
 	local Route = require("luastar.core.route")
-	route = Route(ngx.var.APP_PATH .. route_file)
+	route = Route:new(ngx.var.APP_PATH .. route_file)
 	luastar_cache.set("route", route)
 	return route
 end
 
-function _M.getBeanFactory()
+function _M.get_bean_factory()
 	local bean_factory = luastar_cache.get("bean_factory")
 	if bean_factory then
 		return bean_factory
 	end
-	local BeanFactory = require("luastar.core.beanfactory")
-	bean_factory = BeanFactory(ngx.var.APP_PATH .. bean_file)
+	local BeanFactory = require("luastar.core.bean_factory")
+	bean_factory = BeanFactory:new(ngx.var.APP_PATH .. bean_file)
 	luastar_cache.set("bean_factory", bean_factory)
 	return bean_factory
 end
@@ -48,7 +48,7 @@ msg_live = {
     }
 }
 --]]
-local function getMsgConfig(k)
+local function get_msg_config(k)
 	local app_msg = luastar_cache.get("app_msg")
 	if app_msg then
 		return app_msg[k]
@@ -64,14 +64,14 @@ end
 
 --[[
 普通消息
-local message = luastar_context.getMsg("msg_live", "100001")
+local message = luastar_context.get_msg("msg_live", "100001")
 占位直接使用string的格式化方法，例如%s, %d等
-local message = luastar_context.getMsg("msg_live", "100002"):format(100.00)
+local message = luastar_context.get_msg("msg_live", "100002"):format(100.00)
 多级配置消息获取方法
-local message = luastar_context.getMsg("msg_live", "100003", "001")
+local message = luastar_context.get_msg("msg_live", "100003", "001")
 --]]
-function _M.getMsg(k, ...)
-	local val = getMsgConfig(k)
+function _M.get_msg(k, ...)
+	local val = get_msg_config(k)
 	if _.isEmpty(val) then
 		return string.format("msg %s not config.", k)
 	end

@@ -18,49 +18,49 @@ end)
 
 --]]
 
-local functionType = "function"
+local function_type = "function"
 
 ---
--- @param tryBlock The block of code to execute as the try block.
+-- @param try_block The block of code to execute as the try block.
 --
 -- @return A table that can be used to chain try/catch/finally blocks. (Call .catch or .finally of the return value)
 --
-local function try(tryBlock)
+local function try(try_block)
     local status, err = true, nil
 
-    if type(tryBlock) == functionType then
-        status, err = xpcall(tryBlock, debug.traceback)
+    if type(try_block) == function_type then
+        status, err = xpcall(try_block, debug.traceback)
     end
 
-    local finally = function(finallyBlock, catchBlockDeclared)
-        if type(finallyBlock) == functionType then
-            finallyBlock()
+    local finally = function(finally_block, catch_block_declared)
+        if type(finally_block) == function_type then
+            finally_block()
         end
 
-        if not catchBlockDeclared and not status then
+        if not catch_block_declared and not status then
             error(err)
         end
     end
 
-    local catch = function(catchBlock)
-        local catchBlockDeclared = type(catchBlock) == functionType;
+    local catch = function(catch_block)
+        local catch_block_declared = type(catch_block) == function_type;
 
-        if not status and catchBlockDeclared then
+        if not status and catch_block_declared then
             local ex = err or "unknown error occurred"
-            catchBlock(ex)
+            catch_block(ex)
         end
 
         return {
-            finally = function(finallyBlock)
-                finally(finallyBlock, catchBlockDeclared)
+            finally = function(finally_block)
+                finally(finally_block, catch_block_declared)
             end
         }
     end
 
     return {
         catch = catch,
-        finally = function(finallyBlock)
-            finally(finallyBlock, false)
+        finally = function(finally_block)
+            finally(finally_block, false)
         end
     }
 end

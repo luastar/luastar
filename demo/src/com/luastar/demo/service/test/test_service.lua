@@ -15,7 +15,7 @@ function testService:getUserInfo(uid)
     if _.isEmpty(uid) then
         return nil
     end
-    local redis = self.redis_util:getConnect()
+    local redis = self.redis_util:get_connect()
     local userinfo = table_util.array_to_hash(redis:hgetall("user:info:" .. uid))
     self.redis_util:close(redis)
     if _.isEmpty(userinfo) then

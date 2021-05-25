@@ -7,7 +7,7 @@ local _M = {}
 
 local util_file = require("luastar.util.file")
 
-function _M.getConfig(k, default_v)
+function _M.get_config(k, default_v)
 	local app_config = luastar_cache.get("app_config")
 	if app_config then
 		return app_config[k] or default_v

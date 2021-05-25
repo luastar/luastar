@@ -31,28 +31,28 @@ function Mysql:init(datasource)
 	ngx.log(ngx.DEBUG, "[Mysql:init] datasource : ", cjson.encode(self.datasource))
 end
 
-function Mysql:getConnect()
+function Mysql:get_connect()
 	local connect, err = resty_mysql:new()
 	if not connect then
-		ngx.log(ngx.ERR, "[Mysql:initConnect] failed to create mysql : ", err)
+		ngx.log(ngx.ERR, "[Mysql:get_connect] failed to connect mysql : ", err)
 		return nil
 	end
 	connect:set_timeout(self.datasource["timeout"])
 	local ok, err, errno, sqlstate = connect:connect(self.datasource)
 	if not ok then
-		ngx.log(ngx.ERR, "[Mysql:getConnect] failed to connect mysql : ", err)
+		ngx.log(ngx.ERR, "[Mysql:get_connect] failed to connect mysql : ", err)
 		return nil
 	end
 	-- set charset
 	local res, err, errno, sqlstate = connect:query("SET NAMES " .. self.datasource["charset"])
 	if not res then
-		ngx.log(ngx.ERR, "[Mysql:getConnect] set charset fail : ", err)
+		ngx.log(ngx.ERR, "[Mysql:get_connect] set charset fail : ", err)
 	end
 	return connect
 end
 
 function Mysql:query(sql, nrows)
-	local connect = self:getConnect()
+	local connect = self:get_connect()
 	if not connect then
 		ngx.log(ngx.ERR, "[Mysql:query] failed to get mysql connect.")
 		return nil, "failed to get mysql connect."
@@ -63,12 +63,12 @@ function Mysql:query(sql, nrows)
 	return res, err, errno, sqlstate
 end
 
-function Mysql:queryTransaction(sqlArray)
+function Mysql:query_transaction(sqlArray)
 	if not _.isArray(sqlArray) then
-		ngx.log(ngx.ERR, "[Mysql:queryTransaction] sqlArray must be an array.")
+		ngx.log(ngx.ERR, "[Mysql:query_transaction] sqlArray must be an array.")
 		return nil, "sqlArray must be an array."
 	end
-	local connect = self:getConnect()
+	local connect = self:get_connect()
 	if not connect then
 		ngx.log(ngx.ERR, "[Mysql:query] failed to get mysql connect.")
 		return nil, "failed to get mysql connect."
@@ -76,7 +76,7 @@ function Mysql:queryTransaction(sqlArray)
 	-- start transaction
 	local res_start_transaction, err_start_transaction, errno_start_transaction, sqlstate_start_transaction = connect:query("START TRANSACTION;")
 	if _.isEmpty(res_start_transaction) then
-		ngx.log(ngx.ERR, "[Mysql:queryTransaction] start transaction error.")
+		ngx.log(ngx.ERR, "[Mysql:query_transaction] start transaction error.")
 		self:close(connect)
 		return nil, "start transaction error."
 	end
@@ -84,7 +84,7 @@ function Mysql:queryTransaction(sqlArray)
 	local result = {}
 	for index, sql in ipairs(sqlArray) do
 		-- 多条sql以分号结尾
-		if not str_util.endsWith(sql, ";") then sql = sql .. ";" end
+		if not str_util.end_with(sql, ";") then sql = sql .. ";" end
 		-- 逐条执行sql
 		local res, err, errno, sqlstate = connect:query(sql)
 		table.insert(result, { res = res, err = err, errno = errno, sqlstate = sqlstate })
@@ -92,9 +92,9 @@ function Mysql:queryTransaction(sqlArray)
 		if _.isEmpty(res) then
 			local res_rollback, err_rollback, errno_rollback, sqlstate_rollback = connect:query("ROLLBACK;")
 			if _.isEmpty(res_rollback) then
-				ngx.log(ngx.ERR, "[Mysql:queryTransaction] rollback error.")
+				ngx.log(ngx.ERR, "[Mysql:query_transaction] rollback error.")
 			else
-				ngx.log(ngx.INFO, "[Mysql:queryTransaction] transaction rollback.")
+				ngx.log(ngx.INFO, "[Mysql:query_transaction] transaction rollback.")
 			end
 			self:close(connect)
 			return result
@@ -103,7 +103,7 @@ function Mysql:queryTransaction(sqlArray)
 	-- commit
 	local res_commit, err_commit, errno_commit, sqlstate_commit = connect:query("COMMIT;")
 	if _.isEmpty(res_commit) then
-		ngx.log(ngx.ERR, "[Mysql:queryTransaction] commit error.")
+		ngx.log(ngx.ERR, "[Mysql:query_transaction] commit error.")
 	end
 	self:close(connect)
 	return result
