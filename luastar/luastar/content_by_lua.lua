@@ -23,14 +23,6 @@ function _M.content()
     ngx.ctx.trace_id = trace_id
     -- 获取路由相关配置
     local route = luastar_context.get_route()
-    -- 限制策略
-    local limit_config = route:get_limit()
-    local is_limit, limit_msg = _M.execute_limit(limit_config)
-    if is_limit then
-        ngx.log(ngx.ERR, "请求[", ngx.var.uri, "]被限制：", limit_msg)
-        ngx.print(limit_msg)
-        return ngx.exit(403)
-    end
     -- 路由处理器
     local ctrl_config = route:get_route(ngx.var.request_method, ngx.var.uri)
     if not ctrl_config then
@@ -44,28 +36,6 @@ function _M.content()
     _M.execute_ctrl(ctrl_config, interceptor_config)
     -- 输出内容
     ngx.ctx.response:finish()
-end
-
-function _M.execute_limit(limit_config)
-    if _.isEmpty(limit_config) then
-        return false, nil
-    end
-    local is_limit, limit_msg = false, nil
-    local require_ok, limit = pcall(require, limit_config["class"])
-    if require_ok then
-        local limit_method = limit[limit_config["method"]]
-        if limit_method and _.isFunction(limit_method) then
-            local call_ok, call_res_1, call_res_2 = pcall(limit_method, ngx.ctx.request)
-            if call_ok then
-                is_limit, limit_msg = call_res_1, call_res_2
-            else
-                ngx.log(ngx.ERR, "调用limit[", limit_config["class"], "][", limit_config["method"], "]失败：", call_res_1)
-            end
-        end
-    else
-        ngx.log(ngx.ERR, "加载limit[", limit_config["class"], "]失败!")
-    end
-    return is_limit, limit_msg
 end
 
 --[[

@@ -1,7 +1,4 @@
 --[[
--- 频次限制
-limit = { class = "xxx.yyy.zzz", method = "limit" }
-
 -- 全匹配路由，优先级高
 -- 第1列：请求方式，第2列：路由，第3列：文件，第4列：方法，第5列：扩展参数
 route = {
@@ -31,7 +28,6 @@ interceptor = {
     }
 }
 --]]
--- limit = { class = "com.luastar.demo.ctrl.test.limit", method = "limit" }
 
 route = {
     { "GET,POST", "/api/test/hello", "com.luastar.demo.ctrl.test.hello", "hello", { a="1", b="2"} },

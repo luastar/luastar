@@ -322,12 +322,9 @@ mysql = {
 详情请参考bean的配置用法。
 
 ## 3.7 频次控制/路由/拦截器
-频次控制/路由/拦截器在demo/config/route.lua文件中配置
+路由/拦截器在demo/config/route.lua文件中配置
 
 ```lua
--- 频次限制
-limit = { class = "com.luastar.demo.ctrl.test.limit", method = "limit" }
-
 -- 全匹配路由，优先级高
 route = {
 	{ "*", "/api/test/hello", "com.luastar.demo.ctrl.test.hello", "hello", { p1="v1", p2="v2" } },
@@ -356,14 +353,7 @@ interceptor = {
 }
 ```
 
-### 3.7.1 频次控制
-频次限制需要配置实现的类和方法，方法需要返回布尔类型表示是否受限制，目前实现了ip限制，频次限制，单位时间内次数限制，基于 resty.limit 或 redis实现，resty.limit中的count实现需要openresty更高版本（支持dict:expire方法）。
-
-参考：
-luastar/src/luastar/util/limit.lua
-demo/src/com/luastar/demo/ctrl/test/limit.lua
-
-### 3.7.2 路由
+### 3.7.1 路由
 路由分为全匹配路由和模式匹配路由，全匹配优先级高，不支持路径取值（不建议），模式使用lua自带的模式。
 
 路由是一个二维数组，每一行表示一个接口地址，第一列表示请求方式（*表示不限制，多个请求方式用逗号分隔，v1.4版本新增），第二列表示请求地址，第三列表示对应的处理类，第四列表示处理类中的方法，第五列表示自定义参数（以第三个参数传到处理类方法中）
@@ -373,7 +363,7 @@ luastar默认给ctrl类请求处理方法传入了request/response对象（其�
 参考：
 demo/src/com/luastar/demo/ctrl/test/hello.lua
 
-### 3.7.3 拦截器
+### 3.7.2 拦截器
 拦截器每一行表示一个拦截器（优先级取决于数组顺序），url为数组，支持同时拦截多个url，每个url是一个数组（第一列表示拦截的请求方法，*代表所有，第二列可以是模式的，取决于第三列），class代表拦截器实现，excludes表示该拦截器不处理的请求数组。
 
 注：1.2 版本前后结构不同
