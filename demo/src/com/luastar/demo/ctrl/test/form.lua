@@ -28,6 +28,7 @@ function _M.form(request, response)
         end
     end
     response:writeln(cjson.encode(form))
+    response:set_content_type_json();
 end
 
 return _M

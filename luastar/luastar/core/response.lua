@@ -64,6 +64,22 @@ function Response:set_headers(headers)
     end
 end
 
+function Response:set_content_type_plain()
+    self:set_header("Content-Type", "text/plain; charset=utf-8")
+end
+
+function Response:set_content_type_html()
+    self:set_header("Content-Type", "text/html; charset=utf-8")
+end
+
+function Response:set_content_type_json()
+    self:set_header("Content-Type", "application/json; charset=utf-8")
+end
+
+function Response:set_content_type_stream()
+    self:set_header("Content-Type", "application/octet-stream; charset=utf-8")
+end
+
 function Response:set_cookie(key, value, encrypt, duration, path)
     local cookie = self:_set_cookie(key, value, encrypt, duration, path)
     self._cookies[key] = cookie
@@ -96,7 +112,7 @@ function Response:error(info)
         return
     end
     self:set_status(500)
-    self:set_header("Content-Type", "text/html; charset=utf-8")
+    self:set_content_type_html()
     self:write(info)
 end
 

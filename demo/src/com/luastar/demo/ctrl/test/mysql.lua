@@ -36,6 +36,7 @@ function _M.mysql(request, response)
         errno = errno,
         sqlstate = sqlstate
     }))
+    response:set_content_type_json();
 end
 
 function _M.transaction(request, response)
@@ -47,6 +48,7 @@ function _M.transaction(request, response)
     }
     local result_table = mysql_util:query_transaction(sqlArray)
     response:writeln(cjson.encode(result_table))
+    response:set_content_type_json();
 end
 
 return _M

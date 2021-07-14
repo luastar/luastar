@@ -13,6 +13,7 @@ function _M.redis(request, response)
     local userinfo = table_util.array_to_hash(redis:hgetall("user:info:" .. uid))
     redis_util:close(redis)
     response:writeln(cjson.encode(userinfo))
+    response:set_content_type_json();
 end
 
 return _M
