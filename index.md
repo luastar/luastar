@@ -1,15 +1,14 @@
 # luastar简介
 
-luastar是一个基于openresty的高性能高并发高效率http接口和web网站开发框架
+luastar是一个基于openresty的高性能http接口开发框架，可以复杂的业务逻辑，可作为网关使用。
 
 luastar主要特性：
-* request/response封装
-* 缓存管理
-* 配置文件管理
-* 路由/访问频次/拦截器配置
-* 类似 spring bean 服务管理
+* request/response 封装
+* 本地缓存
+* 多环境配置
+* 路由/拦截器配置
+* 类似 spring bean service 管理
 * mysql和redis访问封装
-* httpclient等常用工具封装
-* web系统支持
+* http client 等常用工具封装
 
-详情请查看 [luastar](https://github.com/luastar/luastar)
+[查看详情](https://github.com/luastar/luastar)
