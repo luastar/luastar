@@ -2,7 +2,7 @@ title: luastar
 description: 一个基于openresty的http接口和web开发框架
 google_analytics: 
 show_downloads: true
-theme: jekyll-theme-architect
+theme: jekyll-theme-hacker
 
 gems:
   - jekyll-mentions
