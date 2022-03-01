@@ -1,6 +1,6 @@
 # luastar简介
 
-luastar是一个基于openresty的高性能http接口开发框架，可以复杂的业务逻辑，可作为网关使用。
+luastar是一个基于openresty的高性能http接口开发框架，可实现复杂的业务逻辑，可作为网关使用。
 
 luastar主要特性：
 * request/response 封装
