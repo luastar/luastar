@@ -1,7 +1,7 @@
 --[[
 redis操作库
 --]]
-local Redis = Class("luastar.db.Redis")
+local Redis = luastar_class("luastar.db.Redis")
 
 local resty_redis = require("resty.redis")
 

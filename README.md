@@ -114,7 +114,7 @@ luastar 在初始化时，定义了几个常用的全局变量，在项目中可
 | :--- | :--- |
 | cjson | json工具类 |
 | _ | moses工具类（部分修改） |
-| Class | luastar中的类定义 |
+| luastar_class | luastar中的类定义 |
 | luastar_cache | luastar缓存 |
 | luastar_config | luastar配置 |
 | luastar_context | luastar上下文 |

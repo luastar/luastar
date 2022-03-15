@@ -2,7 +2,7 @@
 luastar应用路由模块，需要在nginx配置文件中定义应用路径：APP_PATH。
 应用路由配置文件路径：APP_PATH/config/route.lua
 --]]
-local Route = Class("luastar.core.Route")
+local Route = luastar_class("luastar.core.Route")
 
 local util_file = require("luastar.util.file")
 local util_str = require("luastar.util.str")

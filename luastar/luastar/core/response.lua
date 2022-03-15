@@ -1,7 +1,7 @@
 --[[
 	响应类
 --]]
-local Response = Class("luastar.core.Response")
+local Response = luastar_class("luastar.core.Response")
 
 function Response:init()
     ngx.log(ngx.DEBUG, "[Response:init] start.")

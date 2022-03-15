@@ -1,15 +1,15 @@
 --[[
     输入参数检验
 --]]
-local paramService = Class()
+local ParamService = luastar_class("com.luastar.demo.service.common.ParamService")
 
 local str_util = require("luastar.util.str")
 local table_util = require("luastar.util.table")
 
-function paramService:init()
+function ParamService:init()
 end
 
-function paramService:getHeadParam()
+function ParamService:getHeadParam()
     local request = ngx.ctx.request
     local param = {}
     param["appkey"] = request:get_header("appkey") or ""
@@ -20,7 +20,7 @@ function paramService:getHeadParam()
     return param
 end
 
-function paramService:checkSign(checkParam)
+function ParamService:checkSign(checkParam)
     -- 输入sign
     local request = ngx.ctx.request
     local sign = request:get_header("sign")
@@ -52,4 +52,4 @@ function paramService:checkSign(checkParam)
     return true
 end
 
-return paramService
+return ParamService

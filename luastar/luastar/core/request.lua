@@ -1,7 +1,7 @@
 --[[
 	请求类
 --]]
-local Request = Class("luastar.core.Request")
+local Request = luastar_class("luastar.core.Request")
 
 local upload = require("resty.upload")
 

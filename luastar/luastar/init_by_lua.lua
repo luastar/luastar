@@ -14,7 +14,7 @@ cjson.encode_empty_table_as_object(false)
 -- 常用函数
 _ = require("moses")
 -- class类
-Class = require("luastar.core.class")
+luastar_class = require("luastar.core.class")
 -- 缓存
 luastar_cache = require("luastar.core.cache")
 -- 配置

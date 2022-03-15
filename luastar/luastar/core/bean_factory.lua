@@ -5,7 +5,7 @@
 local util_file = require("luastar.util.file")
 local util_str = require("luastar.util.str")
 
-local BeanFactory = Class("luastar.core.BeanFactory")
+local BeanFactory = luastar_class("luastar.core.BeanFactory")
 local bean_status = { init_ing = 1, init_ok = 2, init_fail = 3 }
 
 function BeanFactory:init(config_file)

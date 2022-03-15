@@ -1,17 +1,17 @@
 --[[
 
 --]]
-local testService = Class()
+local TestService = luastar_class("com.luastar.demo.service.test.TestService")
 local table_util = require("luastar.util.table")
 
-function testService:init(redis_util)
+function TestService:init(redis_util)
     self.redis_util = redis_util
 end
 
 --[[
 -- 根据uid获取用户信息
 --]]
-function testService:getUserInfo(uid)
+function TestService:getUserInfo(uid)
     if _.isEmpty(uid) then
         return nil
     end
@@ -26,4 +26,4 @@ function testService:getUserInfo(uid)
     return userinfo
 end
 
-return testService
+return TestService

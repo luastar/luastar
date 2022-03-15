@@ -11,7 +11,7 @@ note null value type is userdata
 [{"AREA_NAME":"中国","AREA_STATUS":1,"AREA_CODE":"CN","ID":1,"AREA_LEVEL":1,"PARENT_AREA_CODE":null,"UPDATE_TIME":null,"CREATE_TIME":null},{"AREA_NAME":"北京市","AREA_STATUS":1,"AREA_CODE":"110000","ID":2,"AREA_LEVEL":2,"PARENT_AREA_CODE":"CN","UPDATE_TIME":null,"CREATE_TIME":null}]
 
 --]===]
-local Mysql = Class("luastar.db.Mysql")
+local Mysql = luastar_class("luastar.db.Mysql")
 
 local resty_mysql = require("resty.mysql")
 local str_util = require("luastar.util.str")
