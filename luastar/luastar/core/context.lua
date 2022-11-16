@@ -6,7 +6,6 @@ local _M = {}
 local src_path = "/src/?.lua"
 local route_file = "/config/route.lua"
 local bean_file = "/config/bean.lua"
-local msg_file = "/config/msg.lua"
 
 function _M.init_pkg_path()
 	local pkg_path_init = luastar_cache.get("pkg_path_init")
@@ -41,24 +40,17 @@ end
 
 --[[
 获取消息配置
-msg_live = {
-    ["400002"] = "参数%s错误！",
-    ["600"] = {
-    	["01"] = "haha"
-    }
-}
 --]]
 local function get_msg_config(k)
-	local app_msg = luastar_cache.get("app_msg")
+	local lang = ngx.ctx.lang or "zh_CN"
+	local app_msg = luastar_cache.get("app_msg_" .. lang)
 	if app_msg then
 		return app_msg[k]
 	end
-	ngx.log(ngx.DEBUG, "init app msg.")
 	local util_file = require("luastar.util.file")
-	local msg_file = ngx.var.APP_PATH .. msg_file
-	app_msg = util_file.loadlua_nested(msg_file) or {}
-	ngx.log(ngx.DEBUG, "app_msg=", cjson.encode(app_msg))
-	luastar_cache.set("app_msg", app_msg)
+	local msg_file = ngx.var.APP_PATH .. "/config/msg_" .. lang .. ".lua"
+	app_msg = util_file.loadlua(msg_file) or {}
+	luastar_cache.set("app_msg_" .. lang, app_msg)
 	return app_msg[k]
 end
 

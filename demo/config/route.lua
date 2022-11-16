@@ -32,6 +32,7 @@ interceptor = {
 route = {
     { "GET,POST", "/api/test/hello", "com.luastar.demo.ctrl.test.hello", "hello", { a="1", b="2"} },
     { "*", "/api/test/pic", "com.luastar.demo.ctrl.test.hello", "pic" },
+    { "*", "/api/test/msg", "com.luastar.demo.ctrl.test.msg", "msg" },
     { "*", "/api/test/mysql", "com.luastar.demo.ctrl.test.mysql", "mysql" },
     { "*", "/api/test/mysql/transaction", "com.luastar.demo.ctrl.test.mysql", "transaction" },
     { "*", "/api/test/redis", "com.luastar.demo.ctrl.test.redis", "redis" },

@@ -9,7 +9,7 @@
 --[[
  修改点：
  1、修改 isEmpty
- 2、增加 ifEmpty方法
+ 2、增加 ifEmpty 方法
 --]]
 
 local _MODULEVERSION = '2.1.0'

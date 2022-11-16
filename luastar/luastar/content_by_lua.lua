@@ -15,12 +15,11 @@ function _M.content()
     -- 初始化输入输出
     ngx.ctx.request = Request:new()
     ngx.ctx.response = Response:new()
-    -- 获取 trace_id
+    -- 初始化 trace_id & lang
     local trace_id = ngx.ctx.request:get_header_single("trace_id")
-    if _.isEmpty(trace_id) then
-        trace_id = resty_random.token(20)
-    end
-    ngx.ctx.trace_id = trace_id
+    local lang = ngx.ctx.request:get_header_single("lang")
+    ngx.ctx.trace_id = _.ifEmpty(trace_id, resty_random.token(20))
+    ngx.ctx.lang = _.ifEmpty(lang, "zh_CN")
     -- 获取路由相关配置
     local route = luastar_context.get_route()
     -- 路由处理器
@@ -36,6 +35,13 @@ function _M.content()
     _M.execute_ctrl(ctrl_config, interceptor_config)
     -- 输出内容
     ngx.ctx.response:finish()
+end
+
+--[[
+-- 初始化变量
+--]]
+function _M.init_ctx()
+
 end
 
 --[[
