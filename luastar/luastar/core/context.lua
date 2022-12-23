@@ -39,44 +39,22 @@ function _M.get_bean_factory()
 end
 
 --[[
-获取消息配置
+普通消息
+local message = luastar_context.get_msg("100001")
+占位直接使用string的格式化方法，例如%s, %d等
+local message = luastar_context.get_msg("100002"):format(100.00)
 --]]
-local function get_msg_config(k)
+function _M.get_msg(key)
 	local lang = ngx.ctx.lang or "zh_CN"
 	local app_msg = luastar_cache.get("app_msg_" .. lang)
 	if app_msg then
-		return app_msg[k]
+		return app_msg[key] or ""
 	end
 	local util_file = require("luastar.util.file")
 	local msg_file = ngx.var.APP_PATH .. "/config/msg_" .. lang .. ".lua"
-	app_msg = util_file.loadlua(msg_file) or {}
+	app_msg = util_file.loadlua(msg_file)["msg"] or {}
 	luastar_cache.set("app_msg_" .. lang, app_msg)
-	return app_msg[k]
-end
-
---[[
-普通消息
-local message = luastar_context.get_msg("msg_live", "100001")
-占位直接使用string的格式化方法，例如%s, %d等
-local message = luastar_context.get_msg("msg_live", "100002"):format(100.00)
-多级配置消息获取方法
-local message = luastar_context.get_msg("msg_live", "100003", "001")
---]]
-function _M.get_msg(k, ...)
-	local val = get_msg_config(k)
-	if _.isEmpty(val) then
-		return string.format("msg %s not config.", k)
-	end
-	local tab = { ... }
-	local path = k
-	for i, v in ipairs(tab) do
-		val = val[v]
-		path = path .. "[\"" .. v .. "\"]"
-		if _.isEmpty(val) then
-			return string.format("msg %s not config.", path)
-		end
-	end
-	return val
+	return app_msg[key] or ""
 end
 
 return _M
