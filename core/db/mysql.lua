@@ -18,7 +18,7 @@ local _M = {}
 local mt = { __index = _M }
 
 function _M:new(datasource)
-	ngx.log(ngx.DEBUG, "[Mysql:init] datasource : ", cjson.encode(datasource))
+	logger.debug("[Mysql:init] datasource : ", cjson.encode(datasource))
 	local instance = {
 		datasource = _.defaults(datasource, {
 			host = "127.0.0.1",
@@ -38,19 +38,19 @@ end
 function _M:get_connect()
 	local mysql, err = RestyMysql:new()
 	if not mysql then
-		ngx.log(ngx.ERR, "[Mysql:get_connect] failed to connect mysql : ", err)
+		logger.error("[Mysql:get_connect] failed to connect mysql : ", err)
 		return nil
 	end
 	mysql:set_timeout(self.datasource["timeout"])
 	local ok, err, errno, sqlstate = mysql:connect(self.datasource)
 	if not ok then
-		ngx.log(ngx.ERR, "[Mysql:get_connect] failed to connect mysql : ", err)
+		logger.error("[Mysql:get_connect] failed to connect mysql : ", err)
 		return nil
 	end
 	-- set charset
 	local res, err, errno, sqlstate = mysql:query("SET NAMES " .. self.datasource["charset"])
 	if not res then
-		ngx.log(ngx.ERR, "[Mysql:get_connect] set charset fail : ", err)
+		logger.error("[Mysql:get_connect] set charset fail : ", err)
 	end
 	return mysql
 end
@@ -58,7 +58,7 @@ end
 function _M:query(sql, nrows)
 	local connect = self:get_connect()
 	if not connect then
-		ngx.log(ngx.ERR, "[Mysql:query] failed to get mysql connect.")
+		logger.error("[Mysql:query] failed to get mysql connect.")
 		return nil, "failed to get mysql connect."
 	end
 	-- exec sql
@@ -69,18 +69,18 @@ end
 
 function _M:query_transaction(sqlArray)
 	if not _.isArray(sqlArray) then
-		ngx.log(ngx.ERR, "[Mysql:query_transaction] sqlArray must be an array.")
+		logger.error("[Mysql:query_transaction] sqlArray must be an array.")
 		return nil, "sqlArray must be an array."
 	end
 	local connect = self:get_connect()
 	if not connect then
-		ngx.log(ngx.ERR, "[Mysql:query] failed to get mysql connect.")
+		logger.error("[Mysql:query] failed to get mysql connect.")
 		return nil, "failed to get mysql connect."
 	end
 	-- start transaction
 	local res_start_transaction, err_start_transaction, errno_start_transaction, sqlstate_start_transaction = connect:query("START TRANSACTION;")
 	if _.isEmpty(res_start_transaction) then
-		ngx.log(ngx.ERR, "[Mysql:query_transaction] start transaction error.")
+		logger.error("[Mysql:query_transaction] start transaction error.")
 		self:close(connect)
 		return nil, "start transaction error."
 	end
@@ -96,9 +96,9 @@ function _M:query_transaction(sqlArray)
 		if _.isEmpty(res) then
 			local res_rollback, err_rollback, errno_rollback, sqlstate_rollback = connect:query("ROLLBACK;")
 			if _.isEmpty(res_rollback) then
-				ngx.log(ngx.ERR, "[Mysql:query_transaction] rollback error.")
+				logger.error("[Mysql:query_transaction] rollback error.")
 			else
-				ngx.log(ngx.INFO, "[Mysql:query_transaction] transaction rollback.")
+				logger.info("[Mysql:query_transaction] transaction rollback.")
 			end
 			self:close(connect)
 			return result
@@ -107,7 +107,7 @@ function _M:query_transaction(sqlArray)
 	-- commit
 	local res_commit, err_commit, errno_commit, sqlstate_commit = connect:query("COMMIT;")
 	if _.isEmpty(res_commit) then
-		ngx.log(ngx.ERR, "[Mysql:query_transaction] commit error.")
+		logger.error("[Mysql:query_transaction] commit error.")
 	end
 	self:close(connect)
 	return result
@@ -125,9 +125,9 @@ function _M:close(connect)
 	-- with 10 seconds max idle timeout
 	local ok, err = connect:set_keepalive(self.datasource["max_idle_timeout"], self.datasource["pool_size"])
 	if not ok then
-		ngx.log(ngx.ERR, "[Mysql:close] set keepalive failed : ", err)
+		logger.error("[Mysql:close] set keepalive failed : ", err)
 	else
-		ngx.log(ngx.DEBUG, "[Mysql:close] set keepalive ok.")
+		logger.debug("[Mysql:close] set keepalive ok.")
 	end
 end
 

@@ -7,7 +7,7 @@ local mt = { __index = _M }
 
 -- 初始化
 function _M.new(self)
-    ngx.log(ngx.DEBUG, "[Response init] start.")
+    logger.debug("[Response init] start.")
     local instance = {
         _output = {},
         _cookies = {},
@@ -19,7 +19,7 @@ end
 -- 写入内容
 function _M:write(content)
     if self._eof then
-        ngx.log(ngx.ERR, "response has been explicitly finished before.")
+        logger.error("response has been explicitly finished before.")
         return
     end
     table.insert(self._output, content)
@@ -28,7 +28,7 @@ end
 -- 写入内容并换行
 function _M:writeln(content)
     if self._eof then
-        ngx.log(ngx.ERR, "response has been explicitly finished before.")
+        logger.error("response has been explicitly finished before.")
         return
     end
     table.insert(self._output, content)
@@ -54,7 +54,7 @@ end
 function _M:set_status(status)
     local res_status = tonumber(status)
     if _.isEmpty(res_status) then
-        ngx.log(ngx.ERR, "response res_status is empty.")
+        logger.error("response res_status is empty.")
         return
     end
     ngx.status = res_status
@@ -129,7 +129,7 @@ end
 -- 设置为 500 错误
 function _M:error(info)
     if self._eof then
-        ngx.log(ngx.ERR, "response has been explicitly finished before.")
+        logger.error("response has been explicitly finished before.")
         return
     end
     self:set_status(500)
@@ -140,7 +140,7 @@ end
 -- 结束返回
 function _M:finish()
     if self._eof then
-        ngx.log(ngx.ERR, "response has been explicitly finished before.")
+        logger.error("response has been explicitly finished before.")
         return
     end
     ngx.print(self._output) -- 输出
@@ -148,7 +148,7 @@ function _M:finish()
     self._eof = true -- 标记结束
     local ok, ret = pcall(ngx.eof) -- 返回结束
     if not ok then
-        ngx.log(ngx.ERR, "ngx.eof() error:" .. ret)
+        logger.error("ngx.eof() error:" .. ret)
     end
 end
 

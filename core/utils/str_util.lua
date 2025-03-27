@@ -75,37 +75,25 @@ function _M.last_index_of(str, substr)
     return string.match(str, '.*()' .. substr)
 end
 
--- 链接是否匹配
-function _M.uri_is_macth(uri_req, uri_config, is_pattern)
-    if is_pattern then
-        -- 模糊匹配
-        local is, ie = string.find(uri_req, uri_config)
-        if is ~= nil then
-            return true
-        end
-    else
-        -- 全匹配
-        if uri_req == uri_config or uri_req == uri_config .. "/" then
-            return true
-        end
-    end
-    return false
+-- 请求链接是否匹配
+function _M.path_is_macth(path_req, path_config, mode)
+    return _M.path_and_method_is_macth(path_req, "*", path_config, "*", mode)
 end
 
--- 请求方法和链接是否匹配
-function _M.method_and_uri_is_macth(method_req, uri_req, method_config, uri_config, is_pattern)
-    if is_pattern then
+-- 请求链接和方法是否匹配
+function _M.path_and_method_is_macth(path_req, method_req, path_config, method_config,  mode)
+    if mode == "v" then
         -- 模糊匹配
         if method_config == "*" or _M.contains_ignore_case(method_config, method_req) then
-            local is, ie = string.find(uri_req, uri_config)
+            local is, ie = string.find(path_req, path_config)
             if is ~= nil then
                 return true
             end
         end
     else
-        -- 全匹配
+        -- 精确匹配
         if method_config == "*" or _M.contains_ignore_case(method_config, method_req) then
-            if uri_req == uri_config or uri_req == uri_config .. "/" then
+            if path_req == path_config or path_req == (path_config .. "/") then
                 return true
             end
         end

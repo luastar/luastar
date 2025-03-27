@@ -12,9 +12,9 @@ local bean_status = { init_ing = 1, init_ok = 2, init_fail = 3 }
 
 -- 初始化
 function _M:new(config_file)
-	-- ngx.log(ngx.INFO, "[BeanFactory:init] file : ", config_file)
+	-- logger.info("[BeanFactory:init] file : ", config_file)
 	if not config_file then
-		ngx.log(ngx.ERR, "[BeanFactory:init] illegal argument : config_file can't nil.")
+		logger.error("[BeanFactory:init] illegal argument : config_file can't nil.")
 		return
 	end
 	local instance = {
@@ -71,24 +71,24 @@ function _M:create_bean(id, ctime)
 	if ctime[id] == bean_status.init_ing then
 		bean.status = bean_status.init_fail
 		ctime[id] = nil
-		ngx.log(ngx.ERR, "[BeanFactory:create_bean] id ", id, " has circular dependency.")
+		logger.error("[BeanFactory:create_bean] id ", id, " has circular dependency.")
 		return bean
 	end
 	ctime[id] = bean_status.init_ing
 	local bean_config = self.config[id] or {}
-	ngx.log(ngx.DEBUG, "[BeanFactory:create_bean] ", id, " config : " .. cjson.encode(bean_config))
+	logger.debug("[BeanFactory:create_bean] ", id, " config : " .. cjson.encode(bean_config))
 	if not bean_config.class then
 		bean.status = bean_status.init_fail
 		ctime[id] = nil
-		ngx.log(ngx.ERR, "[BeanFactory:create_bean] ", id, " config class is null.")
+		logger.error("[BeanFactory:create_bean] ", id, " config class is null.")
 		return bean
 	end
 	local ok, bean_class = pcall(require, bean_config.class)
 	if not ok then
 		bean.status = bean_status.init_fail
 		ctime[id] = nil
-		ngx.log(ngx.ERR, "[BeanFactory:create_bean] ", id, "  require class fail.")
-		ngx.log(ngx.ERR, bean_class)
+		logger.error("[BeanFactory:create_bean] ", id, "  require class fail.")
+		logger.error(bean_class)
 		return bean
 	end
 	-- create bean obj
@@ -116,10 +116,10 @@ function _M:create_bean(id, ctime)
 				elseif property.ref then
 					pcall(method, bean_obj, self:get_ref(property.ref, ctime))
 				else
-					ngx.log(ngx.WARN, "[BeanFactory:create_bean] ", id, " property[", property.name, "] value is nil.")
+					logger.warn("[BeanFactory:create_bean] ", id, " property[", property.name, "] value is nil.")
 				end
 			else
-				ngx.log(ngx.WARN, "[BeanFactory:create_bean] ", id, " method[", property.name, "] not exist.")
+				logger.warn("[BeanFactory:create_bean] ", id, " method[", property.name, "] not exist.")
 			end
 		end)
 	end
@@ -136,7 +136,7 @@ end
 function _M:get_value(key)
 	local var = string.match(key, "${.+}")
 	if not var then
-		ngx.log(ngx.DEBUG, "[BeanFactory:get_value] key[", key, "] value : ", key)
+		logger.debug("[BeanFactory:get_value] key[", key, "] value : ", key)
 		return key
 	end
 	var = string.sub(var, 3, string.len(var) - 1) -- sub ${}
@@ -144,14 +144,14 @@ function _M:get_value(key)
 	local var_len = _.size(var_ary)
 	local val = ls_config.get_config(var_ary[1])
 	if var_len == 1 then
-		ngx.log(ngx.DEBUG, "[BeanFactory:get_value] key[", key, "] value : ", cjson.encode(val))
+		logger.debug("[BeanFactory:get_value] key[", key, "] value : ", cjson.encode(val))
 		return val
 	end
 	local var_ary2 = _.last(var_ary, var_len - 1)
 	local rs = _.reduce(var_ary2, function(s, v)
 		return s[v]
 	end, val)
-	ngx.log(ngx.DEBUG, "[BeanFactory:get_value] key[", key, "] value : ", cjson.encode(rs))
+	logger.debug("[BeanFactory:get_value] key[", key, "] value : ", cjson.encode(rs))
 	return rs
 end
 

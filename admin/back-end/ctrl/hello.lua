@@ -13,6 +13,7 @@ function _M.hello(request, response, param)
     local name = request:get_arg("name") or "world, try to give a param with name."
     logger.info("name=", name)
     logger.info("param=", cjson.encode(param))
+    response:set_content_type_json()
     response:writeln(res_util.success("hello, " .. name))
 end
 

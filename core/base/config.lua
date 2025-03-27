@@ -12,9 +12,8 @@ function _M.get_config(k, default_v)
 	if app_config then
 		return app_config[k] or default_v
 	end
-	ngx.log(ngx.INFO, "init app config.")
-	local app_config_file = ngx.var.APP_CONFIG or "/config/app.lua"
-	local config_file = ngx.var.APP_PATH .. app_config_file
+	logger.info("init app config.")
+	local config_file = ngx.var.APP_PATH .. (ngx.var.APP_CONFIG or "/config/app.lua")
 	app_config = file_util.load_lua(config_file) or {}
 	ls_cache.set("app_config", app_config)
 	return app_config[k] or default_v

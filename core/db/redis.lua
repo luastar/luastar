@@ -7,7 +7,7 @@ local _M = {}
 local mt = { __index = _M }
 
 function _M:init(datasource)
-	ngx.log(ngx.DEBUG, "[Redis:init] datasource : ", cjson.encode(datasource))
+	logger.debug("[Redis:init] datasource : ", cjson.encode(datasource))
 	local instance = {
 		datasource = _.defaults(datasource, {
 			host = "127.0.0.1",
@@ -25,13 +25,13 @@ end
 function _M:get_connect()
 	local redis, err = RestyRedis:new()
 	if not redis then
-		ngx.log(ngx.ERR, "[Redis:get_connect] failed to create redis : ", err)
+		logger.error("[Redis:get_connect] failed to create redis : ", err)
 		return nil
 	end
 	redis:set_timeout(self.datasource["timeout"])
 	local ok, err = redis:connect(self.datasource["host"], self.datasource["port"])
 	if not ok then
-		ngx.log(ngx.ERR, "[Redis:get_connect] failed to connect redis : ", err)
+		logger.error("[Redis:get_connect] failed to connect redis : ", err)
 		return nil
 	end
 	if self.datasource["auth"] then
@@ -55,9 +55,9 @@ function _M:close(connect)
 	-- 将连接放入到连接池中，下次申请直接从连接池中获取
 	local ok, err = connect:set_keepalive(self.datasource["max_idle_timeout"], self.datasource["pool_size"])
 	if not ok then
-		ngx.log(ngx.ERR, "[Redis:close] set keepalive failed : ", err)
+		logger.error("[Redis:close] set keepalive failed : ", err)
 	else
-		ngx.log(ngx.DEBUG, "[Redis:close] set keepalive ok.")
+		logger.debug("[Redis:close] set keepalive ok.")
 	end
 end
 

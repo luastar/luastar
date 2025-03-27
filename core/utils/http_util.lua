@@ -169,11 +169,11 @@ function _M.request(options)
     http_instance:set_timeout(options["timeout"])
     local res, err = http_instance:request_uri(options["url"], options)
     if err == "closed" then
-        ngx.log(logger.e("request_http connection closed，retry"))
+        logger.error("request_http connection closed，retry")
         res, err = http_instance:request_uri(options["url"], options)
     end
     if not res then
-        ngx.log(logger.e("request_http fail，url=", options["url"], ", err=", err))
+        logger.error("request_http fail，url=", options["url"], ", err=", err)
         return 500, nil, err
     end
     return res.status, res.headers, res.body

@@ -8,7 +8,7 @@ local mt = { __index = _M }
 
 -- 构造函数
 function _M:new()
-	ngx.log(ngx.DEBUG, "[Request init] start.")
+	logger.debug("[Request init] start.")
 	local instance = {
 		schema = ngx.var.schema,
 		uri = ngx.var.uri,
@@ -174,7 +174,7 @@ end
 function _M:init_multipart_args()
 	local form, err = upload:new(8192)
 	if not form then
-		ngx.log(ngx.ERR, "failed to new upload: ", err)
+		logger.error("failed to new upload: ", err)
 		return
 	end
 	form:set_timeout(120000) -- 120s
@@ -183,7 +183,7 @@ function _M:init_multipart_args()
 	while true do
 		local typ, res, err = form:read()
 		if not typ then
-			ngx.log(ngx.debug, "failed to read: ", err)
+			logger.debug("failed to read: ", err)
 			break
 		end
 		if typ == "header" then
@@ -203,7 +203,7 @@ function _M:init_multipart_args()
 			file_info.flen = tonumber(string.len(res))
 			multipart_args[upkey] = file_info
 		elseif typ == "part_end" then
-			ngx.log(ngx.DEBUG, "file[", upkey, "] upload success.")
+			logger.debug("file[", upkey, "] upload success.")
 		elseif typ == "eof" then
 			break
 		end
@@ -223,7 +223,7 @@ function _M:get_request_body()
 			-- body may get buffered in a temp file
 			local body_file = ngx.req.get_body_file()
 			if body_file then
-				ngx.log(logger.i("body is in file ", tostring(body_file)))
+				logger.info("body is in file ", tostring(body_file))
 				local body_file_handle, err = io.open(body_file, "r")
 				if body_file_handle then
 					body_file_handle:seek("set")
@@ -231,7 +231,7 @@ function _M:get_request_body()
 					body_file_handle:close()
 					self.request_body = request_body
 				else
-					ngx.log(logger.e("failed to open ", tostring(body_file), "for reading: ", tostring(err)))
+					logger.error("failed to open ", tostring(body_file), "for reading: ", tostring(err))
 					self.request_body = ""
 				end
 			else
