@@ -50,7 +50,6 @@ local function get_sql_value(sql, data, nv)
 		if data[key] ~= nil and data[key] ~= "" then
 			if _.isString(data[key]) then
 				-- 防sql注入
-				-- value = "'" .. string.gsub(data[key], "'", "''") .. "'"
 				value = ngx.quote_sql_str(data[key])
 			elseif _.isNumber(data[key]) then
 				value = data[key]
@@ -67,7 +66,7 @@ local function get_sql_value(sql, data, nv)
 		local value = "null"
 		if data[key] ~= nil and data[key] ~= "" then
 			-- 防sql注入
-			value = string.gsub(data[key], "'", "''")
+			value = ngx.quote_sql_str(data[key])
 		end
 		if nv and value == "null" then
 			sql = ""
