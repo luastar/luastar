@@ -190,4 +190,13 @@ declare global {
       touched?: boolean;
     };
   }
+
+  /**
+   * http 返回结果统一
+   */
+  interface HttpRes {
+    success: boolean;
+    errCode?: string;
+    errMessage?: string;
+  }
 }

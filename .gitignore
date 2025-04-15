@@ -1,2 +1,22 @@
 .DS_Store
-admin/front-end/node_modules
+admin-frontend/node_modules
+admin-frontend/dist
+admin-frontend/dist-ssr
+admin-frontend/*.local
+admin-frontend/.eslintcache
+admin-frontend/report.html
+admin-frontend/vite.config.*.timestamp*
+
+admin-frontend/yarn.lock
+admin-frontend/npm-debug.log*
+admin-frontend/.pnpm-error.log*
+admin-frontend/.pnpm-debug.log
+admin-frontend/tests/**/coverage/
+
+# Editor directories and files
+.idea
+admin-frontend/*.suo
+admin-frontend/*.ntvs*
+admin-frontend/*.njsproj
+admin-frontend/*.sln
+admin-frontend/tsconfig.tsbuildinfo
