@@ -195,6 +195,7 @@ declare global {
    * http 返回结果统一
    */
   interface HttpRes {
+    traceId: string;
     success: boolean;
     errCode?: string;
     errMessage?: string;

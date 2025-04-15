@@ -6,7 +6,6 @@ local _M = {}
 function _M.illegal_argument(msg)
 	local res = {
 		traceId = ngx.ctx.trace_id,
-		timestamp = ngx.time(),
 		success = false,
 		errCode = "666",
 		errMessage = msg or "Illegal Argument",
@@ -16,8 +15,7 @@ end
 
 function _M.illegal_auth(msg)
 	local res = {
-		trace_id = ngx.ctx.trace_id,
-		timestamp = ngx.time(),
+		traceId = ngx.ctx.trace_id,
 		success = false,
 		errCode = "401",
 		errMessage = msg or "Illegal Authorization",
@@ -28,8 +26,7 @@ end
 function _M.success(data, needFormat)
 	local body = data or {}
 	local res = {
-		trace_id = ngx.ctx.trace_id,
-		timestamp = ngx.time(),
+		traceId = ngx.ctx.trace_id,
 		success = true,
 		data = body
 	}
@@ -41,8 +38,7 @@ end
 
 function _M.failure(msg)
 	local res = {
-		trace_id = ngx.ctx.trace_id,
-		timestamp = ngx.time(),
+		traceId = ngx.ctx.trace_id,
 		success = false,
 		errCode = "888",
 		errMessage = msg or "failure",
@@ -52,8 +48,7 @@ end
 
 function _M.error(msg)
 	local res = {
-		trace_id = ngx.ctx.trace_id,
-		timestamp = ngx.time(),
+		traceId = ngx.ctx.trace_id,
 		success = false,
 		errCode = "500",
 		errMessage = msg or "System Error",

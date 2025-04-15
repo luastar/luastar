@@ -45,6 +45,8 @@ function _M:match_route(path, method)
     end
     -- 路由匹配
     for i, val in ipairs(self.config_routes) do
+        if _.isEmpty(val["method"]) then val["method"] = "*" end
+        if _.isEmpty(val["mode"]) then val["mode"] = "p" end
         if str_util.path_and_method_is_macth(path, method, val["path"], val["method"], val["mode"]) then
             return val
         end
@@ -60,15 +62,15 @@ interceptors = {
         routes = {
             {
                 path = "/api/*", -- 请求路径，模式匹配使用 Lua 的模式匹配规则
-                method = "GET,POST", -- 请求方法，多个方法用逗号分隔，*表示所有方法
+                method = "*", -- 请求方法，多个方法用逗号分隔，*表示所有方法
                 mode = "v"  -- 匹配模式 p(precise:精确匹配) | v(vague:模糊匹配)
             }
         },
         module = "file",
         exclude_routes = {
             {
-                path = "/api/hello",
-                method = "GET,POST",
+                path = "/api/active",
+                method = "*",
                 mode = "p"
             }
         }
@@ -91,11 +93,15 @@ function _M:match_interceptor(path, method)
             local is_interceptor = false
             -- 请求方式 和 uri 是否匹配
             for idx2, route in ipairs(interceptor["routes"]) do
+                if _.isEmpty(route["method"]) then route["method"] = "*" end
+                if _.isEmpty(route["mode"]) then route["mode"] = "v" end
                 if str_util.path_and_method_is_macth(path, method, route["path"], route["method"], route["mode"]) then
                     is_interceptor = true
                     if _.isArray(interceptor["exclude_routes"]) then
                         -- 是否被排除
                         for idx3, exclude_route in ipairs(interceptor["exclude_routes"]) do
+                            if _.isEmpty(exclude_route["method"]) then exclude_route["method"] = "*" end
+                            if _.isEmpty(exclude_route["mode"]) then exclude_route["mode"] = "p" end
                             if str_util.path_and_method_is_macth(path, method, exclude_route["path"], exclude_route["method"], exclude_route["mode"]) then
                                 is_interceptor = false
                                 break

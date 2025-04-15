@@ -5,6 +5,7 @@
 local Request = require("base.request")
 local Response = require("base.response")
 local resty_random = require("resty.random")
+local str = require "resty.string"
 
 local _M = {}
 
@@ -39,7 +40,7 @@ function _M.init_ctx()
     ngx.ctx.response = Response:new()
     -- 初始化 trace_id & lang
     local trace_id = ngx.ctx.request:get_header_single("trace_id")
-    ngx.ctx.trace_id = _.ifEmpty(trace_id, resty_random.token(20))
+    ngx.ctx.trace_id = _.ifEmpty(trace_id, str.to_hex(resty_random.bytes(16, true)))
     local lang = ngx.ctx.request:get_header_single("lang")
     ngx.ctx.lang = _.ifEmpty(lang, "zh_CN")
 end
@@ -62,7 +63,7 @@ function _M.execute_ctrl(route_info, interceptor_info)
             call_ok, err_info = pcall(moudle_func, ngx.ctx.request, ngx.ctx.response, route_info["params"])
         else
             call_ok = false
-            err_info = table.concat({ "加载路由处理器模块[", moudle, "]，函数[", moudle_func "]失败！"})
+            err_info = table.concat({ "加载路由处理器模块[", moudle, "]，函数[", moudle_func "]失败！" })
         end
     else
         call_ok = false
