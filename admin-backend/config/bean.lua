@@ -8,21 +8,25 @@ id = { -- bean id
     {name = "",value/ref = ""}
   },
   init_method = "", -- 初始化方法，默认使用init()
-  single = 0  -- 是否单例，默认是1
+  single = true  -- 是否单例，默认为 true
 }
 --]]
--- mysql = {
---     class = "db.mysql",
---     arg = {
---         { value = "${mysql}" }
---     }
--- }
 
--- redis = {
---     class = "db.redis",
---     arg = {
---         { value = "${redis}" }
---     }
--- }
+local mysql_service = {
+  class = "db.mysql",
+  arg = {
+    { value = "${mysql_config}" }
+  }
+}
 
+local redis_service = {
+  class = "db.redis",
+  arg = {
+    { value = "${redis_config}" }
+  }
+}
 
+return {
+  mysql_service = mysql_service,
+  redis_service = redis_service
+}

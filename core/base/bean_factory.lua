@@ -28,7 +28,7 @@ end
 -- 获取 bean 实例
 function _M:get_bean_obj(id, ctime)
 	local bean_config = self.config[id] or {}
-	if bean_config.single == 0 then
+	if not bean_config.single then
 		return self:create_bean(id, ctime)
 	end
 	local bean = self.bean_cache[id]

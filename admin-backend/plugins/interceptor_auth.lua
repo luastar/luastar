@@ -6,7 +6,6 @@ local _M = {}
 local res_util = require("utils.res_util")
 
 function _M.beforeHandle()
-    
     return true
 end
 

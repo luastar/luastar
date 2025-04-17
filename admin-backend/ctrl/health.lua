@@ -1,5 +1,5 @@
 --[[
-
+健康检查
 --]]
 
 local res_util = require("utils.res_util")
@@ -7,7 +7,7 @@ local res_util = require("utils.res_util")
 local _M = {}
 
 --[[
- 健康检查
+当前服务是否正常
 --]]
 function _M.check(request, response)
     response:set_content_type_json()

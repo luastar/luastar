@@ -12,7 +12,6 @@
     "redhat.vscode-yaml",
     "csstools.postcss",
     "mikestead.dotenv",
-    "eamodio.gitlens",
     "antfu.iconify",
     "Vue.volar"
   ]

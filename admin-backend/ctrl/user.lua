@@ -1,5 +1,5 @@
 --[[
-
+用户相关接口
 --]]
 
 local res_util = require("utils.res_util")
@@ -7,7 +7,7 @@ local res_util = require("utils.res_util")
 local _M = {}
 
 --[[
- 用户前端路由
+ 获取前端路由
 --]]
 function _M.routes(request, response)
     local data = {

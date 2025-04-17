@@ -1,5 +1,5 @@
 --[[
-
+用户登录相关接口
 --]]
 
 local res_util = require("utils.res_util")
@@ -7,7 +7,7 @@ local res_util = require("utils.res_util")
 local _M = {}
 
 --[[
- 用户登录
+ 登录
 --]]
 function _M.login(request, response)
     local data;
@@ -37,6 +37,25 @@ function _M.login(request, response)
     end
     response:set_content_type_json()
     response:writeln(res_util.success(data))
+end
+
+--[[
+ 刷新 token
+--]]
+function _M.refresh_token(request, response)
+    local refresh_token = request:get_arg("refreshToken");
+    if refresh_token then
+        local data = {
+            accessToken = "eyJhbGciOiJIUzUxMiJ9.newAdmin",
+            refreshToken = "eyJhbGciOiJIUzUxMiJ9.newAdminRefresh",
+            expires = "2030/10/30 23:59:59"
+        };
+        response:set_content_type_json()
+        response:writeln(res_util.success(data))
+    else
+        response:set_content_type_json()
+        response:writeln(res_util.failure())
+    end
 end
 
 return _M

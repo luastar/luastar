@@ -53,4 +53,7 @@
     "v-ripple"
   ],
   "vscodeCustomCodeColor.highlightValueColor": "#b392f0",
+  "marscode.codeCompletionPro": {
+    "enableCodeCompletionPro": true
+  },
 }

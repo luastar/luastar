@@ -1,12 +1,12 @@
 --[[
 redis操作库
 --]]
-local RestyRedis = require("resty.redis")
+local resty_redis = require("resty.redis")
 
 local _M = {}
 local mt = { __index = _M }
 
-function _M:init(datasource)
+function _M:new(datasource)
 	logger.debug("[Redis:init] datasource : ", cjson.encode(datasource))
 	local instance = {
 		datasource = _.defaults(datasource, {
@@ -14,29 +14,34 @@ function _M:init(datasource)
 			port = "6379",
 			auth = nil,
 			db_index = 0,
-			timeout = 30000,
+			timeout = 10000,
 			max_idle_timeout = 60000,
-			pool_size = 50
+			pool_size = 64
 		})
 	}
 	return setmetatable(instance, mt)
 end
 
 function _M:get_connect()
-	local redis, err = RestyRedis:new()
+	-- 创建实例
+	local redis, err = resty_redis:new()
 	if not redis then
 		logger.error("[Redis:get_connect] failed to create redis : ", err)
 		return nil
 	end
+	-- 设置超时时间
 	redis:set_timeout(self.datasource["timeout"])
-	local ok, err = redis:connect(self.datasource["host"], self.datasource["port"])
+	-- 获取连接
+	local ok, err = redis:connect(self.datasource["host"], self.datasource["port"], { pool_size = self.datasource["pool_size"] })
 	if not ok then
 		logger.error("[Redis:get_connect] failed to connect redis : ", err)
 		return nil
 	end
+	-- 认证
 	if self.datasource["auth"] then
 		redis:auth(self.datasource["auth"])
 	end
+	-- 选择数据库
 	if self.datasource["db_index"] >= 0 then
 		redis:select(self.datasource["db_index"])
 	end
@@ -57,7 +62,7 @@ function _M:close(connect)
 	if not ok then
 		logger.error("[Redis:close] set keepalive failed : ", err)
 	else
-		logger.debug("[Redis:close] set keepalive ok.")
+		logger.info("[Redis:close] set keepalive ok.")
 	end
 end
 

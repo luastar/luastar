@@ -24,11 +24,10 @@ function _M.illegal_auth(msg)
 end
 
 function _M.success(data, needFormat)
-	local body = data or {}
 	local res = {
 		traceId = ngx.ctx.trace_id,
 		success = true,
-		data = body
+		data = data
 	}
 	if needFormat then
 		return string.gsub(cjson.encode(res), "{}", "[]")
