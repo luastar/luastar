@@ -35,16 +35,13 @@ interceptors = {
 --]]
 
 local routes = {
-    { path = "/api/active",           module = "ctrl.health", func = "check" },
-    { path = "/api/login",            method = "GET,POST",    module = "ctrl.login", func = "login" },
-    { path = "/api/refresh-token",    method = "GET,POST",    module = "ctrl.login", func = "refresh_token" },
-    { path = "/api/get-async-routes", method = "GET",         module = "ctrl.user",  func = "routes" }
+    { path = "/api/active", module = "modules.health", func = "handle" },
 }
 
 local interceptors = {
     {
         routes = { { path = "^/api/.*" } },
-        module = "plugins.interceptor_auth",
+        module = "modules.itc_auth",
         exclude_routes = {
             { path = "/api/active" },
             { path = "/api/login" }

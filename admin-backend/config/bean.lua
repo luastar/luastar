@@ -13,14 +13,14 @@ id = { -- bean id
 --]]
 
 local mysql_service = {
-  class = "db.mysql",
+  class = "widgets.db.mysql",
   arg = {
     { value = "${mysql_config}" }
   }
 }
 
 local redis_service = {
-  class = "db.redis",
+  class = "widgets.db.redis",
   arg = {
     { value = "${redis_config}" }
   }
