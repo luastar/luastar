@@ -1,7 +1,7 @@
 --[[
     在每次请求时处理
 --]]
-local ngx = ngx
+local ngx = require "ngx"
 
 local _M = {}
 
@@ -26,107 +26,75 @@ end
 function _M.content()
     -- 初始化上下文
     _M.init_ctx()
-    -- 获取路由配置
-    local route = ls_context.get_route()
-    -- 匹配路由信息
-    local route_info = route:match_route(ngx.var.uri, ngx.var.request_method)
-    if not route_info then
-        logger.error("请求[", ngx.var.uri, "]匹配不到路由！")
-        ngx.status = 404
-        return ngx.exit(404)
+    -- 匹配路由
+    local route = require "core.route"
+    local matched_route = route:match_route(ngx.var.uri, ngx.var.request_method)
+    if not matched_route then
+        logger.error("请求[path = ", ngx.var.uri, ", method = ", ngx.var.request_method, "]匹配不到路由！")
+        ngx.exit(404)
+        return
     end
-    -- 拦截器信息
-    local interceptor_info = route:match_interceptor(ngx.var.uri, ngx.var.request_method)
-    -- 执行处理模块
-    _M.execute_ctrl(route_info, interceptor_info)
+    -- 匹配拦截器
+    local interceptor = require "core.interceptor"
+    local matched_interceptor = interceptor:match_interceptor(ngx.var.uri, ngx.var.request_method)
+    -- 执行拦截前方法
+    local ok, err = _M.handle_before(matched_interceptor)
+    if not ok then
+        ngx.say(err)
+        ngx.exit(500)
+        return
+    end
+    -- 执行处理方法
+    _M.handle(matched_route)
+    -- 执行拦截后方法
+    _M.handle_after(matched_interceptor)
     -- 输出内容
     ngx.ctx.response:finish()
 end
 
 --[[
--- 执行处理类
---]]
-function _M.execute_ctrl(route_info, interceptor_info)
-    -- 执行拦截前方法
-    local ok = _M.execute_before(interceptor_info)
-    if not ok then
-        return
-    end
-    -- 执行处理方法
-    local call_ok, err_info = false, nil
-    local require_ok, moudle = pcall(require, route_info["module"])
-    if require_ok then
-        local moudle_func = moudle[route_info["func"]]
-        if moudle_func and _.isFunction(moudle_func) then
-            call_ok, err_info = pcall(moudle_func, ngx.ctx.request, ngx.ctx.response, route_info["params"])
-        else
-            call_ok = false
-            err_info = table.concat({ "加载路由处理器模块[", moudle, "]，函数[", moudle_func "]失败！" })
-        end
-    else
-        call_ok = false
-        err_info = table.concat({ "加载路由处理器模块[", moudle, "]失败！" })
-    end
-    if not call_ok then
-        logger.error("路由处理器执行失败：", err_info)
-    end
-    -- 执行拦截后方法
-    _M.execute_after(interceptor_info, call_ok, err_info)
-end
-
---[[
 -- 拦截器执行前处理
 --]]
-function _M.execute_before(interceptor_info)
-    if _.size(interceptor_info) == 0 then
+function _M.handle_before(matched_interceptor)
+    if _.size(matched_interceptor) == 0 then
         return true
     end
-    for key, value in pairs(interceptor_info) do
-        local require_ok, interceptor = pcall(require, value)
-        if require_ok then
-            local before_handle_method = interceptor["beforeHandle"]
-            if before_handle_method and _.isFunction(before_handle_method) then
-                local call_ok, rs_ok = pcall(before_handle_method)
-                if call_ok then
-                    logger.info("调用拦截器[", value, "]方法[beforeHandle]成功，返回结果为：", rs_ok)
-                    -- 只要返回失败，就返回
-                    if not rs_ok then
-                        return false
-                    end
-                else
-                    logger.error("调用拦截器[", value, "]方法[beforeHandle]失败：", rs_ok)
-                end
-            else
-                logger.error("拦截器[", value, "][beforeHandle]方法不存在！")
-            end
-        else
-            logger.error("加载拦截器[", value, "]失败: ", interceptor)
+    local module = require "core.module"
+    for i, v in ipairs(matched_interceptor) do
+        local ok, err = module.execute(v["mid"], v["mfunc_before"], v["params"])
+        -- 只要有一个返回失败就终止后续处理
+        if not ok then
+            logger.error("执行拦截器前处理失败！code = ", v["code"], ", err = ", err)
+            return false, err
         end
     end
     return true
 end
 
 --[[
--- 拦截器执行后处理
+-- 执行路由控制器
 --]]
-function _M.execute_after(interceptor_info, ctrl_call_ok, err_info)
-    if _.size(interceptor_info) == 0 then
+function _M.handle(matched_route)
+    local module = require "core.module"
+    local ok, err = module.execute(matched_route["mid"], matched_route["mfunc"], matched_route["params"])
+    ngx.ctx.handle_res = { ok = ok, err = err }
+    if not ok then
+        logger.error("执行路由控制器失败：code = ", matched_route["code"], ", err = ", err)
+    end
+end
+
+--[[
+-- 执行拦截器后处理
+--]]
+function _M.handle_after(matched_interceptor)
+    if _.size(matched_interceptor) == 0 then
         return
     end
-    for key, value in pairs(interceptor_info) do
-        local require_ok, interceptor = pcall(require, value)
-        if require_ok then
-            local after_handle_method = interceptor["afterHandle"]
-            if after_handle_method and _.isFunction(after_handle_method) then
-                local call_ok, res = pcall(after_handle_method, ctrl_call_ok, err_info)
-                if not call_ok then
-                    logger.error("调用拦截器[", value, "]方法[afterHandle]失败：", res)
-                end
-            else
-                logger.error("拦截器[", value, "][afterHandle]方法不存在！")
-            end
-        else
-            logger.error("加载拦截器[", value, "]失败: ", interceptor)
+    local module = require "core.module"
+    for i, v in ipairs(matched_interceptor) do
+        local ok, err = module.execute(v["mid"], v["mfunc_after"], v["params"])
+        if not ok then
+            logger.error("执行拦截器后处理失败：code = ", v["code"], ", err = ", err)
         end
     end
 end

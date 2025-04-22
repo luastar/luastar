@@ -1,8 +1,8 @@
 --[[
 缓存模块，使用全局变量“LUASTAR_C”存储
 --]]
+local ngx = require "ngx"
 local file_util = require "utils.file_util"
-local ngx = ngx
 
 local _M = {}
 

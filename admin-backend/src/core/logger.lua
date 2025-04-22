@@ -1,40 +1,32 @@
 --[[
 日志模块
 --]]
-local ngx = ngx
+local ngx = require "ngx"
 
 local _M = {}
 
 function _M.debug(...)
-	if ngx.ctx.trace_id then
-		ngx.log(ngx.DEBUG, "[", ngx.ctx.trace_id, "]", ...)
-		return
-	end
-	ngx.log(ngx.DEBUG, ...)
+	local info = debug.getinfo(2, "Sl")
+	local trace_id = ngx.ctx.trace_id or ""
+	ngx.log(ngx.DEBUG, "[", info.short_src, ":", info.currentline, "]", "[", trace_id, "]", ...)
 end
 
 function _M.info(...)
-	if ngx.ctx.trace_id then
-		ngx.log(ngx.INFO, "[", ngx.ctx.trace_id, "]", ...)
-		return
-	end
-	ngx.log(ngx.INFO, ...)
+	local info = debug.getinfo(2, "Sl")
+	local trace_id = ngx.ctx.trace_id or ""
+	ngx.log(ngx.INFO, "[", info.short_src, ":", info.currentline, "]", "[", trace_id, "]", ...)
 end
 
 function _M.warn(...)
-	if ngx.ctx.trace_id then
-		ngx.log(ngx.WARN, "[", ngx.ctx.trace_id, "]", ...)
-		return
-	end
-	ngx.log(ngx.WARN, ...)
+	local info = debug.getinfo(2, "Sl")
+	local trace_id = ngx.ctx.trace_id or ""
+	ngx.log(ngx.WARN, "[", info.short_src, ":", info.currentline, "]", "[", trace_id, "]", ...)
 end
 
 function _M.error(...)
-	if ngx.ctx.trace_id then
-		ngx.log(ngx.ERR, "[", ngx.ctx.trace_id, "]", ...)
-		return
-	end
-	ngx.log(ngx.ERR, ...)
+	local info = debug.getinfo(2, "Sl")
+	local trace_id = ngx.ctx.trace_id or ""
+	ngx.log(ngx.ERR, "[", info.short_src, ":", info.currentline, "]", "[", trace_id, "]", ...)
 end
 
 return _M

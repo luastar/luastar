@@ -9,7 +9,7 @@
 
  Note that the timestamp and counter fields must be stored big endian unlike the rest of BSON
 --]]
-local ngx = ngx
+local ngx = require "ngx"
 
 local _M = {}
 

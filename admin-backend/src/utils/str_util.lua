@@ -1,7 +1,7 @@
 --[[
     字符串工具
 --]]
-local ngx = ngx
+local ngx = require "ngx"
 
 local _M = {}
 
@@ -84,6 +84,8 @@ end
 
 -- 请求链接和方法是否匹配
 function _M.path_and_method_is_macth(path_req, method_req, path_config, method_config, mode)
+    -- cjson 编码后会把 / 转义成 \/，需要替换回来
+    local path_config = string.gsub(path_config, "\\/", "/")
     if mode == "v" then
         -- 模糊匹配
         if method_config == "*" or _M.contains_ignore_case(method_config, method_req) then

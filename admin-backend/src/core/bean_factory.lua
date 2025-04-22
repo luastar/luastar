@@ -95,36 +95,36 @@ function _M:create_bean(id, ctime)
 	local bean_obj
 	if bean_config.arg then
 		local bean_arg = {}
-		_.each(bean_config.arg, function(arg, index)
-			if arg.value then
-				table.insert(bean_arg, self:get_value(arg.value))
-			elseif arg.ref then
-				table.insert(bean_arg, self:get_ref(arg.ref, ctime))
+		for k, v in pairs(bean_config.arg) do
+			if v.value then
+				table.insert(bean_arg, self:get_value(v.value))
+			elseif v.ref then
+				table.insert(bean_arg, self:get_ref(v.ref, ctime))
 			end
-		end)
+		end
 		bean_obj = bean_class:new(unpack(bean_arg))
 	else
 		bean_obj = bean_class:new()
 	end
 	-- set bean obj property
 	if bean_config.property then
-		_.each(bean_config.property, function(property, index)
-			local method = bean_obj["set_" .. property.name]
+		for k, v in pairs(bean_config.property) do
+			local method = bean_obj["set_" .. v.name]
 			if _.isCallable(method) then
-				if property.vale then
-					pcall(method, bean_obj, self:get_value(property.value))
-				elseif property.ref then
-					pcall(method, bean_obj, self:get_ref(property.ref, ctime))
+				if v.vale then
+					pcall(method, bean_obj, self:get_value(v.value))
+				elseif v.ref then
+					pcall(method, bean_obj, self:get_ref(v.ref, ctime))
 				else
-					logger.warn("[Bean:create_bean] ", id, " property[", property.name, "] value is nil.")
+					logger.warn("[Bean:create_bean] ", id, " property[", v.name, "] value is nil.")
 				end
 			else
-				logger.warn("[Bean:create_bean] ", id, " method[", property.name, "] not exist.")
+				logger.warn("[Bean:create_bean] ", id, " method[", v.name, "] not exist.")
 			end
-		end)
+		end
 	end
 	if bean_config.init_method then
-		pcall(bean_obj[init_method])
+		pcall(bean_obj.init_method)
 	end
 	bean.obj = bean_obj
 	bean.status = bean_status.init_ok

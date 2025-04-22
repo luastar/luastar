@@ -1,8 +1,8 @@
 --[[
     http 客户端工具
 --]]
+local ngx = require "ngx"
 local http = require "resty.http"
-local ngx = ngx
 
 local _M = {}
 

@@ -1,8 +1,8 @@
 --[[
 	http 请求模块
 --]]
+local ngx = require "ngx"
 local upload = require "resty.upload"
-local ngx = ngx
 
 local _M = {}
 local mt = { __index = _M }

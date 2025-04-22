@@ -1,7 +1,7 @@
 --[[
 	日期时间工具
 ]]
-local ngx = ngx
+local ngx = require "ngx"
 
 local _M = {}
 

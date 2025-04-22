@@ -1,5 +1,6 @@
 {
   "recommendations": [
+    "sumneko.lua",
     "christian-kohler.path-intellisense",
     "warmthsea.vscode-custom-code-color",
     "vscode-icons-team.vscode-icons",
@@ -13,6 +14,6 @@
     "csstools.postcss",
     "mikestead.dotenv",
     "antfu.iconify",
-    "Vue.volar"
+    "Vue.volar",
   ]
 }

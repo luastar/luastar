@@ -1,6 +1,8 @@
 --[[
 	接口输出统一JSON格式
 --]]
+local ngx = require "ngx"
+
 local _M = {}
 
 function _M.illegal_argument(msg)
@@ -56,5 +58,3 @@ function _M.error(msg)
 end
 
 return _M
-
-

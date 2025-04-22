@@ -18,7 +18,7 @@ end
 
 -- 加载LUA字符串
 function _M.load_lua_str(str)
-	logger.info("加载LUA字符串：", str)
+	logger.debug("加载LUA字符串：", str)
 	local fct = assert(loadstring(str))
 	-- 设置全局环境变量
 	local env = setmetatable({}, { __index = _G })
