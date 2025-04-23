@@ -26,10 +26,10 @@ function _M.sync_route()
         table.insert(routes_table, {
             code = v.code,
             path = v.path,
-            method = (v.method == ngx.null and v.method or "*"),
-            mode = (v.mode == ngx.null and v.mode or "p"),
-            mid = v.mid,
-            mfunc = v.mfunc or "handle",
+            method = v.method,
+            mode = v.mode,
+            mcode = v.mcode,
+            mfunc = v.mfunc,
             params = v.params
         })
     end
@@ -66,9 +66,9 @@ function _M.sync_interceptor()
             code = v.code,
             routes = cjson.decode(v.routes),
             routes_exclude = routes_exclude,
-            mid = v.mid,
-            mfunc_before = (v.mfunc_before == ngx.null and v.mfunc_before or "handle_before"),
-            mfunc_after = (v.mfunc_after == ngx.null and v.mfunc_after or "handle_after"),
+            mcode = v.mcode,
+            mfunc_before = v.mfunc_before,
+            mfunc_after = v.mfunc_after,
             params = v.params
         })
     end
@@ -97,13 +97,9 @@ function _M.sync_module()
     logger.info("获取模块代码信息成功 : ", _.size(res), "条");
     local dict = ngx.shared.dict_ls_modules;
     for k, v in pairs(res) do
-        local module_info = {
-            code = v.code,
-            content = v.content,
-        }
-        local ok, err = dict:safe_set(v.id, cjson.encode(module_info));
+        local ok, err = dict:safe_set(v.code, v.content);
         if not ok then
-            logger.error("保存模块代码信息到字典失败 : id = ", v.id, ", err = ", err);
+            logger.error("保存模块代码信息到字典失败 : code = ", v.code, ", err = ", err);
         end
     end
 end

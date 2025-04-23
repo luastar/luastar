@@ -23,7 +23,9 @@ interceptors = {
                 mode = "p"
             }
         }
-        mid = "xxx",  -- 模块id
+        mcode = "xxx",  -- 模块编码
+        mfunc_before = "handle_before", -- 前置函数
+        mfunc_after = "handle_after",   -- 后置函数
         params = { p1="p1", p2="p2" } -- 拦截器参数，可选
     }
 }
@@ -67,7 +69,7 @@ function _M:match_interceptor(path, method)
       if is_interceptor then
         table.insert(matched_ary, {
           code = interceptor["code"],
-          mid = interceptor["mid"],
+          mcode = interceptor["mcode"],
           mfunc_before = interceptor["mfunc_before"],
           mfunc_after = interceptor["mfunc_after"],
           params = interceptor["params"],

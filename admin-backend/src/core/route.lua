@@ -12,7 +12,8 @@ routes = {
         path = "/api/hello", -- 请求路径，模式匹配使用 Lua 的模式匹配规则
         method = "GET,POST", -- 请求方法，多个方法用逗号分隔，*表示所有方法
         mode = "p",  -- 匹配模式 p(precise:精确匹配) | v(vague:模糊匹配)
-        mid = "xxx",  -- 模块id
+        mcode = "xxx",  -- 模块编码
+        mfunc = "xxx",  -- 模块函数
         params = { p1="p1", p2="p2" } -- 路由参数，可选
     }
 }

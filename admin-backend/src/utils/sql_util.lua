@@ -22,7 +22,7 @@ sql_table = {
   }
 }
 --]===]
-
+local ngx = require "ngx"
 local str_util = require "utils.str_util"
 
 local _M = {}
@@ -31,44 +31,42 @@ local _M = {}
 替换语句中的变量
 sql 带有#{}或${}变量的语句
 data 变量值对象
-nv 变量值为空的时候是否处理为null
+nv 变量值为空的时候是否处理为 null
 --]]
-local function get_sql_value(sql, data, nv)
+local function fmt_sql_value(sql, data, nv)
 	local var, var1, var2 = nil, {}, {}
-	-- #{}
+	-- 查找 #{}
 	for word in string.gmatch(sql, "#{[%w_]+}") do
 		var = string.sub(word, 3, string.len(word) - 1) -- sub #{}
 		table.insert(var1, var)
 	end
-	-- ${}
+	-- 查找 ${}
 	for word in string.gmatch(sql, "%${[%w_]+}") do
 		var = string.sub(word, 3, string.len(word) - 1) -- sub ${}
 		table.insert(var2, var)
 	end
 	for i, key in ipairs(var1) do
-		local value = "null"
-		if data[key] ~= nil and data[key] ~= "" then
+		local value = ngx.null
+		if not _.isNil(data[key]) then
 			if _.isString(data[key]) then
-				-- 防sql注入
-				value = ngx.quote_sql_str(data[key])
+				value = ngx.quote_sql_str(data[key]) -- 防sql注入
 			elseif _.isNumber(data[key]) then
 				value = data[key]
 			end
 		end
-		if nv and value == "null" then
+		if nv and value == ngx.null then
 			sql = ""
 		else
-			value = string.gsub(value, "%%", "%%%%")
+			value = string.gsub(value, "%%", "%%%%") -- 特殊符号转义
 			sql = string.gsub(sql, "#{" .. key .. "}", value)
 		end
 	end
 	for i, key in ipairs(var2) do
-		local value = "null"
-		if data[key] ~= nil and data[key] ~= "" then
-			-- 防sql注入
-			value = ngx.quote_sql_str(data[key])
+		local value = ngx.null
+		if not _.isNil(data[key]) then
+			value = ngx.quote_sql_str(data[key]) -- 防sql注入
 		end
-		if nv and value == "null" then
+		if nv and value == ngx.null then
 			sql = ""
 		else
 			value = string.gsub(value, "%%", "%%%%")
@@ -78,7 +76,7 @@ local function get_sql_value(sql, data, nv)
 	return sql
 end
 
-local function get_sql_set(set, data)
+local function fmt_sql_set(set, data)
 	if not set then
 		return " "
 	end
@@ -87,15 +85,15 @@ local function get_sql_set(set, data)
 	end
 	local s, st = nil, {}
 	for i, key in ipairs(set) do
-		s = get_sql_value(key, data, true)
-		if s and s ~= "" then
+		s = fmt_sql_value(key, data, true)
+		if s then
 			table.insert(st, s)
 		end
 	end
 	return " set " .. table.concat(st, ",")
 end
 
-local function get_sql_where(where, data)
+local function fmt_sql_where(where, data)
 	if not where then
 		return " "
 	end
@@ -104,7 +102,7 @@ local function get_sql_where(where, data)
 	end
 	local w, wt = nil, {}
 	for i, key in ipairs(where) do
-		w = get_sql_value(key, data, true)
+		w = fmt_sql_value(key, data, true)
 		if w and w ~= "" then
 			table.insert(wt, w)
 		end
@@ -121,47 +119,60 @@ local function get_sql_where(where, data)
 	return " where " .. rs
 end
 
-local function get_sql_limit(limit, data)
+local function fmt_sql_limit(limit, data)
 	if not limit then
 		return " "
 	end
-	local start = tonumber(get_sql_value(limit["start"], data, false))
-	local limit = tonumber(get_sql_value(limit["limit"], data, false))
+	local start = tonumber(fmt_sql_value(limit["start"], data, false))
+	local limit = tonumber(fmt_sql_value(limit["limit"], data, false))
 	if start == nil or limit == nil then
 		return " "
 	end
 	return string.format(" limit %d, %d", start, limit)
 end
 
-function _M.getsql(sql_table, data)
+function _M.fmt_sql_table(sql_table, data)
 	if not sql_table or not _.isTable(sql_table) then
-		logger.error("mysql_util getsql sql_table is nil.")
+		logger.error("mysql_util fmt_sql_table sql_table is nil.")
 		return nil
 	end
 	if not data or not _.isTable(data) then
-		logger.error("mysql_util getsql data is nil, sql is ", sql_table["sql"])
+		logger.error("mysql_util fmt_sql_table data is nil, sql is ", sql_table["sql"])
 		return nil
 	end
-	-- set tag value
+	-- 查找 @{}
 	local sql, tag = sql_table["sql"], {}
 	for word in string.gmatch(sql, "@{[%w_]+}") do
-		var = string.sub(word, 3, string.len(word) - 1) -- sub @{}
+		local var = string.sub(word, 3, string.len(word) - 1) -- sub @{}
 		table.insert(tag, var)
 	end
 	for i, key in ipairs(tag) do
 		local value = ""
 		if key == "set" then
-			value = get_sql_set(sql_table["set"], data)
+			value = fmt_sql_set(sql_table["set"], data)
 		elseif key == "where" then
-			value = get_sql_where(sql_table["where"], data)
+			value = fmt_sql_where(sql_table["where"], data)
 		elseif key == "limit" then
-			value = get_sql_limit(sql_table["limit"], data)
+			value = fmt_sql_limit(sql_table["limit"], data)
 		end
 		value = string.gsub(value, "%%", "%%%%")
 		sql = string.gsub(sql, "@{" .. key .. "}", value)
 	end
 	-- set var value
-	return get_sql_value(sql, data, false)
+	return fmt_sql_value(sql, data, false)
+end
+
+function _M.fmt_sql(sql, data)
+	if not sql or not _.isString(sql) then
+		logger.error("mysql_util fmt_sql sql is nil.")
+		return nil
+	end
+	if not data or not _.isTable(data) then
+		logger.error("mysql_util fmt_sql data is nil, sql is ", sql)
+		return nil
+	end
+	-- set var value
+	return fmt_sql_value(sql, data, true)
 end
 
 return _M

@@ -2,6 +2,7 @@
 	http 响应模块
 --]]
 local ngx = require "ngx"
+local ndk = require "ndk"
 
 local _M = {}
 local mt = { __index = _M }

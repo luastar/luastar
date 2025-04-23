@@ -1,3 +1,7 @@
+--[[
+https://github.com/SkyLothar/lua-resty-jwt
+--]]
+
 local cjson = require "cjson.safe"
 
 local aes = require "resty.aes"
@@ -5,10 +9,10 @@ local evp = require "resty.evp"
 local hmac = require "resty.hmac"
 local resty_random = require "resty.random"
 
-local _M = {_VERSION="0.1.11"}
-local mt = {__index=_M}
+local _M = { _VERSION = "0.1.11" }
+local mt = { __index = _M }
 
-local string_match= string.match
+local string_match = string.match
 local string_rep = string.rep
 local string_format = string.format
 local string_sub = string.sub
@@ -23,59 +27,59 @@ local tostring = tostring
 
 -- define string constants to avoid string garbage collection
 local str_const = {
-  invalid_jwt= "invalid jwt string",
-  regex_join_msg = "%s.%s",
-  regex_join_delim = "([^%s]+)",
-  regex_split_dot = "%.",
-  regex_jwt_join_str = "%s.%s.%s",
-  raw_underscore  = "raw_",
-  dash = "-",
-  empty = "",
-  dotdot = "..",
-  table  = "table",
-  plus = "+",
-  equal = "=",
-  underscore = "_",
-  slash = "/",
-  header = "header",
-  typ = "typ",
-  JWT = "JWT",
-  JWE = "JWE",
-  payload = "payload",
-  signature = "signature",
-  encrypted_key = "encrypted_key",
-  alg = "alg",
-  enc = "enc",
-  kid = "kid",
-  exp = "exp",
-  nbf = "nbf",
-  iss = "iss",
-  full_obj = "__jwt",
-  AES = "AES",
-  cbc = "cbc",
-  x5c = "x5c",
-  x5u = 'x5u',
-  HS256 = "HS256",
-  HS512 = "HS512",
-  RS256 = "RS256",
-  RS512 = "RS512",
-  A128CBC_HS256 = "A128CBC-HS256",
-  A256CBC_HS512 = "A256CBC-HS512",
-  DIR = "dir",
-  reason = "reason",
-  verified = "verified",
-  number = "number",
-  string = "string",
-  funct = "function",
-  boolean = "boolean",
-  table = "table",
-  valid = "valid",
-  valid_issuers = "valid_issuers",
+  invalid_jwt           = "invalid jwt string",
+  regex_join_msg        = "%s.%s",
+  regex_join_delim      = "([^%s]+)",
+  regex_split_dot       = "%.",
+  regex_jwt_join_str    = "%s.%s.%s",
+  raw_underscore        = "raw_",
+  dash                  = "-",
+  empty                 = "",
+  dotdot                = "..",
+  table                 = "table",
+  plus                  = "+",
+  equal                 = "=",
+  underscore            = "_",
+  slash                 = "/",
+  header                = "header",
+  typ                   = "typ",
+  JWT                   = "JWT",
+  JWE                   = "JWE",
+  payload               = "payload",
+  signature             = "signature",
+  encrypted_key         = "encrypted_key",
+  alg                   = "alg",
+  enc                   = "enc",
+  kid                   = "kid",
+  exp                   = "exp",
+  nbf                   = "nbf",
+  iss                   = "iss",
+  full_obj              = "__jwt",
+  AES                   = "AES",
+  cbc                   = "cbc",
+  x5c                   = "x5c",
+  x5u                   = 'x5u',
+  HS256                 = "HS256",
+  HS512                 = "HS512",
+  RS256                 = "RS256",
+  RS512                 = "RS512",
+  A128CBC_HS256         = "A128CBC-HS256",
+  A256CBC_HS512         = "A256CBC-HS512",
+  DIR                   = "dir",
+  reason                = "reason",
+  verified              = "verified",
+  number                = "number",
+  string                = "string",
+  funct                 = "function",
+  boolean               = "boolean",
+  table                 = "table",
+  valid                 = "valid",
+  valid_issuers         = "valid_issuers",
   lifetime_grace_period = "lifetime_grace_period",
-  require_nbf_claim = "require_nbf_claim",
-  require_exp_claim = "require_exp_claim",
-  internal_error = "internal error",
-  everything_awesome = "everything is awesome~ :p"
+  require_nbf_claim     = "require_nbf_claim",
+  require_exp_claim     = "require_exp_claim",
+  internal_error        = "internal error",
+  everything_awesome    = "everything is awesome~ :p"
 }
 
 -- @function split string
@@ -83,7 +87,7 @@ local function split_string(str, delim, maxNb)
   local result = {}
   local sep = string_format(str_const.regex_join_delim, delim)
   for m in str:gmatch(sep) do
-    result[#result+1]=m
+    result[#result + 1] = m
   end
   return result
 end
@@ -91,15 +95,15 @@ end
 -- @function is nil or boolean
 -- @return true if param is nil or true or false; false otherwise
 local function is_nil_or_boolean(arg_value)
-    if arg_value == nil then
-        return true
-    end
-
-    if type(arg_value) ~= str_const.boolean then
-        return false
-    end
-
+  if arg_value == nil then
     return true
+  end
+
+  if type(arg_value) ~= str_const.boolean then
+    return false
+  end
+
+  return true
 end
 
 --@function get the row part
@@ -110,7 +114,7 @@ local function get_raw_part(part_name, jwt_obj)
   if raw_part == nil then
     local part = jwt_obj[part_name]
     if part == nil then
-      error({reason="missing part " .. part_name})
+      error({ reason = "missing part " .. part_name })
     end
     raw_part = _M:jwt_encode(part)
   end
@@ -124,19 +128,18 @@ end
 --@param encryption algorithm
 --@param iv which was generated while encrypting the payload
 --@return decrypted payloaf
-local function decrypt_payload(secret_key, encrypted_payload, enc, iv_in )
+local function decrypt_payload(secret_key, encrypted_payload, enc, iv_in)
   local decrypted_payload
   if enc == str_const.A128CBC_HS256 then
-    local aes_128_cbc_with_iv = assert(aes:new(secret_key, str_const.AES, aes.cipher(128,str_const.cbc), {iv=iv_in} ))
-    decrypted_payload=  aes_128_cbc_with_iv:decrypt(encrypted_payload)
+    local aes_128_cbc_with_iv = assert(aes:new(secret_key, str_const.AES, aes.cipher(128, str_const.cbc), { iv = iv_in }))
+    decrypted_payload = aes_128_cbc_with_iv:decrypt(encrypted_payload)
   elseif enc == str_const.A256CBC_HS512 then
-    local aes_256_cbc_with_iv = assert(aes:new(secret_key, str_const.AES, aes.cipher(256,str_const.cbc), {iv=iv_in} ))
-    decrypted_payload=  aes_256_cbc_with_iv:decrypt(encrypted_payload)
-
+    local aes_256_cbc_with_iv = assert(aes:new(secret_key, str_const.AES, aes.cipher(256, str_const.cbc), { iv = iv_in }))
+    decrypted_payload = aes_256_cbc_with_iv:decrypt(encrypted_payload)
   else
     return nil, "unsupported enc: " .. enc
   end
-  if not  decrypted_payload then
+  if not decrypted_payload then
     return nil, "invalid secret key"
   end
   return decrypted_payload
@@ -146,22 +149,19 @@ end
 -- @param secret key to encrypt
 -- @param algortim to use for encryption
 -- @message  : data to be encrypted. It could be lua table or string
-local function encrypt_payload(secret_key, message, enc )
-
+local function encrypt_payload(secret_key, message, enc)
   if enc == str_const.A128CBC_HS256 then
-    local iv_rand =  resty_random.bytes(16,true)
-    local aes_128_cbc_with_iv = assert(aes:new(secret_key, str_const.AES, aes.cipher(128,str_const.cbc), {iv=iv_rand} ))
+    local iv_rand = resty_random.bytes(16, true)
+    local aes_128_cbc_with_iv = assert(aes:new(secret_key, str_const.AES, aes.cipher(128, str_const.cbc), { iv = iv_rand }))
     local encrypted = aes_128_cbc_with_iv:encrypt(message)
     return encrypted, iv_rand
-
   elseif enc == str_const.A256CBC_HS512 then
-    local iv_rand =  resty_random.bytes(16,true)
-    local aes_256_cbc_with_iv = assert(aes:new(secret_key, str_const.AES, aes.cipher(256,str_const.cbc), {iv=iv_rand} ))
+    local iv_rand = resty_random.bytes(16, true)
+    local aes_256_cbc_with_iv = assert(aes:new(secret_key, str_const.AES, aes.cipher(256, str_const.cbc), { iv = iv_rand }))
     local encrypted = aes_256_cbc_with_iv:encrypt(message)
     return encrypted, iv_rand
-
   else
-    return nil, nil , "unsupported enc: " .. enc
+    return nil, nil, "unsupported enc: " .. enc
   end
 end
 
@@ -175,7 +175,7 @@ local function hmac_digest(enc, mac_key, message)
   elseif enc == str_const.A256CBC_HS512 then
     return hmac:new(mac_key, hmac.ALGOS.SHA512):final(message)
   else
-    error({reason="unsupported enc: " .. enc})
+    error({ reason = "unsupported enc: " .. enc })
   end
 end
 
@@ -195,11 +195,11 @@ local function derive_keys(enc, secret_key)
   local secret_key_len = mac_key_len + enc_key_len
 
   if not secret_key then
-    secret_key =  resty_random.bytes(secret_key_len, true)
+    secret_key = resty_random.bytes(secret_key_len, true)
   end
 
   if #secret_key ~= secret_key_len then
-    error({reason="The pre-shared content key must be ".. secret_key_len})
+    error({ reason = "The pre-shared content key must be " .. secret_key_len })
   end
 
   local mac_key = string_sub(secret_key, 1, mac_key_len)
@@ -211,11 +211,9 @@ end
 --@param pre-shared key
 --@encoded-header
 local function parse_jwe(preshared_key, encoded_header, encoded_encrypted_key, encoded_iv, encoded_cipher_text, encoded_auth_tag)
-
-
   local header = _M:jwt_decode(encoded_header, true)
   if not header then
-    error({reason="invalid header: " .. encoded_header})
+    error({ reason = "invalid header: " .. encoded_header })
   end
 
   local key, mac_key, enc_key = derive_keys(header.enc, preshared_key)
@@ -224,14 +222,14 @@ local function parse_jwe(preshared_key, encoded_header, encoded_encrypted_key, e
   if not preshared_key then
     local encrypted_key = _M:jwt_decode(encoded_encrypted_key)
     if header.alg == str_const.DIR then
-      error({reason="preshared key must not ne null"})
-    else  -- implement algorithm to decrypt the key
-      error({reason="invalid algorithm: " .. header.alg})
+      error({ reason = "preshared key must not ne null" })
+    else -- implement algorithm to decrypt the key
+      error({ reason = "invalid algorithm: " .. header.alg })
     end
   end
 
   local cipher_text = _M:jwt_decode(encoded_cipher_text)
-  local iv =  _M:jwt_decode(encoded_iv)
+  local iv = _M:jwt_decode(encoded_iv)
 
   local basic_jwe = {
     internal = {
@@ -240,17 +238,16 @@ local function parse_jwe(preshared_key, encoded_header, encoded_encrypted_key, e
       key = key,
       iv = iv
     },
-    header=header,
-    signature=_M:jwt_decode(encoded_auth_tag)
+    header = header,
+    signature = _M:jwt_decode(encoded_auth_tag)
   }
 
   local json_payload, err = decrypt_payload(enc_key, cipher_text, header.enc, iv)
   if not json_payload then
     basic_jwe.reason = err
-
   else
     basic_jwe.payload = cjson_decode(json_payload)
-    basic_jwe.internal.json_payload=json_payload
+    basic_jwe.internal.json_payload = json_payload
   end
   return basic_jwe
 end
@@ -263,23 +260,22 @@ end
 local function parse_jwt(encoded_header, encoded_payload, signature)
   local header = _M:jwt_decode(encoded_header, true)
   if not header then
-    error({reason="invalid header: " .. encoded_header})
+    error({ reason = "invalid header: " .. encoded_header })
   end
 
   local payload = _M:jwt_decode(encoded_payload, true)
   if not payload then
-    error({reason="invalid payload: " .. encoded_payload})
+    error({ reason = "invalid payload: " .. encoded_payload })
   end
 
   local basic_jwt = {
-    raw_header=encoded_header,
-    raw_payload=encoded_payload,
-    header=header,
-    payload=payload,
-    signature=signature
+    raw_header = encoded_header,
+    raw_payload = encoded_payload,
+    header = header,
+    payload = payload,
+    signature = signature
   }
   return basic_jwt
-
 end
 
 -- @function parse token - this can be JWE or JWT token
@@ -289,13 +285,13 @@ local function parse(secret, token_str)
   local tokens = split_string(token_str, str_const.regex_split_dot)
   local num_tokens = #tokens
   if num_tokens == 3 then
-    return  parse_jwt(tokens[1], tokens[2], tokens[3])
-  elseif num_tokens == 4  then
-    return parse_jwe(secret, tokens[1], "", tokens[2], tokens[3],  tokens[4])
+    return parse_jwt(tokens[1], tokens[2], tokens[3])
+  elseif num_tokens == 4 then
+    return parse_jwe(secret, tokens[1], "", tokens[2], tokens[3], tokens[4])
   elseif num_tokens == 5 then
-    return parse_jwe(secret, tokens[1], tokens[2], tokens[3],  tokens[4], tokens[5])
+    return parse_jwe(secret, tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
   else
-    error({reason=str_const.invalid_jwt})
+    error({ reason = str_const.invalid_jwt })
   end
 end
 
@@ -310,8 +306,6 @@ function _M.jwt_encode(self, ori)
   end
   return ngx.encode_base64(ori):gsub(str_const.plus, str_const.dash):gsub(str_const.slash, str_const.underscore):gsub(str_const.equal, str_const.empty)
 end
-
-
 
 --@function jwt decode : decode bas64 encoded string
 function _M.jwt_decode(self, b64_str, json_decode)
@@ -337,6 +331,7 @@ end
 function _M.set_trusted_certs_file(self, filename)
   self.trusted_certs_file = filename
 end
+
 _M.trusted_certs_file = nil
 
 --- Set a whitelist of allowed algorithms
@@ -356,8 +351,8 @@ _M.alg_whitelist = nil
 --- applied upon the verification of a jwt.
 function _M.get_default_validation_options(self, jwt_obj)
   return {
-    [str_const.require_exp_claim]=jwt_obj[exp] ~= nil,
-    [str_const.require_nbf_claim]=jwt_obj[nbf] ~= nil
+    [str_const.require_exp_claim] = jwt_obj[exp] ~= nil,
+    [str_const.require_nbf_claim] = jwt_obj[nbf] ~= nil
   }
 end
 
@@ -408,12 +403,12 @@ local function sign_jwe(secret_key, jwt_obj)
   local json_payload = cjson_encode(jwt_obj.payload)
   local cipher_text, iv, err = encrypt_payload(enc_key, json_payload, enc)
   if err then
-    error({reason="error while encrypting payload. Error: " .. err})
+    error({ reason = "error while encrypting payload. Error: " .. err })
   end
   local alg = header.alg
 
   if alg ~= str_const.DIR then
-    error({reason="unsupported alg: " .. tostring(alg)})
+    error({ reason = "unsupported alg: " .. tostring(alg) })
   end
   -- remove type
   if header.typ then
@@ -422,18 +417,18 @@ local function sign_jwe(secret_key, jwt_obj)
   local encoded_header = _M:jwt_encode(header)
 
   local encoded_header_length = binlen(encoded_header)
-  local mac_input = table_concat({encoded_header , iv, cipher_text , encoded_header_length})
+  local mac_input = table_concat({ encoded_header, iv, cipher_text, encoded_header_length })
   local mac = hmac_digest(enc, mac_key, mac_input)
   -- TODO: implement logic for creating enc key and mac key and then encrypt key
   local encrypted_key
-  if alg ==  str_const.DIR then
+  if alg == str_const.DIR then
     encrypted_key = ""
   else
-    error({reason="unsupported alg: " .. alg})
+    error({ reason = "unsupported alg: " .. alg })
   end
-  local auth_tag = string_sub(mac, 1, #mac/2)
-  local jwe_table = {encoded_header, _M:jwt_encode(encrypted_key), _M:jwt_encode(iv),
-    _M:jwt_encode(cipher_text),   _M:jwt_encode(auth_tag)}
+  local auth_tag = string_sub(mac, 1, #mac / 2)
+  local jwe_table = { encoded_header, _M:jwt_encode(encrypted_key), _M:jwt_encode(iv),
+    _M:jwt_encode(cipher_text), _M:jwt_encode(auth_tag) }
   return table_concat(jwe_table, ".", 1, 5)
 end
 
@@ -446,23 +441,23 @@ local function get_secret_str(secret_or_function, jwt_obj)
     -- Only use with hmac algorithms
     local alg = jwt_obj[str_const.header][str_const.alg]
     if alg ~= str_const.HS256 and alg ~= str_const.HS512 then
-      error({reason="secret function can only be used with hmac alg: " .. alg})
+      error({ reason = "secret function can only be used with hmac alg: " .. alg })
     end
 
     -- Pull out the kid value from the header
     local kid_val = jwt_obj[str_const.header][str_const.kid]
     if kid_val == nil then
-      error({reason="secret function specified without kid in header"})
+      error({ reason = "secret function specified without kid in header" })
     end
 
     -- Call the function
-    return secret_or_function(kid_val) or error({reason="function returned nil for kid: " .. kid_val})
+    return secret_or_function(kid_val) or error({ reason = "function returned nil for kid: " .. kid_val })
   elseif type(secret_or_function) == str_const.string then
     -- Just return the string
     return secret_or_function
   else
     -- Throw an error
-    error({reason="invalid secret type (must be string or function)"})
+    error({ reason = "invalid secret type (must be string or function)" })
   end
 end
 
@@ -475,7 +470,7 @@ function _M.sign(self, secret_key, jwt_obj)
   -- Optional header typ check [See http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-25#section-5.1]
   if typ ~= nil then
     if typ ~= str_const.JWT and typ ~= str_const.JWE then
-      error({reason="invalid typ: " .. typ})
+      error({ reason = "invalid typ: " .. typ })
     end
   end
 
@@ -485,7 +480,7 @@ function _M.sign(self, secret_key, jwt_obj)
   -- header alg check
   local raw_header = get_raw_part(str_const.header, jwt_obj)
   local raw_payload = get_raw_part(str_const.payload, jwt_obj)
-  local message = string_format(str_const.regex_join_msg, raw_header , raw_payload)
+  local message = string_format(str_const.regex_join_msg, raw_header, raw_payload)
 
   local alg = jwt_obj[str_const.header][str_const.alg]
   local signature = ""
@@ -498,15 +493,14 @@ function _M.sign(self, secret_key, jwt_obj)
   elseif alg == str_const.RS256 then
     local signer, err = evp.RSASigner:new(secret_key)
     if not signer then
-      error({reason="signer error: " .. err})
+      error({ reason = "signer error: " .. err })
     end
     signature = signer:sign(message, evp.CONST.SHA256_DIGEST)
   else
-    error({reason="unsupported alg: " .. alg})
+    error({ reason = "unsupported alg: " .. alg })
   end
   -- return full jwt string
-  return string_format(str_const.regex_join_msg, message , _M:jwt_encode(signature))
-
+  return string_format(str_const.regex_join_msg, message, _M:jwt_encode(signature))
 end
 
 --@function load jwt
@@ -516,9 +510,9 @@ function _M.load_jwt(self, jwt_str, secret)
   local success, ret = pcall(parse, secret, jwt_str)
   if not success then
     return {
-      valid=false,
-      verified=false,
-      reason=ret[str_const.reason] or str_const.invalid_jwt
+      valid = false,
+      verified = false,
+      reason = ret[str_const.reason] or str_const.invalid_jwt
     }
   end
 
@@ -537,14 +531,13 @@ local function verify_jwe_obj(secret, jwt_obj)
   local encoded_header = jwt_obj.internal.encoded_header
 
   local encoded_header_length = binlen(encoded_header)
-  local mac_input = table_concat({encoded_header , jwt_obj.internal.iv, jwt_obj.internal.cipher_text , encoded_header_length})
-  local mac = hmac_digest(jwt_obj.header.enc, mac_key,  mac_input)
-  local auth_tag = string_sub(mac, 1, #mac/2)
+  local mac_input = table_concat({ encoded_header, jwt_obj.internal.iv, jwt_obj.internal.cipher_text, encoded_header_length })
+  local mac = hmac_digest(jwt_obj.header.enc, mac_key, mac_input)
+  local auth_tag = string_sub(mac, 1, #mac / 2)
 
   if auth_tag ~= jwt_obj.signature then
     jwt_obj[str_const.reason] = "signature mismatch: " ..
-    tostring(jwt_obj[str_const.signature])
-
+        tostring(jwt_obj[str_const.signature])
   end
   jwt_obj.internal = nil
   jwt_obj.signature = nil
@@ -608,7 +601,7 @@ local function extract_certificate(jwt_obj, x5u_content_retriever)
 end
 
 local function get_claim_spec_from_legacy_options(self, options)
-  local claim_spec = { }
+  local claim_spec = {}
   local jwt_validators = require "resty.jwt-validators"
 
   if options[str_const.valid_issuers] ~= nil then
@@ -650,18 +643,17 @@ local function get_claim_spec_from_legacy_options(self, options)
 end
 
 local function is_legacy_validation_options(options)
-
   -- Validation options MUST be a table
   if type(options) ~= str_const.table then
     return false
   end
 
   -- Validation options MUST have at least one of these, and must ONLY have these
-  local legacy_options = { }
-  legacy_options[str_const.valid_issuers]=1
-  legacy_options[str_const.lifetime_grace_period]=1
-  legacy_options[str_const.require_nbf_claim]=1
-  legacy_options[str_const.require_exp_claim]=1
+  local legacy_options = {}
+  legacy_options[str_const.valid_issuers] = 1
+  legacy_options[str_const.lifetime_grace_period] = 1
+  legacy_options[str_const.require_nbf_claim] = 1
+  legacy_options[str_const.require_exp_claim] = 1
 
   local is_legacy = false
   for k in pairs(options) do
@@ -676,7 +668,7 @@ end
 
 -- Validates the claims for the given (parsed) object
 local function validate_claims(self, jwt_obj, ...)
-  local claim_specs = {...}
+  local claim_specs = { ... }
   if #claim_specs == 0 then
     table.insert(claim_specs, _M:get_default_validation_options(jwt_obj))
   end
@@ -736,11 +728,11 @@ function _M.verify_jwt_obj(self, secret, jwt_obj, ...)
 
   local alg = jwt_obj[str_const.header][str_const.alg]
 
-  local jwt_str = string_format(str_const.regex_jwt_join_str, jwt_obj.raw_header , jwt_obj.raw_payload , jwt_obj.signature)
+  local jwt_str = string_format(str_const.regex_jwt_join_str, jwt_obj.raw_header, jwt_obj.raw_payload, jwt_obj.signature)
 
   if self.alg_whitelist ~= nil then
     if self.alg_whitelist[alg] == nil then
-      return {verified=false, reason="whitelist unsupported alg: " .. alg}
+      return { verified = false, reason = "whitelist unsupported alg: " .. alg }
     end
   end
 
@@ -797,7 +789,7 @@ function _M.verify_jwt_obj(self, secret, jwt_obj, ...)
     local raw_header = get_raw_part(str_const.header, jwt_obj)
     local raw_payload = get_raw_part(str_const.payload, jwt_obj)
 
-    local message =string_format(str_const.regex_join_msg, raw_header ,  raw_payload)
+    local message = string_format(str_const.regex_join_msg, raw_header, raw_payload)
     local sig = _M:jwt_decode(jwt_obj[str_const.signature], false)
 
     if not sig then
@@ -825,17 +817,14 @@ function _M.verify_jwt_obj(self, secret, jwt_obj, ...)
     jwt_obj[str_const.reason] = str_const.everything_awesome
   end
   return jwt_obj
-
 end
-
 
 function _M.verify(self, secret, jwt_str, ...)
   local jwt_obj = _M.load_jwt(self, jwt_str, secret)
   if not jwt_obj.valid then
-    return {verified=false, reason=jwt_obj[str_const.reason]}
+    return { verified = false, reason = jwt_obj[str_const.reason] }
   end
-  return  _M.verify_jwt_obj(self, secret, jwt_obj, ...)
-
+  return _M.verify_jwt_obj(self, secret, jwt_obj, ...)
 end
 
 return _M

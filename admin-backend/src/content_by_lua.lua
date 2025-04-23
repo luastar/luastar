@@ -2,6 +2,7 @@
     在每次请求时处理
 --]]
 local ngx = require "ngx"
+local res_util = require "utils.res_util"
 
 local _M = {}
 
@@ -39,16 +40,17 @@ function _M.content()
     local matched_interceptor = interceptor:match_interceptor(ngx.var.uri, ngx.var.request_method)
     -- 执行拦截前方法
     local ok, err = _M.handle_before(matched_interceptor)
-    if not ok then
-        ngx.say(err)
-        ngx.exit(500)
-        return
+    if ok then
+        -- 执行处理方法
+        _M.handle(matched_route)
+        -- 执行拦截后方法
+        _M.handle_after(matched_interceptor)
+    else
+        ngx.status = 500
+        ngx.ctx.response:writeln(res_util.error(err))
     end
-    -- 执行处理方法
-    _M.handle(matched_route)
-    -- 执行拦截后方法
-    _M.handle_after(matched_interceptor)
     -- 输出内容
+    ngx.ctx.response:set_content_type_json()
     ngx.ctx.response:finish()
 end
 
@@ -61,7 +63,7 @@ function _M.handle_before(matched_interceptor)
     end
     local module = require "core.module"
     for i, v in ipairs(matched_interceptor) do
-        local ok, err = module.execute(v["mid"], v["mfunc_before"], v["params"])
+        local ok, err = module.execute(v["mcode"], v["mfunc_before"], v["params"])
         -- 只要有一个返回失败就终止后续处理
         if not ok then
             logger.error("执行拦截器前处理失败！code = ", v["code"], ", err = ", err)
@@ -76,7 +78,7 @@ end
 --]]
 function _M.handle(matched_route)
     local module = require "core.module"
-    local ok, err = module.execute(matched_route["mid"], matched_route["mfunc"], matched_route["params"])
+    local ok, err = module.execute(matched_route["mcode"], matched_route["mfunc"], matched_route["params"])
     ngx.ctx.handle_res = { ok = ok, err = err }
     if not ok then
         logger.error("执行路由控制器失败：code = ", matched_route["code"], ", err = ", err)
@@ -92,7 +94,7 @@ function _M.handle_after(matched_interceptor)
     end
     local module = require "core.module"
     for i, v in ipairs(matched_interceptor) do
-        local ok, err = module.execute(v["mid"], v["mfunc_after"], v["params"])
+        local ok, err = module.execute(v["mcode"], v["mfunc_after"], v["params"])
         if not ok then
             logger.error("执行拦截器后处理失败：code = ", v["code"], ", err = ", err)
         end

@@ -22,7 +22,14 @@ local redis_config = {
   pool_size = 100
 }
 
+local jwt_config = {
+  secret = "LuastarAdminTokenSecret",
+  access_expire = 3600 * 24,
+  refresh_expire = 3600 * 24 * 365,
+}
+
 return {
   mysql_config = mysql_config,
-  redis_config = redis_config
+  redis_config = redis_config,
+  jwt_config = jwt_config
 }

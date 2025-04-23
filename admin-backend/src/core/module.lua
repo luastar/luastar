@@ -10,34 +10,52 @@ local _M = {}
 --[===[
 加载模块代码
 --]===]
-function _M.require(mid)
+function _M.require(mcode)
   -- 从字典中获取模块信息
   local dict = ngx.shared.dict_ls_modules;
-  local module_info_str = dict:get(mid);
-  if not module_info_str then
-    error("模块[" .. mid .. "]不存在！")
+  local module_content_base64 = dict:get(mcode);
+  if not module_content_base64 then
+    error("模块[" .. mcode .. "]不存在！")
   end
   -- 加载模块代码
-  local module_info = cjson.decode(module_info_str);
-  local module_content = str_util.decode_base64(module_info.content);
+  local module_content = str_util.decode_base64(module_content_base64);
   return file_util.load_lua_str(module_content);
+end
+
+--[===[
+列出模块函数列表
+--]===]
+function _M.func_list(mcode)
+  local func_list = {};
+  -- 加载模块代码
+  local ok, module = pcall(_M.require, mcode);
+  if not ok then
+    return func_list;
+  end
+  -- 列出模块函数列表
+  for method_name, method in pairs(module) do
+    if type(method) == "function" then
+      table.insert(func_list, method_name);
+    end
+  end
+  return func_list;
 end
 
 --[===[
 执行模块方法
 --]===]
-function _M.execute(mid, mfunc, params)
-  if _.isEmpty(mid) or _.isEmpty(mfunc) then
-    return false, "模块id或方法名不能为空！"
+function _M.execute(mcode, mfunc, params)
+  if _.isEmpty(mcode) or _.isEmpty(mfunc) then
+    return false, "模块编码或方法名不能为空！"
   end
   -- 加载模块代码
-  local ok, module = pcall(_M.require, mid);
+  local ok, module = pcall(_M.require, mcode);
   if not ok then
     return false, module;
   end
   -- 执行模块方法
   if not module[mfunc] then
-    return false, "模块[" .. mid .. "]不存在方法[" .. mfunc .. "]！"
+    return false, "模块[" .. mcode .. "]不存在方法[" .. mfunc .. "]！"
   end
   return pcall(module[mfunc], params)
 end
