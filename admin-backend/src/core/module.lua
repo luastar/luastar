@@ -56,11 +56,11 @@ function _M.execute(mcode, mfunc, params)
   -- 加载模块代码
   local ok, module = pcall(_M.require, mcode);
   if not ok then
-    return false, module;
+    return false, "模块[" .. mcode .. "]加载失败！";
   end
   -- 执行模块方法
   if not module[mfunc] then
-    return false, "模块[" .. mcode .. "]不存在方法[" .. mfunc .. "]！"
+    return false, "模块方法[" .. mcode .. "][" .. mfunc .. "]不存在！"
   end
   return pcall(module[mfunc], params)
 end

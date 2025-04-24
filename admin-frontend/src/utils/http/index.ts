@@ -123,6 +123,11 @@ class PureHttp {
         const $config = response.config;
         // 关闭进度条动画
         NProgress.done();
+        // 如果服务端返回 401 状态码，清除本地信息并跳转到登录页面
+        if (response.data.errCode === "401") {
+          useUserStoreHook().logOut();
+          return response.data;
+        }
         // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
         if (typeof $config.beforeResponseCallback === "function") {
           $config.beforeResponseCallback(response);

@@ -22,7 +22,7 @@ function _M.login()
     return
   end
   -- 从数据库获取用户信息
-  local user_service = module.require("system.service.user")
+  local user_service = module.require("service.user")
   local ok, user_info = xpcall(user_service.get_user_info, function(err)
     ngx.ctx.response:writeln(res_util.failure(err))
   end, username);
