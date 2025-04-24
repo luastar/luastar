@@ -11,6 +11,11 @@ local _M = {}
 加载模块代码
 --]===]
 function _M.require(mcode)
+  -- 优先从本地项目中加载模块
+  local ok, module = pcall(require, "modules." .. mcode);
+  if ok then
+    return module;
+  end
   -- 从字典中获取模块信息
   local dict = ngx.shared.dict_ls_modules;
   local module_content_base64 = dict:get(mcode);

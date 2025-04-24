@@ -68,6 +68,7 @@ function _M.login()
     ngx.ctx.response:writeln(res_util.failure("保存token失败"))
     return
   end
+  -- 返回结果
   local data = {
     username = user_info.username,
     nickname = user_info.nickname,
@@ -84,20 +85,50 @@ end
 --[[
  刷新 token
 --]]
-function _M.refresh_token(request, response)
-  local refresh_token = request:get_arg("refreshToken");
-  if refresh_token then
-    local data = {
-      accessToken = "eyJhbGciOiJIUzUxMiJ9.newAdmin",
-      refreshToken = "eyJhbGciOiJIUzUxMiJ9.newAdminRefresh",
-      expires = "2030/10/30 23:59:59"
-    };
-    response:set_content_type_json()
-    response:writeln(res_util.success(data))
-  else
-    response:set_content_type_json()
-    response:writeln(res_util.failure())
+function _M.refresh_token()
+  -- 参数校验
+  local refresh_token = ngx.ctx.request:get_arg("refreshToken");
+  if _.isEmpty(refresh_token) then
+    ngx.ctx.response:writeln(res_util.illegal_argument("refreshToken不能为空"));
+    return
   end
+  -- 验证token
+  local jwt_config = ls_cache.get_config("jwt_config");
+  local jwt_obj = jwt_util.verify(jwt_config.secret, refresh_token);
+  if not jwt_obj.verified then
+    ngx.ctx.response:writeln(res_util.failure("refreshToken无效"));
+    return
+  end
+  -- 从字典里取 refreshToken
+  local dict = ngx.shared.dict_ls_tokens
+  local dict_refresh_token = dict:get(jwt_obj.payload.jti)
+  if not dict_refresh_token then
+    ngx.ctx.response:writeln(res_util.failure("refreshToken已过期"));
+    return
+  end
+  -- 生成新的 token
+  local access_token_payload = {
+    jti = str_util.random_str(12),
+    iss = "LuastarAdmin",
+    sub = jwt_obj.payload.sub,
+    exp = ngx.time() + jwt_config.access_expire,
+    uid = jwt_obj.payload.uid,
+  }
+  local access_token = jwt_util.sign(jwt_config.secret, access_token_payload)
+  -- 保存token（可改为redis）
+  local ok, err = dict:set(access_token_payload.jti, access_token, jwt_config.access_expire)
+  if not ok then
+    logger.error("保存token失败: err = ", _.ifEmpty(err, ""))
+    ngx.ctx.response:writeln(res_util.failure("保存token失败"))
+    return
+  end
+  -- 返回结果
+  local data = {
+    accessToken = access_token,
+    refreshToken = refresh_token,
+    expires = date_util.fmt_time('%Y/%m/%d %H:%M:%S', access_token_payload.exp)
+  };
+  ngx.ctx.response:writeln(res_util.success(data))
 end
 
 return _M

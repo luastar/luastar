@@ -29,11 +29,7 @@ end
 
 -- 验证
 function _M.verify(secret, token)
-    local jwt_obj = jwt:verify(secret, token)
-    if not jwt_obj.verified then
-        return true, jwt_obj.reason
-    end
-    return false, jwt_obj.payload
+    return jwt:verify(secret, token)
 end
 
 return _M
