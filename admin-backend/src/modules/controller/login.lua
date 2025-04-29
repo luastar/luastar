@@ -13,7 +13,7 @@ local _M = {}
 --[[
  登录
 --]]
-function _M.login()
+function _M.login(params)
   -- 参数校验
   local username = ngx.ctx.request:get_arg("username");
   local password = ngx.ctx.request:get_arg("password");
@@ -85,7 +85,7 @@ end
 --[[
  刷新 token
 --]]
-function _M.refresh_token()
+function _M.refresh_token(params)
   -- 参数校验
   local refresh_token = ngx.ctx.request:get_arg("refreshToken");
   if _.isEmpty(refresh_token) then

@@ -12,7 +12,16 @@ pnpm install
 pnpm dev
 ```
 
-## 3. 打包项目
+## 3. 代码检查
+
+每次提交代码或进行项目打包部署之前，推荐先执行
+
+```shell
+pnpm typecheck
+pnpm lint
+```
+
+## 4. 打包项目
 
 ```shell
 pnpm build

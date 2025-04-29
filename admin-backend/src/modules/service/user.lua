@@ -1,5 +1,5 @@
 --[===[
-    登录模块
+    用户管理服务
 --]===]
 local ngx = require "ngx"
 local sql_util = require "utils.sql_util"

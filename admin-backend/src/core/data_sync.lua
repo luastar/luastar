@@ -20,7 +20,7 @@ function _M.sync_route()
         logger.error("获取路由信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate);
         return
     end
-    logger.info("获取路由信息成功 : ", cjson.encode(res));
+    -- logger.info("获取路由信息成功 : ", cjson.encode(res));
     local routes_table = {}
     for k, v in pairs(res) do
         table.insert(routes_table, {
@@ -37,7 +37,7 @@ function _M.sync_route()
     local routes_str = cjson.encode(routes_table);
     local ok, err = dict:safe_set("routes", routes_str);
     if ok then
-        logger.info("保存路由信息到字典成功 : ", routes_str);
+        -- logger.info("保存路由信息到字典成功 : ", routes_str);
     else
         logger.error("保存路由信息到字典失败 : err = ", err);
     end
@@ -55,7 +55,6 @@ function _M.sync_interceptor()
         logger.error("获取拦截器信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate);
         return
     end
-    logger.info("获取拦截器信息成功 : ", cjson.encode(res));
     local interceptors_table = {}
     for k, v in pairs(res) do
         local routes_exclude = nil;
@@ -75,9 +74,7 @@ function _M.sync_interceptor()
     local dict = ngx.shared.dict_ls_interceptors;
     local interceptors_str = cjson.encode(interceptors_table);
     local ok, err = dict:safe_set("interceptors", interceptors_str);
-    if ok then
-        logger.info("保存拦截器信息到字典成功 : ", interceptors_str);
-    else
+    if not ok then
         logger.error("保存拦截器信息到字典失败 : err = ", err);
     end
 end
@@ -94,7 +91,6 @@ function _M.sync_module()
         logger.error("获取模块代码信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate);
         return
     end
-    logger.info("获取模块代码信息成功 : ", _.size(res), "条");
     local dict = ngx.shared.dict_ls_modules;
     for k, v in pairs(res) do
         local ok, err = dict:safe_set(v.code, v.content);
@@ -116,7 +112,6 @@ function _M.sync_config()
         logger.error("获取配置信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate);
         return
     end
-    logger.info("获取配置信息成功 : ", cjson.encode(res));
     local dict = ngx.shared.dict_ls_configs;
     for k, v in pairs(res) do
         local config_info = {

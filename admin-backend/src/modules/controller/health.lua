@@ -6,7 +6,7 @@ local res_util = require "utils.res_util"
 
 local _M = {}
 
-function _M.handle(params)
+function _M.active(params)
   ngx.ctx.response:set_content_type_json()
   ngx.ctx.response:writeln(res_util.success({ isActive = true }))
 end
