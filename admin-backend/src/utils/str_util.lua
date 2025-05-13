@@ -5,6 +5,8 @@ local ngx = require "ngx"
 
 local _M = {}
 
+_M.null = "null"
+
 -- 去除字符串前后空格
 function _M.trim(str)
     return str:match '^()%s*$' and '' or str:match '^%s*(.*%S)'

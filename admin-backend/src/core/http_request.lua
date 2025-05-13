@@ -27,10 +27,10 @@ function _M:new()
 		post_args = nil,
 		multipart_args_init = false,
 		multipart_args = nil,
-		request_body_init = false,
-		request_body = nil,
-		request_body_json_init = false,
-		request_body_json = nil
+		body_init = false,
+		body = nil,
+		body_json_init = false,
+		body_json = nil
 	}
 	return setmetatable(instance, mt)
 end
@@ -206,13 +206,13 @@ function _M:init_multipart_args()
 end
 
 -- 获取请求体
-function _M:get_request_body()
+function _M:get_body()
 	-- 初始化
-	if not self.request_body_init then
+	if not self.body_init then
 		ngx.req.read_body()
-		local request_body = ngx.req.get_body_data()
-		if request_body then
-			self.request_body = request_body
+		local body = ngx.req.get_body_data()
+		if body then
+			self.body = body
 		else
 			-- body may get buffered in a temp file
 			local body_file = ngx.req.get_body_file()
@@ -221,36 +221,36 @@ function _M:get_request_body()
 				local body_file_handle, err = io.open(body_file, "r")
 				if body_file_handle then
 					body_file_handle:seek("set")
-					request_body = body_file_handle:read("*a")
+					body = body_file_handle:read("*a")
 					body_file_handle:close()
-					self.request_body = request_body
+					self.body = body
 				else
 					logger.error("failed to open ", tostring(body_file), "for reading: ", tostring(err))
-					self.request_body = ""
+					self.body = ""
 				end
 			else
-				self.request_body = ""
+				self.body = ""
 			end
 		end
-		self.request_body_init = true
+		self.body_init = true
 	end
-	return self.request_body
+	return self.body
 end
 
 -- 获取请求体，并且转成 json
-function _M:get_request_body_json()
+function _M:get_body_json()
 	-- 初始化
-	if not self.request_body_json_init then
-		local request_body = self:get_request_body()
-		if not _.isEmpty(request_body) then
-			local call_ok, request_body_json = pcall(cjson.decode, request_body)
+	if not self.body_json_init then
+		local body = self:get_body()
+		if not _.isEmpty(body) then
+			local call_ok, body_json = pcall(cjson.decode, body)
 			if call_ok then
-				self.request_body_json = request_body_json
+				self.body_json = body_json
 			end
 		end
-		self.request_body_json_init = true
+		self.body_json_init = true
 	end
-	return self.request_body_json
+	return self.body_json
 end
 
 -- 获取 表体 json 参数
@@ -258,11 +258,11 @@ function _M:get_json_arg(name, default)
 	if not name then
 		return default
 	end
-	local request_body_json = self:get_request_body_json()
-	if not request_body_json then
+	local body_json = self:get_body_json()
+	if not body_json then
 		return default
 	end
-	return request_body_json[name] or default
+	return body_json[name] or default
 end
 
 -- 获取 请求头

@@ -181,8 +181,6 @@ function _M:close(connect)
 	local ok, err = connect:set_keepalive(self.datasource["max_idle_timeout"], self.datasource["pool_size"])
 	if not ok then
 		logger.error("[Mysql:close] set keepalive failed : ", err)
-	else
-		logger.info("[Mysql:close] set keepalive ok.")
 	end
 end
 

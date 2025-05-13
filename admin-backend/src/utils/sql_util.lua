@@ -1,6 +1,6 @@
 --[===[
-#{}，如果值为字符串，则添加前后添加单引号'，如果为空，处理为null
-${}，直接替换，如果为空，处理为null
+#{}，防SQL注入替换
+${}，直接替换
 @{}，引用其他语句
 sql_table = {
   sql = [[
@@ -15,10 +15,10 @@ sql_table = {
     [[
       and USER_NAME like concat('%',#{userName},'%')
     ]]
-  }
+  },
   limit = {
-    start = "${start}",
-    limit = "${limit}"
+    limit = "${limit}",
+		offset = "${offset}"
   }
 }
 --]===]
@@ -46,7 +46,7 @@ local function fmt_sql_value(sql, data, nv)
 		table.insert(var2, var)
 	end
 	for i, key in ipairs(var1) do
-		local value = ngx.null
+		local value = str_util.null
 		if not _.isNil(data[key]) then
 			if _.isString(data[key]) then
 				value = ngx.quote_sql_str(data[key]) -- 防sql注入
@@ -54,7 +54,7 @@ local function fmt_sql_value(sql, data, nv)
 				value = data[key]
 			end
 		end
-		if nv and value == ngx.null then
+		if nv and value == str_util.null then
 			sql = ""
 		else
 			value = string.gsub(value, "%%", "%%%%") -- 特殊符号转义
@@ -62,11 +62,11 @@ local function fmt_sql_value(sql, data, nv)
 		end
 	end
 	for i, key in ipairs(var2) do
-		local value = ngx.null
+		local value = str_util.null
 		if not _.isNil(data[key]) then
-			value = ngx.quote_sql_str(data[key]) -- 防sql注入
+			value = data[key]
 		end
-		if nv and value == ngx.null then
+		if nv and value == str_util.null then
 			sql = ""
 		else
 			value = string.gsub(value, "%%", "%%%%")
@@ -119,16 +119,16 @@ local function fmt_sql_where(where, data)
 	return " where " .. rs
 end
 
-local function fmt_sql_limit(limit, data)
-	if not limit then
+local function fmt_sql_limit(limit_obj, data)
+	if not limit_obj then
 		return " "
 	end
-	local start = tonumber(fmt_sql_value(limit["start"], data, false))
-	local limit = tonumber(fmt_sql_value(limit["limit"], data, false))
-	if start == nil or limit == nil then
+	local limit = tonumber(fmt_sql_value(limit_obj["limit"], data, false))
+	local offset = tonumber(fmt_sql_value(limit_obj["offset"], data, false))
+	if limit == nil or offset == nil then
 		return " "
 	end
-	return string.format(" limit %d, %d", start, limit)
+	return string.format(" limit %d offset %d", limit, offset)
 end
 
 function _M.fmt_sql_table(sql_table, data)
