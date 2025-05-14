@@ -1,19 +1,13 @@
 {
   "recommendations": [
     "sumneko.lua",
-    "christian-kohler.path-intellisense",
-    "warmthsea.vscode-custom-code-color",
-    "vscode-icons-team.vscode-icons",
-    "davidanson.vscode-markdownlint",
-    "stylelint.vscode-stylelint",
-    "bradlc.vscode-tailwindcss",
+    "vue.volar",
+    "antfu.unocss",
+    "antfu.iconify",
+    "lokalise.i18n-ally",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "lokalise.i18n-ally",
-    "redhat.vscode-yaml",
-    "csstools.postcss",
-    "mikestead.dotenv",
-    "antfu.iconify",
-    "Vue.volar",
+    "stylelint.vscode-stylelint",
+    "editorconfig.editorconfig"
   ]
 }

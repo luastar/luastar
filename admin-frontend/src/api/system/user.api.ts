@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 
-const USER_BASE_URL = "/api/v1/users";
+const USER_BASE_URL = "/api/admin/user";
 
 const UserAPI = {
   /**
@@ -120,14 +120,16 @@ const UserAPI = {
   /**
    * 导入用户
    *
-   * @param file 文件
+   * @param deptId 部门ID
+   * @param file 导入文件
    */
-  import(file: File) {
+  import(deptId: string, file: File) {
     const formData = new FormData();
     formData.append("file", file);
     return request<any, ExcelResult>({
       url: `${USER_BASE_URL}/import`,
       method: "post",
+      params: { deptId: deptId },
       data: formData,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -161,22 +163,17 @@ const UserAPI = {
     });
   },
 
-  /**
-   *   发送手机/邮箱验证码
-   *
-   * @param contact 联系方式  手机号/邮箱
-   * @param contactType 联系方式类型 MOBILE:手机;EMAIL:邮箱
-   */
-  sendVerificationCode(contact: string, contactType: string) {
+  /** 发送短信验证码（绑定或更换手机号）*/
+  sendMobileCode(mobile: string) {
     return request({
-      url: `${USER_BASE_URL}/send-verification-code`,
-      method: "get",
-      params: { contact: contact, contactType: contactType },
+      url: `${USER_BASE_URL}/mobile/code`,
+      method: "post",
+      params: { mobile: mobile },
     });
   },
 
-  /** 绑定个人中心用户手机 */
-  bindMobile(data: MobileBindingForm) {
+  /** 绑定或更换手机号 */
+  bindOrChangeMobile(data: MobileUpdateForm) {
     return request({
       url: `${USER_BASE_URL}/mobile`,
       method: "put",
@@ -184,8 +181,17 @@ const UserAPI = {
     });
   },
 
-  /** 绑定个人中心用户邮箱 */
-  bindEmail(data: EmailBindingForm) {
+  /** 发送邮箱验证码（绑定或更换邮箱）*/
+  sendEmailCode(email: string) {
+    return request({
+      url: `${USER_BASE_URL}/email/code`,
+      method: "post",
+      params: { email: email },
+    });
+  },
+
+  /** 绑定或更换邮箱 */
+  bindOrChangeEmail(data: EmailUpdateForm) {
     return request({
       url: `${USER_BASE_URL}/email`,
       method: "put",
@@ -209,7 +215,7 @@ export default UserAPI;
 /** 登录用户信息 */
 export interface UserInfo {
   /** 用户ID */
-  userid?: string;
+  userId?: string;
 
   /** 用户名 */
   username?: string;
@@ -272,6 +278,8 @@ export interface UserPageVO {
 
 /** 用户表单类型 */
 export interface UserForm {
+  /** 用户ID */
+  id?: string;
   /** 用户头像 */
   avatar?: string;
   /** 部门ID */
@@ -280,8 +288,6 @@ export interface UserForm {
   email?: string;
   /** 性别 */
   gender?: number;
-  /** 用户ID */
-  id?: string;
   /** 手机号 */
   mobile?: string;
   /** 昵称 */
@@ -362,7 +368,7 @@ export interface PasswordChangeForm {
 }
 
 /** 修改手机表单 */
-export interface MobileBindingForm {
+export interface MobileUpdateForm {
   /** 手机号 */
   mobile?: string;
   /** 验证码 */
@@ -370,7 +376,7 @@ export interface MobileBindingForm {
 }
 
 /** 修改邮箱表单 */
-export interface EmailBindingForm {
+export interface EmailUpdateForm {
   /** 邮箱 */
   email?: string;
   /** 验证码 */

@@ -1,4 +1,5 @@
 <template>
+  <!-- 菜单图标 -->
   <template v-if="icon">
     <el-icon v-if="isElIcon" class="el-icon">
       <component :is="iconComponent" />
@@ -9,10 +10,12 @@
     <div class="i-svg:menu" />
   </template>
   <!-- 菜单标题 -->
-  <span v-if="title" class="ml-1">{{ title }}</span>
+  <span v-if="title" class="ml-1">{{ translateRouteTitle(title) }}</span>
 </template>
 
 <script setup lang="ts">
+import { translateRouteTitle } from "@/utils/i18n";
+
 const props = defineProps<{
   icon?: string;
   title?: string;

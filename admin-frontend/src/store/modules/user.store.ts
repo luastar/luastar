@@ -5,7 +5,7 @@ import { useDictStoreHook } from "@/store/modules/dict.store";
 import AuthAPI, { type LoginFormData } from "@/api/auth.api";
 import UserAPI, { type UserInfo } from "@/api/system/user.api";
 
-import { setAccessToken, clearToken } from "@/utils/auth";
+import { setAccessToken, setRefreshToken, getRefreshToken, clearToken } from "@/utils/auth";
 
 export const useUserStore = defineStore("user", () => {
   const userInfo = useStorage<UserInfo>("userInfo", {} as UserInfo);
@@ -16,12 +16,13 @@ export const useUserStore = defineStore("user", () => {
    * @param {LoginFormData}
    * @returns
    */
-  function login(loginData: LoginFormData) {
+  function login(LoginFormData: LoginFormData) {
     return new Promise<void>((resolve, reject) => {
-      AuthAPI.login(loginData)
+      AuthAPI.login(LoginFormData)
         .then((data) => {
-          const { accessToken } = data;
-          setAccessToken(accessToken);
+          const { accessToken, refreshToken } = data;
+          setAccessToken(accessToken); // eyJhbGciOiJIUzI1NiJ9.xxx.xxx
+          setRefreshToken(refreshToken);
           resolve();
         })
         .catch((error) => {
@@ -69,6 +70,26 @@ export const useUserStore = defineStore("user", () => {
   }
 
   /**
+   * 刷新 token
+   */
+  function refreshToken() {
+    const refreshToken = getRefreshToken();
+    return new Promise<void>((resolve, reject) => {
+      AuthAPI.refreshToken(refreshToken)
+        .then((data) => {
+          const { accessToken, refreshToken } = data;
+          setAccessToken(accessToken);
+          setRefreshToken(refreshToken);
+          resolve();
+        })
+        .catch((error) => {
+          console.log(" refreshToken  刷新失败", error);
+          reject(error);
+        });
+    });
+  }
+
+  /**
    * 清除用户会话和缓存
    */
   function clearSessionAndCache() {
@@ -76,6 +97,7 @@ export const useUserStore = defineStore("user", () => {
       clearToken();
       usePermissionStoreHook().resetRouter();
       useDictStoreHook().clearDictCache();
+      userInfo.value = {} as UserInfo;
       resolve();
     });
   }
@@ -86,6 +108,7 @@ export const useUserStore = defineStore("user", () => {
     login,
     logout,
     clearSessionAndCache,
+    refreshToken,
   };
 });
 

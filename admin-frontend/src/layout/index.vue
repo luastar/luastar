@@ -1,11 +1,7 @@
 <template>
   <div class="layout" :class="layoutClass">
     <!-- 移动端遮罩层 -->
-    <div
-      v-if="isMobile && isSidebarOpen"
-      class="layout__overlay"
-      @click="handleCloseSidebar"
-    />
+    <div v-if="isMobile && isSidebarOpen" class="layout__overlay" @click="handleCloseSidebar" />
 
     <!-- 侧边栏 -->
     <Sidebar class="layout__sidebar" />
@@ -15,17 +11,11 @@
       <!-- 左侧菜单栏 -->
       <div class="layout__sidebar--left">
         <el-scrollbar>
-          <SidebarMenu
-            :data="mixedLayoutLeftRoutes"
-            :base-path="activeTopMenuPath"
-          />
+          <SidebarMenu :data="mixedLayoutLeftRoutes" :base-path="activeTopMenuPath" />
         </el-scrollbar>
         <!-- 侧边栏切换按钮 -->
         <div class="layout__sidebar-toggle">
-          <Hamburger
-            :is-active="appStore.sidebar.opened"
-            @toggle-click="handleToggleSidebar"
-          />
+          <Hamburger :is-active="appStore.sidebar.opened" @toggle-click="handleToggleSidebar" />
         </div>
       </div>
       <!-- 主内容区域 -->
@@ -73,16 +63,16 @@ const settingsStore = useSettingsStore();
 const permissionStore = usePermissionStore();
 const width = useWindowSize().width;
 
+// 常量
 const WIDTH_DESKTOP = 992; // 响应式布局容器固定宽度（大屏 >=1200px，中屏 >=992px，小屏 >=768px）
 
+// 计算属性
 const isMobile = computed(() => appStore.device === DeviceEnum.MOBILE); // 是否为移动设备
 const isSidebarOpen = computed(() => appStore.sidebar.opened); // 侧边栏是否展开
 const isShowTagsView = computed(() => settingsStore.tagsView); // 是否显示标签视图
 const layout = computed(() => settingsStore.layout); // 当前布局模式（left、top、mix）
 const activeTopMenuPath = computed(() => appStore.activeTopMenuPath); // 顶部菜单激活路径
-const mixedLayoutLeftRoutes = computed(
-  () => permissionStore.mixedLayoutLeftRoutes
-); // 混合布局左侧菜单路由
+const mixedLayoutLeftRoutes = computed(() => permissionStore.mixedLayoutLeftRoutes); // 混合布局左侧菜单路由
 
 // 监听顶部菜单激活路径变化，更新混合布局左侧菜单路由
 watch(
@@ -134,7 +124,6 @@ function handleToggleSidebar() {
   appStore.toggleSidebar();
 }
 </script>
-
 <style lang="scss" scoped>
 .layout {
   width: 100%;

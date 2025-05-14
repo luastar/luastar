@@ -26,7 +26,7 @@ const RoleAPI = {
    * @returns 角色的菜单ID集合
    */
   getRoleMenuIds(roleId: string) {
-    return request<any, number[]>({
+    return request<any, string[]>({
       url: `${ROLE_BASE_URL}/${roleId}/menuIds`,
       method: "get",
     });
@@ -105,10 +105,10 @@ export interface RolePageQuery extends PageQuery {
 
 /** 角色分页对象 */
 export interface RolePageVO {
-  /** 角色编码 */
-  code?: string;
   /** 角色ID */
   id?: string;
+  /** 角色编码 */
+  code?: string;
   /** 角色名称 */
   name?: string;
   /** 排序 */

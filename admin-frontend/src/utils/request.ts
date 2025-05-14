@@ -1,8 +1,9 @@
 import axios, { type InternalAxiosRequestConfig, type AxiosResponse } from "axios";
 import qs from "qs";
 import { useUserStoreHook } from "@/store/modules/user.store";
-import { ResultCode } from "@/enums/common/result.enum";
+import { ResultEnum } from "@/enums/api/result.enum";
 import { getAccessToken } from "@/utils/auth";
+import router from "@/router";
 
 // 创建 axios 实例
 const service = axios.create({
@@ -11,7 +12,6 @@ const service = axios.create({
   headers: { "Content-Type": "application/json;charset=utf-8" },
   paramsSerializer: (params) => qs.stringify(params),
 });
-
 // 请求拦截器
 service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -26,7 +26,6 @@ service.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
-
 // 响应拦截器
 service.interceptors.response.use(
   (response: AxiosResponse) => {
@@ -34,37 +33,73 @@ service.interceptors.response.use(
     if (response.config.responseType === "blob") {
       return response;
     }
-
-    const { code, data, msg } = response.data;
-    if (code === ResultCode.SUCCESS) {
+    const { success, errCode, errMessage, data } = response.data;
+    if (success) {
       return data;
     }
-
-    ElMessage.error(msg || "系统出错");
-    return Promise.reject(new Error(msg || "Error"));
+    ElMessage.error(`${errCode}: ${errMessage}`);
+    return Promise.reject(new Error(`${errCode}: ${errMessage}`));
   },
-  async (error: any) => {
-    // 非 2xx 状态码处理 401、403、500 等
-    const response = error.response;
+  async (error) => {
+    console.error("request error", error); // for debug
+    const { config, response } = error;
     if (response) {
-      const { code, msg } = response.data;
-      if (code === ResultCode.ACCESS_TOKEN_INVALID) {
-        ElMessageBox.confirm("当前页面已失效，请重新登录", "提示", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning",
-        }).then(() => {
-          const userStore = useUserStoreHook();
-          userStore.clearSessionAndCache().then(() => {
-            location.reload();
-          });
-        });
+      const { errCode, errMessage } = response.data;
+      if (errCode === ResultEnum.ACCESS_TOKEN_INVALID) {
+        // Token 过期，刷新 Token
+        return handleTokenRefresh(config);
+      } else if (errCode === ResultEnum.REFRESH_TOKEN_INVALID) {
+        // 刷新 Token 过期，跳转登录页
+        await handleSessionExpired();
+        return Promise.reject(new Error(errMessage || "Error"));
       } else {
-        ElMessage.error(msg || "系统出错");
+        ElMessage.error(errMessage || "系统出错");
       }
     }
     return Promise.reject(error.message);
   }
 );
-
 export default service;
+// 是否正在刷新标识，避免重复刷新
+let isRefreshing = false;
+// 因 Token 过期导致的请求等待队列
+const waitingQueue: Array<() => void> = [];
+// 刷新 Token 处理
+async function handleTokenRefresh(config: InternalAxiosRequestConfig) {
+  return new Promise((resolve) => {
+    // 封装需要重试的请求
+    const retryRequest = () => {
+      config.headers.Authorization = `Bearer ${getAccessToken()}`;
+      resolve(service(config));
+    };
+    waitingQueue.push(retryRequest);
+    if (!isRefreshing) {
+      isRefreshing = true;
+      useUserStoreHook()
+        .refreshToken()
+        .then(() => {
+          // 依次重试队列中所有请求, 重试后清空队列
+          waitingQueue.forEach((callback) => callback());
+          waitingQueue.length = 0;
+        })
+        .catch(async (error) => {
+          console.error("handleTokenRefresh error", error);
+          // 刷新 Token 失败，跳转登录页
+          await handleSessionExpired();
+        })
+        .finally(() => {
+          isRefreshing = false;
+        });
+    }
+  });
+}
+// 处理会话过期
+async function handleSessionExpired() {
+  ElNotification({
+    title: "提示",
+    message: "您的会话已过期，请重新登录",
+    type: "info",
+  });
+  await useUserStoreHook().clearSessionAndCache();
+  router.push("/login");
+}

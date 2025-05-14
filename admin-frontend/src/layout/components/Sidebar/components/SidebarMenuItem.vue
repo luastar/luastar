@@ -4,8 +4,8 @@
     <template
       v-if="
         // 未配置始终显示，使用唯一子节点替换父节点显示为叶子节点
-        (!item.meta?.alwaysShow &&
-          hasOneShowingChild(item.children, item) &&
+        (hasOneShowingChild(item.children, item) &&
+          !item.meta?.alwaysShow &&
           (!onlyOneChild.children || onlyOneChild.noShowingChildren)) ||
         // 即使配置了始终显示，但无子节点，也显示为叶子节点
         (item.meta?.alwaysShow && !item.children)
@@ -104,13 +104,14 @@ function hasOneShowingChild(children: RouteRecordRaw[] = [], parent: RouteRecord
     return false;
   });
 
-  // 仅有一个或无子节点
+  // 仅有一个节点
   if (showingChildren.length === 1) {
     return true;
   }
 
-  // 无子节点时，设置父节点为唯一显示节点
+  // 无子节点时
   if (showingChildren.length === 0) {
+    // 父节点设置为唯一显示节点，并标记为无子节点
     onlyOneChild.value = { ...parent, path: "", noShowingChildren: true };
     return true;
   }
@@ -187,6 +188,12 @@ function resolvePath(routePath: string) {
 }
 
 html.dark {
+  .el-menu-item:hover {
+    background-color: $menu-hover;
+  }
+}
+
+html.sidebar-color-blue {
   .el-menu-item:hover {
     background-color: $menu-hover;
   }

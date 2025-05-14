@@ -101,6 +101,8 @@ const MenuAPI = {
 
 export default MenuAPI;
 
+import type { MenuTypeEnum } from "@/enums/system/menu.enum";
+
 /** 菜单查询参数 */
 export interface MenuQuery {
   /** 搜索关键字 */
@@ -132,7 +134,7 @@ export interface MenuVO {
   /** 菜单排序(数字越小排名越靠前) */
   sort?: number;
   /** 菜单 */
-  type?: number;
+  type?: MenuTypeEnum;
   /** 菜单是否可见(1:显示;0:隐藏) */
   visible?: number;
 }
@@ -160,7 +162,7 @@ export interface MenuForm {
   /** 跳转路由路径 */
   redirect?: string;
   /** 菜单 */
-  type?: number;
+  type?: MenuTypeEnum;
   /** 权限标识 */
   perm?: string;
   /** 【菜单】是否开启页面缓存 */

@@ -1,7 +1,7 @@
 /**
  * 语言枚举
  */
-export const enum AppLanguage {
+export const enum LanguageEnum {
   /**
    * 中文
    */

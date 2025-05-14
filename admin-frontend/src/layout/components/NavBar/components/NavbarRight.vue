@@ -2,11 +2,20 @@
   <div :class="['navbar__right', navbarRightClass]">
     <!-- 桌面端显示 -->
     <template v-if="isDesktop">
+      <!-- 搜索 -->
+      <MenuSearch />
+
       <!-- 全屏 -->
       <Fullscreen />
 
       <!-- 布局大小 -->
       <SizeSelect />
+
+      <!-- 语言选择 -->
+      <LangSelect />
+
+      <!-- 通知下拉 -->
+      <NoticeDropdown />
     </template>
 
     <!-- 用户头像（个人中心、注销登录等） -->
@@ -17,8 +26,12 @@
       </div>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item @click="handleProfileClick">个人中心</el-dropdown-item>
-          <el-dropdown-item divided @click="logout">注销登录</el-dropdown-item>
+          <el-dropdown-item @click="handleProfileClick">
+            {{ t("navbar.profile") }}
+          </el-dropdown-item>
+          <el-dropdown-item divided @click="logout">
+            {{ t("navbar.logout") }}
+          </el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
@@ -30,10 +43,12 @@
   </div>
 </template>
 <script setup lang="ts">
+const { t } = useI18n();
 import defaultSettings from "@/settings";
 import { DeviceEnum } from "@/enums/settings/device.enum";
-import { ThemeMode } from "@/enums/settings/theme.enum";
 import { useAppStore, useSettingsStore, useUserStore, useTagsViewStore } from "@/store";
+
+import { SidebarColor, ThemeMode } from "@/enums/settings/theme.enum";
 
 const appStore = useAppStore();
 const settingStore = useSettingsStore();
@@ -55,6 +70,11 @@ function handleProfileClick() {
 const navbarRightClass = computed(() => {
   // 如果暗黑主题
   if (settingStore.theme === ThemeMode.DARK) {
+    return "navbar__right--white";
+  }
+
+  // 如果侧边栏是经典蓝
+  if (settingStore.sidebarColorScheme === SidebarColor.CLASSIC_BLUE) {
     return "navbar__right--white";
   }
 });
@@ -88,10 +108,11 @@ function logout() {
   justify-content: center;
 
   & > * {
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-width: 40px;
     height: $navbar-height;
-    line-height: $navbar-height;
     color: var(--el-text-color);
     text-align: center;
     cursor: pointer;
@@ -100,7 +121,6 @@ function logout() {
       background: rgb(0 0 0 / 10%);
     }
   }
-
   .user-profile {
     display: flex;
     align-items: center;
@@ -120,9 +140,15 @@ function logout() {
   }
 }
 
-.layout-top .navbar__right > *,
-.layout-mix .navbar__right > * {
+.layout-top .navbar__right--white > *,
+.layout-mix .navbar__right--white > * {
   color: #fff;
+
+  // 强制所有svg图标为白色（包括通知图标）
+  :deep(svg) {
+    color: #fff;
+    fill: #fff;
+  }
 }
 
 .dark .navbar__right > *:hover {

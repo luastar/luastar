@@ -10,42 +10,55 @@ export default defineMock([
         userId: 2,
         username: "admin",
         nickname: "系统管理员",
-        avatar:
-          "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
+        avatar: "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
         roles: ["ADMIN"],
         perms: [
-          "sys:notice:edit",
-          "sys:menu:delete",
-          "sys:dict:edit",
-          "sys:notice:query",
-          "sys:dict:delete",
-          "sys:config:add",
-          "sys:config:refresh",
-          "sys:menu:add",
-          "sys:user:add",
-          "sys:user:export",
-          "sys:role:edit",
-          "sys:dept:delete",
-          "sys:config:update",
-          "sys:user:password:reset",
-          "sys:notice:revoke",
-          "sys:user:import",
-          "sys:user:delete",
-          "sys:dict_type:delete",
-          "sys:dict:add",
-          "sys:role:add",
-          "sys:notice:publish",
-          "sys:notice:delete",
-          "sys:dept:edit",
-          "sys:dict_type:edit",
           "sys:user:query",
+          "sys:user:add",
           "sys:user:edit",
-          "sys:config:delete",
-          "sys:dept:add",
-          "sys:notice:add",
+          "sys:user:delete",
+          "sys:user:import",
+          "sys:user:export",
+          "sys:user:reset-password",
+
+          "sys:role:query",
+          "sys:role:add",
+          "sys:role:edit",
           "sys:role:delete",
+
+          "sys:dept:query",
+          "sys:dept:add",
+          "sys:dept:edit",
+          "sys:dept:delete",
+
+          "sys:menu:query",
+          "sys:menu:add",
           "sys:menu:edit",
+          "sys:menu:delete",
+
+          "sys:dict:query",
+          "sys:dict:add",
+          "sys:dict:edit",
+          "sys:dict:delete",
+          "sys:dict:delete",
+
+          "sys:dict-item:query",
+          "sys:dict-item:add",
+          "sys:dict-item:edit",
+          "sys:dict-item:delete",
+
+          "sys:notice:query",
+          "sys:notice:add",
+          "sys:notice:edit",
+          "sys:notice:delete",
+          "sys:notice:revoke",
+          "sys:notice:publish",
+
           "sys:config:query",
+          "sys:config:add",
+          "sys:config:update",
+          "sys:config:delete",
+          "sys:config:refresh",
         ],
       },
       msg: "一切ok",
@@ -65,8 +78,7 @@ export default defineMock([
             nickname: "系统管理员",
             mobile: "17621210366",
             gender: 1,
-            avatar:
-              "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
+            avatar: "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
             email: "",
             status: 1,
             deptId: 1,
@@ -78,8 +90,7 @@ export default defineMock([
             nickname: "测试小用户",
             mobile: "17621210366",
             gender: 1,
-            avatar:
-              "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
+            avatar: "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
             email: "youlaitech@163.com",
             status: 1,
             deptId: 3,
@@ -161,10 +172,8 @@ export default defineMock([
     url: "users/_export",
     method: ["GET"],
     headers: {
-      "Content-Disposition":
-        "attachment; filename=%E7%94%A8%E6%88%B7%E5%88%97%E8%A1%A8.xlsx",
-      "Content-Type":
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": "attachment; filename=%E7%94%A8%E6%88%B7%E5%88%97%E8%A1%A8.xlsx",
+      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     },
   },
 
@@ -177,8 +186,7 @@ export default defineMock([
         id: 2,
         username: "admin",
         nickname: "系统管理员",
-        avatar:
-          "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
+        avatar: "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
         gender: 1,
         mobile: "17621210366",
         email: null,
@@ -192,7 +200,7 @@ export default defineMock([
   {
     url: "users/profile",
     method: ["PUT"],
-    body({ query }) {
+    body() {
       return {
         code: "00000",
         data: null,
@@ -204,7 +212,7 @@ export default defineMock([
   {
     url: "users/password",
     method: ["PUT"],
-    body({ query }) {
+    body() {
       return {
         code: "00000",
         data: null,
@@ -222,8 +230,7 @@ const userMap: Record<string, any> = {
     nickname: "系统管理员",
     mobile: "17621210366",
     gender: 1,
-    avatar:
-      "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
+    avatar: "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
     email: "",
     status: 1,
     deptId: 1,
@@ -235,8 +242,7 @@ const userMap: Record<string, any> = {
     nickname: "测试小用户",
     mobile: "17621210366",
     gender: 1,
-    avatar:
-      "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
+    avatar: "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif",
     email: "youlaitech@163.com",
     status: 1,
     deptId: 3,

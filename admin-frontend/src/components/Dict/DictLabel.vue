@@ -44,7 +44,6 @@ const getLabelAndTagByValue = async (dictCode: string, value: any) => {
  * 更新 label 和 tagType
  */
 const updateLabelAndTag = async () => {
-  console.log("updateLabelAndTag", props.code, props.modelValue);
   if (!props.code || props.modelValue === undefined) return;
   const { label: newLabel, tagType: newTagType } = await getLabelAndTagByValue(
     props.code,
@@ -57,4 +56,15 @@ const updateLabelAndTag = async () => {
 watch([() => props.code, () => props.modelValue], updateLabelAndTag);
 
 onMounted(updateLabelAndTag);
+
+// 监听WebSocket字典更新事件，强制刷新标签
+watch(
+  () => dictStore.getDictItems(props.code || ""),
+  async () => {
+    if (props.code) {
+      await updateLabelAndTag();
+    }
+  },
+  { deep: true }
+);
 </script>

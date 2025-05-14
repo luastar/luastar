@@ -24,8 +24,8 @@ local redis_config = {
 
 local jwt_config = {
   secret = "LuastarAdminTokenSecret",
-  access_expire = 3600 * 24,
-  refresh_expire = 3600 * 24 * 365,
+  access_expire = 3600 * 2,
+  refresh_expire = 3600 * 24 * 30,
 }
 
 return {

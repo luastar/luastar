@@ -51,10 +51,9 @@ function handleLayoutChange(layout: LayoutMode) {
   gap: 10px;
   justify-content: space-evenly;
   padding: 10px 0;
-
   --layout-primary: #1b2a47;
   --layout-background: #f0f2f5;
-  --layout-shadow: 0 0 8px rgb(0 0 0 / 10%);
+  --layout-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
   --layout-hover: #e3f1f9;
 }
 
@@ -66,6 +65,7 @@ function handleLayoutChange(layout: LayoutMode) {
   background: var(--layout-background);
   border-radius: 8px;
   box-shadow: var(--layout-shadow);
+
   transition:
     transform 0.2s ease,
     border-color 0.2s ease,
@@ -95,7 +95,6 @@ function handleLayoutChange(layout: LayoutMode) {
         height: 100%;
         border-radius: 4px 0 0 4px; /* 左边部分圆角 */
       }
-
       &:last-child {
         top: 0;
         right: 0;
@@ -122,7 +121,6 @@ function handleLayoutChange(layout: LayoutMode) {
         height: 30%;
         border-radius: 4px 4px 0 0; /* 顶部部分圆角 */
       }
-
       &:last-child {
         bottom: 0;
         left: 0;

@@ -21,6 +21,7 @@ export const usePermissionStore = defineStore("permission", () => {
    * @returns Promise<RouteRecordRaw[]> 解析后的动态路由列表
    */
   function generateRoutes() {
+    /*
     return new Promise<RouteRecordRaw[]>((resolve, reject) => {
       MenuAPI.getRoutes()
         .then((data) => {
@@ -33,6 +34,8 @@ export const usePermissionStore = defineStore("permission", () => {
           reject(error);
         });
     });
+    */
+    routes.value = constantRoutes;
   }
 
   /**

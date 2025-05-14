@@ -3,18 +3,27 @@
   <div class="app-container">
     <div class="search-bar mt-5">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true">
-        <el-form-item label="关键字" prop="keywords">
-          <el-input
-            v-model="queryParams.keywords"
-            placeholder="字典标签/字典值"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" icon="search" @click="handleQuery()">搜索</el-button>
-          <el-button icon="refresh" @click="handleResetQuery()">重置</el-button>
-        </el-form-item>
+        <el-row :gutter="22">
+          <el-col :span="24" :md="12" :lg="6">
+            <el-form-item label="关键字" prop="keywords">
+              <el-input
+                v-model="queryParams.keywords"
+                placeholder="字典标签/字典值"
+                clearable
+                @keyup.enter="handleQuery"
+              />
+            </el-form-item>
+          </el-col>
+
+          <div class="search-form-btn-box">
+            <div class="search-form-btn-box-item">
+              <el-form-item>
+                <el-button type="primary" icon="search" @click="handleQuery()">搜索</el-button>
+                <el-button icon="refresh" @click="handleResetQuery()">重置</el-button>
+              </el-form-item>
+            </div>
+          </div>
+        </el-row>
       </el-form>
     </div>
 
@@ -129,11 +138,6 @@
 </template>
 
 <script setup lang="ts">
-defineOptions({
-  name: "DictItem",
-  inherititems: false,
-});
-
 import DictAPI, { DictItemPageQuery, DictItemPageVO, DictItemForm } from "@/api/system/dict.api";
 
 const route = useRoute();
@@ -250,7 +254,7 @@ function handleCloseDialog() {
  *
  * @param id 字典ID
  */
-function handleDelete(id?: string) {
+function handleDelete(id?: number) {
   const itemIds = [id || ids.value].join(",");
   if (!itemIds) {
     ElMessage.warning("请勾选删除项");
@@ -274,12 +278,6 @@ function handleDelete(id?: string) {
 }
 
 onMounted(() => {
-  handleQuery();
-});
-
-// 同一路由参数变化时更新数据
-onBeforeRouteUpdate((to) => {
-  queryParams.dictCode = to.query.dictCode as string;
   handleQuery();
 });
 </script>

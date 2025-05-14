@@ -1,12 +1,16 @@
 <template>
-  <el-drawer v-model="drawerVisible" size="300" title="项目配置" :before-close="handleCloseDrawer">
-    <!-- 主题设置 -->
+  <el-drawer
+    v-model="drawerVisible"
+    size="300"
+    :title="t('settings.project')"
+    :before-close="handleCloseDrawer"
+  >
     <section class="config-section">
-      <el-divider>主题</el-divider>
+      <el-divider>{{ t("settings.theme") }}</el-divider>
 
-      <div class="flex-center config-item">
+      <div class="flex-center">
         <el-switch
-          v-model="isDarkTheme"
+          v-model="isDark"
           active-icon="Moon"
           inactive-icon="Sunny"
           @change="handleThemeChange"
@@ -16,11 +20,10 @@
 
     <!-- 界面设置 -->
     <section class="config-section">
-      <el-divider>界面设置</el-divider>
+      <el-divider>{{ t("settings.interface") }}</el-divider>
 
       <div class="config-item flex-x-between">
-        <span class="text-xs">主题颜色</span>
-
+        <span class="text-xs">{{ t("settings.themeColor") }}</span>
         <el-color-picker
           v-model="selectedThemeColor"
           :predefine="colorPresets"
@@ -29,35 +32,52 @@
       </div>
 
       <div class="config-item flex-x-between">
-        <span class="text-xs">开启 Tags-View</span>
+        <span class="text-xs">{{ t("settings.tagsView") }}</span>
         <el-switch v-model="settingsStore.tagsView" />
       </div>
 
       <div class="config-item flex-x-between">
-        <span class="text-xs">侧边栏 LOGO</span>
+        <span class="text-xs">{{ t("settings.sidebarLogo") }}</span>
         <el-switch v-model="settingsStore.sidebarLogo" />
+      </div>
+
+      <div class="config-item flex-x-between">
+        <span class="text-xs">{{ t("settings.watermark") }}</span>
+        <el-switch v-model="settingsStore.watermarkEnabled" />
+      </div>
+      <div v-if="!isDark" class="config-item flex-x-between">
+        <span class="text-xs">{{ t("settings.sidebarColorScheme") }}</span>
+        <el-radio-group v-model="sidebarColor" @change="changeSidebarColor">
+          <el-radio :value="SidebarColor.CLASSIC_BLUE">
+            {{ t("settings.classicBlue") }}
+          </el-radio>
+          <el-radio :value="SidebarColor.MINIMAL_WHITE">
+            {{ t("settings.minimalWhite") }}
+          </el-radio>
+        </el-radio-group>
       </div>
     </section>
 
     <!-- 布局设置 -->
     <section class="config-section">
-      <el-divider>导航栏设置</el-divider>
+      <el-divider>{{ t("settings.navigation") }}</el-divider>
       <LayoutSelect v-model="settingsStore.layout" @update:model-value="handleLayoutChange" />
     </section>
   </el-drawer>
 </template>
 
 <script setup lang="ts">
+const { t } = useI18n();
 import { LayoutMode } from "@/enums/settings/layout.enum";
 import { ThemeMode } from "@/enums/settings/theme.enum";
+import { SidebarColor } from "@/enums/settings/theme.enum";
 import { useSettingsStore, usePermissionStore, useAppStore } from "@/store";
-
 // 颜色预设
 const colorPresets = [
   "#4080FF",
+  "#626AEF",
   "#ff4500",
   "#ff8c00",
-  "#90ee90",
   "#00ced1",
   "#1e90ff",
   "#c71585",
@@ -70,7 +90,8 @@ const appStore = useAppStore();
 const settingsStore = useSettingsStore();
 const permissionStore = usePermissionStore();
 
-const isDarkTheme = ref<boolean>(settingsStore.theme === ThemeMode.DARK);
+const isDark = ref<boolean>(settingsStore.theme === ThemeMode.DARK);
+const sidebarColor = ref(settingsStore.sidebarColorScheme);
 
 const selectedThemeColor = computed({
   get: () => settingsStore.themeColor,
@@ -92,8 +113,18 @@ const handleThemeChange = (isDark: string | number | boolean) => {
 };
 
 /**
- * 处理布局切换
- * @param layout - 新布局模式
+ * 更改侧边栏颜色
+ *
+ * @param val 颜色方案名称
+ */
+const changeSidebarColor = (val: any) => {
+  settingsStore.changeSidebarColor(val);
+};
+
+/**
+ * 切换布局
+ *
+ * @param layout - 布局模式
  */
 const handleLayoutChange = (layout: LayoutMode) => {
   settingsStore.changeLayout(layout);

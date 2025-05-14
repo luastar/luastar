@@ -15,10 +15,12 @@ function _M.get_route_list()
   local params = ngx.ctx.request:get_body_json() or {};
   -- 从数据库获取路由信息
   local route_service = module.require("service.route")
+  local call_err = ""
   local ok, route_count, route_list = xpcall(route_service.get_route_count_and_list, function(err)
-    ngx.ctx.response:writeln(res_util.failure(err))
+    call_err = err
   end, params);
   if not ok then
+    ngx.ctx.response:writeln(res_util.failure(call_err))
     return
   end
   -- 返回结果

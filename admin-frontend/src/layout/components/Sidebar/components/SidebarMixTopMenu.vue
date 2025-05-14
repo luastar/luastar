@@ -4,9 +4,21 @@
     <el-menu
       mode="horizontal"
       :default-active="activePath"
-      :background-color="variables['menu-background']"
-      :text-color="variables['menu-text']"
-      :active-text-color="variables['menu-active-text']"
+      :background-color="
+        theme === 'dark' || sidebarColorScheme === SidebarColor.CLASSIC_BLUE
+          ? variables['menu-background']
+          : undefined
+      "
+      :text-color="
+        theme === 'dark' || sidebarColorScheme === SidebarColor.CLASSIC_BLUE
+          ? variables['menu-text']
+          : undefined
+      "
+      :active-text-color="
+        theme === 'dark' || sidebarColorScheme === SidebarColor.CLASSIC_BLUE
+          ? variables['menu-active-text']
+          : undefined
+      "
       @select="handleMenuSelect"
     >
       <el-menu-item v-for="route in topMenus" :key="route.path" :index="route.path">
@@ -19,7 +31,7 @@
           </template>
           <span v-if="route.path === '/'">首页</span>
           <span v-else-if="route.meta && route.meta.title" class="ml-1">
-            {{ route.meta.title }}
+            {{ translateRouteTitle(route.meta.title) }}
           </span>
         </template>
       </el-menu-item>
@@ -29,15 +41,24 @@
 
 <script lang="ts" setup>
 import { LocationQueryRaw, RouteRecordRaw } from "vue-router";
-import { usePermissionStore, useAppStore } from "@/store";
+import { usePermissionStore, useAppStore, useSettingsStore } from "@/store";
+import { translateRouteTitle } from "@/utils/i18n";
 import variables from "@/styles/variables.module.scss";
+import { SidebarColor } from "@/enums/settings/theme.enum";
 
 const router = useRouter();
 const appStore = useAppStore();
 const permissionStore = usePermissionStore();
+const settingsStore = useSettingsStore();
 
 // 当前激活的顶部菜单路径
 const activePath = computed(() => appStore.activeTopMenuPath);
+
+// 获取主题
+const theme = computed(() => settingsStore.theme);
+
+// 获取浅色主题下的侧边栏配色方案
+const sidebarColorScheme = computed(() => settingsStore.sidebarColorScheme);
 
 // 顶部菜单列表
 const topMenus = ref<RouteRecordRaw[]>([]);

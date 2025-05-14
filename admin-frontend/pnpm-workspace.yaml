@@ -1,0 +1,5 @@
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - es5-ext
+  - esbuild
+  - vue-demi

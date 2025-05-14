@@ -10,7 +10,6 @@
     :http-request="handleUpload"
     :on-success="onSuccess"
     :on-error="onError"
-    multiple
   >
     <template #default>
       <el-image v-if="modelValue" :src="modelValue" />
@@ -167,14 +166,14 @@ const onError = (error: any) => {
 
 <style scoped lang="scss">
 :deep(.el-upload--picture-card) {
-  /*  width: var(--el-upload-picture-card-size);
-  height: var(--el-upload-picture-card-size); */
   width: v-bind("props.style.width");
   height: v-bind("props.style.height");
 }
 
 .single-upload {
   position: relative;
+  width: v-bind("props.style.width");
+  height: v-bind("props.style.height");
   overflow: hidden;
   cursor: pointer;
   border: 1px var(--el-border-color) solid;

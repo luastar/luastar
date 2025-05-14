@@ -4,7 +4,7 @@ const FileAPI = {
   /**
    * 上传文件
    *
-   * @param file
+   * @param formData
    */
   upload(formData: FormData) {
     return request<any, FileInfo>({

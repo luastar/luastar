@@ -48,37 +48,6 @@ CREATE TABLE `ls_user_role`  (
   INDEX `idx_rid`(`rid`)
 ) COMMENT = '用户角色';
 
-DROP TABLE IF EXISTS `ls_permission`;
-CREATE TABLE `ls_permission`  (
-  `id` varchar(32) NOT NULL COMMENT '权限id',
-  `level` varchar(255) NOT NULL COMMENT '级别',
-  `code` varchar(100) NOT NULL COMMENT '权限编码',
-  `name` varchar(255) NULL COMMENT '权限名称',
-  `state` varchar(100) NOT NULL COMMENT '状态',
-  `rank` bigint NOT NULL COMMENT '排序',
-  `create_by` varchar(32) NULL COMMENT '创建人',
-  `create_at` datetime NOT NULL COMMENT '创建时间',
-  `update_by` varchar(32) NULL COMMENT '修改人',
-  `update_at` datetime NOT NULL COMMENT '修改时间',
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `idx_code`(`code`)
-) COMMENT = '权限';
-
-DROP TABLE IF EXISTS `ls_role_permission`;
-CREATE TABLE `ls_role_permission`  (
-  `id` varchar(32) NOT NULL COMMENT 'id',
-  `level` varchar(255) NOT NULL COMMENT '级别',
-  `rid` varchar(32) NOT NULL COMMENT '角色id',
-  `pid` varchar(32) NOT NULL COMMENT '权限id',
-  `create_by` varchar(32) NULL COMMENT '创建人',
-  `create_at` datetime NOT NULL COMMENT '创建时间',
-  `update_by` varchar(32) NULL COMMENT '修改人',
-  `update_at` datetime NOT NULL COMMENT '修改时间',
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `idx_rid_pid`(`rid`, `pid`),
-  INDEX `idx_pid`(`pid`)
-) COMMENT = '角色权限';
-
 DROP TABLE IF EXISTS `ls_route`;
 CREATE TABLE `ls_route`  (
   `id` varchar(32) NOT NULL COMMENT '路由id',

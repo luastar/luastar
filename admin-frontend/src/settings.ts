@@ -1,4 +1,4 @@
-import { AppLanguage, ThemeMode, LayoutMode, ComponentSize } from "./enums";
+import { LayoutMode, ComponentSize, SidebarColor, ThemeMode, LanguageEnum } from "./enums";
 
 const { pkg } = __APP_INFO__;
 
@@ -23,13 +23,15 @@ const defaultSettings: AppSettings = {
   // 组件大小 default | medium | small | large
   size: ComponentSize.DEFAULT,
   // 语言
-  language: AppLanguage.ZH_CN,
+  language: LanguageEnum.ZH_CN,
   // 主题颜色
   themeColor: "#4080FF",
   // 是否开启水印
   watermarkEnabled: false,
   // 水印内容
   watermarkContent: pkg.name,
+  // 侧边栏配色方案
+  sidebarColorScheme: SidebarColor.CLASSIC_BLUE,
 };
 
 export default defaultSettings;
