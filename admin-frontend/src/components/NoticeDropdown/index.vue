@@ -18,7 +18,6 @@
           <template v-if="noticeList.length > 0">
             <div v-for="(item, index) in noticeList" :key="index" class="w500px py-3">
               <div class="flex-y-center">
-                <DictLabel v-model="item.type" code="notice_type" size="small" />
                 <el-text
                   size="small"
                   class="w200px cursor-pointer !ml-2 !flex-1"

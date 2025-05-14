@@ -35,4 +35,24 @@ function _M.get_user_info(params)
   ngx.ctx.response:writeln(res_util.success(data));
 end
 
+function _M.get_user_profile(params)
+  -- 获取用户信息（拦截器写入，无需重新查询）
+  local user_info = ngx.ctx.user_info
+  if _.isEmpty(user_info) then
+    ngx.ctx.response:writeln(res_util.failure("获取用户信息失败！"))
+    return
+  end
+  local data = {
+    id = user_info.id,
+    username = user_info.username,
+    nickname = user_info.nickname,
+    avatar = user_info.avatar,
+    gender = 1,
+    mobile = "",
+    email = user_info.email,
+    createTime = user_info.create_at
+  }
+  ngx.ctx.response:writeln(res_util.success(data));
+end
+
 return _M

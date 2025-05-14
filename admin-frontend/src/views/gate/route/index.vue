@@ -1,7 +1,6 @@
 <!-- 用户管理 -->
 <template>
   <div class="app-container">
-    <!-- 用户列表 -->
     <!-- 搜索区域 -->
     <div class="search-container">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="auto">
@@ -84,9 +83,7 @@
         <el-table-column type="selection" width="50" align="center" />
         <el-table-column label="用户名" prop="username" />
         <el-table-column label="昵称" width="150" align="center" prop="nickname" />
-        <el-table-column label="性别" width="100" align="center">
-          <template #default="scope"></template>
-        </el-table-column>
+        <el-table-column label="性别" width="100" align="center" />
         <el-table-column label="部门" width="120" align="center" prop="deptName" />
         <el-table-column label="手机号码" align="center" prop="mobile" width="120" />
         <el-table-column label="邮箱" align="center" prop="email" width="160" />
@@ -342,6 +339,8 @@ async function handleOpenDialog(id?: string) {
   dialog.visible = true;
   // 加载角色下拉数据源
   roleOptions.value = await RoleAPI.getOptions();
+  // 加载部门下拉数据源
+  deptOptions.value = await DeptAPI.getOptions();
 
   if (id) {
     dialog.title = "修改用户";

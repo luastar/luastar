@@ -59,31 +59,34 @@ export const constantRoutes: RouteRecordRaw[] = [
         meta: { title: "个人中心", icon: "user", hidden: true },
       },
       {
-        path: "my-notice",
-        name: "MyNotice",
-        component: () => import("@/views/system/notice/components/MyNotice.vue"),
-        meta: { title: "我的通知", icon: "user", hidden: true },
+        path: "route",
+        name: "Route",
+        component: () => import("@/views/gate/route/index.vue"),
+        meta: { title: "路由管理", icon: "el-icon-Aim" },
       },
-    ],
-  },
-
-  {
-    path: "/system",
-    component: Layout,
-    redirect: "/system/user",
-    meta: { title: "系统管理", icon: "system" },
-    children: [
+      {
+        path: "interceptor",
+        name: "Interceptor",
+        component: () => import("@/views/gate/interceptor/index.vue"),
+        meta: { title: "拦截器管理", icon: "el-icon-Filter" },
+      },
+      {
+        path: "module",
+        name: "Module",
+        component: () => import("@/views/gate/module/index.vue"),
+        meta: { title: "代码管理", icon: "code" },
+      },
+      {
+        path: "config",
+        name: "Config",
+        component: () => import("@/views/gate/config/index.vue"),
+        meta: { title: "配置管理", icon: "el-icon-Setting" },
+      },
       {
         path: "user",
         name: "User",
         component: () => import("@/views/system/user/index.vue"),
         meta: { title: "用户管理", icon: "el-icon-User" },
-      },
-      {
-        path: "role",
-        name: "Role",
-        component: () => import("@/views/system/role/index.vue"),
-        meta: { title: "角色管理", icon: "role" },
       },
     ],
   },

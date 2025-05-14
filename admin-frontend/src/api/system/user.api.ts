@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 
-const USER_BASE_URL = "/api/admin/user";
+const USER_BASE_URL = "/api/admin/users";
 
 const UserAPI = {
   /**

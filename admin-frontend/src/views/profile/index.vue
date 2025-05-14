@@ -139,9 +139,7 @@
         <el-form-item label="昵称">
           <el-input v-model="userProfileForm.nickname" />
         </el-form-item>
-        <el-form-item label="性别">
-          <Dict v-model="userProfileForm.gender" code="gender" />
-        </el-form-item>
+        <el-form-item label="性别"></el-form-item>
       </el-form>
 
       <!-- 修改密码 -->
