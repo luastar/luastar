@@ -59,6 +59,7 @@ function _M.get_route_count_and_list(params)
         where = sql_query_where,
         limit = { limit = "${limit}", offset = "${offset}" }
     }, sql_params)
+    logger.info("===================", sql_query_list)
     local thread_query_count = ngx_thread_spawn(function()
         local res, err, errcode, sqlstate = mysql_service:query(sql_query_count);
         if not res then

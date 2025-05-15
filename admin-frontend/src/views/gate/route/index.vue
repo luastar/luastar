@@ -27,15 +27,15 @@
         </el-form-item>
 
         <el-form-item label="编码" prop="code">
-          <el-input v-model="formData.code" placeholder="请输入编码" />
+          <el-input v-model="queryParams.code" placeholder="请输入编码" />
         </el-form-item>
 
         <el-form-item label="名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入名称" />
+          <el-input v-model="queryParams.name" placeholder="请输入名称" />
         </el-form-item>
 
         <el-form-item label="路径" prop="path">
-          <el-input v-model="formData.path" placeholder="请输入路径" />
+          <el-input v-model="queryParams.path" placeholder="请输入路径" />
         </el-form-item>
 
         <el-form-item class="search-buttons">

@@ -9,37 +9,18 @@ _M.null = "null"
 
 -- 去除字符串前后空格
 function _M.trim(str)
-    -- return str:match '^()%s*$' and '' or str:match '^%s*(.*%S)'
-    return ngx.re.gsub(str, "^%s+|%s+$", "")
+    if not str then return nil end
+    return str:match '^()%s*$' and '' or str:match '^%s*(.*%S)'
 end
 
 -- 字符串分隔
 function _M.split(str, sep)
-    --[===[
     local result = {}
+    if not str or str == "" then return result end
     local regex = ("([^%s]+)"):format(sep)
     for each in str:gmatch(regex) do
         table.insert(result, each)
     end
-    return result
-    --]===]
-    local result = {}
-    if not str or str == "" then return result end
-    if not sep then sep = "%s+" end -- 默认按空白字符分割
-    -- 转义正则特殊字符
-    sep = sep:gsub("[%.%+%-%*%?%[%]%(%)%$%^%%]", "%%%1")
-    local pos = 1
-    while true do
-        local from, to = ngx.re.find(str, sep, "jo", nil, pos)
-        if not from then
-            break
-        end
-        -- 添加分隔符前的内容
-        table.insert(result, str:sub(pos, from - 1))
-        pos = to + 1
-    end
-    -- 添加最后一部分
-    table.insert(result, str:sub(pos))
     return result
 end
 

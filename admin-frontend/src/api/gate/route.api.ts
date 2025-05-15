@@ -11,8 +11,8 @@ const RouteAPI = {
   getPage(queryParams: RoutePageQuery) {
     return request<any, PageResult<RoutePageVO[]>>({
       url: `${ROUTE_BASE_URL}/page`,
-      method: "get",
-      params: queryParams,
+      method: "post",
+      data: queryParams,
     });
   },
 
