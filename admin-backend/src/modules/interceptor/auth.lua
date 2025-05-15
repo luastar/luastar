@@ -5,6 +5,7 @@ local ngx = require "ngx"
 local module = require "core.module"
 local res_util = require "utils.res_util"
 local jwt_util = require "utils.jwt_util"
+local error_util = require "utils.error_util"
 
 local _M = {}
 
@@ -40,7 +41,7 @@ function _M.handle_before()
   local user_service = module.require("service.user")
   local call_err = ""
   local ok, user_info = xpcall(user_service.get_user_info_by_id, function(err)
-    call_err = err
+    call_err = error_util.get_msg(err)
   end, uid);
   if not ok then
     ngx.ctx.response:writeln(res_util.invalid_access_token("获取用户信息失败: " .. call_err));

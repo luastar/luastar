@@ -205,6 +205,43 @@ function _M:init_multipart_args()
 	self.multipart_args = multipart_args
 end
 
+-- 获取路径参数
+function _M:get_path_arg(pattern)
+	-- 预处理路径（去除开头和结尾的斜杠，合并连续斜杠）
+	local uri_path = self.uri:gsub("^/+", ""):gsub("/+$", ""):gsub("//+", "/")
+	local uri_pattern = pattern:gsub("^/+", ""):gsub("/+$", ""):gsub("//+", "/")
+	-- 分割路径和模式为段
+	local path_segments = {}
+	for seg in uri_path:gmatch("[^/]+") do
+		table.insert(path_segments, seg)
+	end
+	local pattern_segments = {}
+	for seg in uri_pattern:gmatch("[^/]+") do
+		table.insert(pattern_segments, seg)
+	end
+	-- 检查路径和模式的段数量是否匹配
+	if #path_segments ~= #pattern_segments then
+		return nil
+	end
+	-- 提取参数
+	local args = {}
+	for i, pattern_seg in ipairs(pattern_segments) do
+		-- 提取参数值
+		local path_seg = path_segments[i]
+		-- 检查是否为参数占位符（例如 {id}）
+		local arg_name = pattern_seg:match("^{([^}]+)}$")
+		if arg_name then
+			args[arg_name] = path_seg
+		else
+			-- 静态段必须完全匹配
+			if pattern_seg ~= path_seg then
+				return nil
+			end
+		end
+	end
+	return args
+end
+
 -- 获取请求体
 function _M:get_body()
 	-- 初始化

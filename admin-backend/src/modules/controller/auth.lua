@@ -6,6 +6,7 @@ local module = require "core.module"
 local str_util = require "utils.str_util"
 local res_util = require "utils.res_util"
 local jwt_util = require "utils.jwt_util"
+local error_util = require "utils.error_util"
 
 local _M = {}
 
@@ -24,7 +25,7 @@ function _M.login(params)
   local user_service = module.require("service.user")
   local call_err = ""
   local ok, user_info = xpcall(user_service.get_user_info_by_name, function(err)
-    call_err = err
+    call_err = error_util.get_msg(err)
   end, username);
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
@@ -99,7 +100,7 @@ function _M.refresh_token(params)
   end
   -- 生成新的 token
   local access_token_payload = {
-    jti = str_util.random_str(12),
+    jti = jwt_obj.payload.jti,
     iss = "LuastarAdmin",
     sub = jwt_obj.payload.sub,
     exp = ngx.time() + jwt_config.access_expire,
@@ -107,7 +108,7 @@ function _M.refresh_token(params)
   }
   local access_token = jwt_util.sign(jwt_config.secret, access_token_payload)
   -- 保存token（可改为redis）
-  local ok, err = dict:set(access_token_payload.jti, access_token, jwt_config.access_expire)
+  local ok, err = dict:set("access:" .. access_token_payload.jti, access_token, jwt_config.access_expire)
   if not ok then
     logger.error("保存token失败: err = ", _.ifEmpty(err, ""))
     ngx.ctx.response:writeln(res_util.failure("保存token失败"))

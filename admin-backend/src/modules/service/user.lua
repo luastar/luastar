@@ -3,6 +3,7 @@
 --]===]
 local ngx = require "ngx"
 local sql_util = require "utils.sql_util"
+local error_util = require "utils.error_util"
 
 local _M = {}
 
@@ -12,7 +13,7 @@ local _M = {}
 function _M.get_user_info_by_name(username)
   -- 参数校验
   if _.isEmpty(username) then
-    error("[username]不能为空")
+    error_util.throw("[username]不能为空")
   end
   -- 从数据库获取用户信息
   local bean_factory = ls_cache.get_bean_factory();
@@ -24,10 +25,10 @@ function _M.get_user_info_by_name(username)
   local res, err, errcode, sqlstate = mysql_service:query(sql_user_query);
   if not res then
     logger.error("查询用户信息失败: err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
-    error("查询用户信息失败 : " .. err)
+    error_util.throw("查询用户信息失败 : " .. err)
   end
   if _.isEmpty(res) then
-    error("用户不存在")
+    error_util.throw("用户不存在")
   end
   return res[1]
 end
@@ -38,7 +39,7 @@ end
 function _M.get_user_info_by_id(id)
   -- 参数校验
   if _.isEmpty(id) then
-    error("[id]不能为空")
+    error_util.throw("[id]不能为空")
   end
   -- 从数据库获取用户信息
   local bean_factory = ls_cache.get_bean_factory();
@@ -50,10 +51,10 @@ function _M.get_user_info_by_id(id)
   local res, err, errcode, sqlstate = mysql_service:query(sql_user_query);
   if not res then
     logger.error("查询用户信息失败: err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
-    error("查询用户信息失败 : " .. err)
+    error_util.throw("查询用户信息失败 : " .. err)
   end
   if _.isEmpty(res) then
-    error("用户不存在")
+    error_util.throw("用户不存在")
   end
   return res[1]
 end
@@ -64,7 +65,7 @@ end
 function _M.get_user_role(uid)
   -- 参数校验
   if _.isEmpty(uid) then
-    error("[uid]不能为空")
+    error_util.throw("[uid]不能为空")
   end
   -- 从数据库获取用户角色
   local bean_factory = ls_cache.get_bean_factory();
@@ -81,7 +82,7 @@ function _M.get_user_role(uid)
   local res, err, errcode, sqlstate = mysql_service:query(sql_role_query);
   if not res then
     logger.error("查询用户角色失败: err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
-    error("查询用户角色失败 : " .. err)
+    error_util.throw("查询用户角色失败 : " .. err)
   end
   -- 返回角色编码数组
   local roles = _.mapi(res, function(v, k)

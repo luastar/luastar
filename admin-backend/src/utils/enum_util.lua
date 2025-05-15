@@ -1,27 +1,33 @@
 local _M = {}
 
 -- 级别
-local level = {
+_M.LEVEL = {
     SYSTEM = "system",
     USER = "user",
 }
-_M.level = level
 
 -- 状态
-local state = {
+_M.STATE = {
     ENABLE = "enable",
     DISABLE = "disable",
 }
-_M.state = state
+
+-- 全部
+_M.ALL = "*"
+
+-- 路由匹配模式
+_M.ROUTE_MODE = {
+    PRECISE = "p",
+    VAGUE = "v",
+}
 
 -- 配置值类型
-local config_vtype = {
+_M.CONFIG_VTYPE = {
     OBJECT = "object",
     ARRAY = "array",
     STRING = "string",
     NUMBER = "number",
     BOOLEAN = "boolean",
 }
-_M.config_vtype = config_vtype
 
 return _M

@@ -4,6 +4,7 @@
 local ngx = require "ngx"
 local file_util = require "utils.file_util"
 local str_util = require "utils.str_util"
+local error_util = require "utils.error_util"
 
 local _M = {}
 

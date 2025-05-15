@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 
-const CONFIG_BASE_URL = "/api/v1/config";
+const CONFIG_BASE_URL = "/api/admin/config";
 
 const ConfigAPI = {
   /** 系统配置分页 */
@@ -50,10 +50,12 @@ const ConfigAPI = {
     });
   },
 
-  refreshCache() {
-    return request({
-      url: `${CONFIG_BASE_URL}/refresh`,
-      method: "PUT",
+  /** 获取配置内容 */
+  getConfigContent<T>(code: string) {
+    return request<any, T>({
+      url: `${CONFIG_BASE_URL}/content`,
+      method: "get",
+      params: { code: code },
     });
   },
 };

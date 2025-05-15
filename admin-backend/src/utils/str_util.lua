@@ -9,16 +9,37 @@ _M.null = "null"
 
 -- 去除字符串前后空格
 function _M.trim(str)
-    return str:match '^()%s*$' and '' or str:match '^%s*(.*%S)'
+    -- return str:match '^()%s*$' and '' or str:match '^%s*(.*%S)'
+    return ngx.re.gsub(str, "^%s+|%s+$", "")
 end
 
 -- 字符串分隔
 function _M.split(str, sep)
+    --[===[
     local result = {}
     local regex = ("([^%s]+)"):format(sep)
     for each in str:gmatch(regex) do
         table.insert(result, each)
     end
+    return result
+    --]===]
+    local result = {}
+    if not str or str == "" then return result end
+    if not sep then sep = "%s+" end -- 默认按空白字符分割
+    -- 转义正则特殊字符
+    sep = sep:gsub("[%.%+%-%*%?%[%]%(%)%$%^%%]", "%%%1")
+    local pos = 1
+    while true do
+        local from, to = ngx.re.find(str, sep, "jo", nil, pos)
+        if not from then
+            break
+        end
+        -- 添加分隔符前的内容
+        table.insert(result, str:sub(pos, from - 1))
+        pos = to + 1
+    end
+    -- 添加最后一部分
+    table.insert(result, str:sub(pos))
     return result
 end
 
@@ -38,7 +59,7 @@ function _M.contains_ignore_case(str1, str2)
     if str1 == str2 then
         return true
     end
-    if str1 and str2 and string.find(string.upper(str1), string.upper(str2)) ~= nil then
+    if str1 and str2 and ngx.re.find(str1, str2, "joi") ~= nil then
         return true
     end
     return false
@@ -49,7 +70,7 @@ function _M.start_with(str, substr)
     if str == nil or substr == nil then
         return false
     end
-    if string.find(str, substr) ~= 1 then
+    if ngx.re.find(str, substr, "joi") ~= 1 then
         return false
     else
         return true
@@ -61,12 +82,7 @@ function _M.end_with(str, substr)
     if str == nil or substr == nil then
         return false
     end
-    local str_tmp, substr_tmp = string.reverse(str), string.reverse(substr)
-    if string.find(str_tmp, substr_tmp) ~= 1 then
-        return false
-    else
-        return true
-    end
+    return _M.start_with(string.reverse(str), string.reverse(substr))
 end
 
 -- 字符串匹配
@@ -90,7 +106,8 @@ function _M.path_and_method_is_macth(path_req, method_req, path_config, method_c
     local path_config = string.gsub(path_config, "\\/", "/")
     if mode == "v" then
         -- 模糊匹配
-        if method_config == "*" or _M.contains_ignore_case(method_config, method_req) then
+        if _M.contains_ignore_case(method_config, "*")
+            or _M.contains_ignore_case(method_config, method_req) then
             local is, ie = string.find(path_req, path_config)
             if is ~= nil then
                 return true
@@ -98,7 +115,8 @@ function _M.path_and_method_is_macth(path_req, method_req, path_config, method_c
         end
     else
         -- 精确匹配
-        if method_config == "*" or _M.contains_ignore_case(method_config, method_req) then
+        if _M.contains_ignore_case(method_config, "*")
+            or _M.contains_ignore_case(method_config, method_req) then
             if path_req == path_config or path_req == (path_config .. "/") then
                 return true
             end
@@ -135,23 +153,12 @@ end
 
 -- 链接编码
 function _M.encode_url(str)
-    if (str) then
-        str = string.gsub(str, "\n", "\r\n")
-        str = string.gsub(str, "([^%w %-%_%.%~])",
-            --str = string.gsub (str, "([^%w %-%_%.%!%~%*%'%(%,%)])",
-            function(c) return string.format("%%%02X", string.byte(c)) end)
-        str = string.gsub(str, " ", "+")
-    end
-    return str
+    return ngx.escape_uri(str)
 end
 
 -- 链接解码
 function _M.decode_url(str)
-    str = string.gsub(str, "+", " ")
-    str = string.gsub(str, "%%(%x%x)",
-        function(h) return string.char(tonumber(h, 16)) end)
-    str = string.gsub(str, "\r\n", "\n")
-    return str
+    return ngx.unescape_uri(str)
 end
 
 -- base64编码

@@ -42,7 +42,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       port: +env.VITE_APP_PORT,
       open: true,
       proxy: {
-        // 代理 /dev-api 的请求
+        // 代理请求
         [env.VITE_APP_BASE_API]: {
           changeOrigin: true,
           // 代理目标地址：https://api.youlai.tech

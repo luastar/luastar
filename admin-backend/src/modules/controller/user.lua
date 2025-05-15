@@ -4,6 +4,7 @@
 local ngx = require "ngx"
 local module = require "core.module"
 local res_util = require "utils.res_util"
+local error_util = require "utils.error_util"
 
 local _M = {}
 
@@ -18,7 +19,7 @@ function _M.get_user_info(params)
   local user_service = module.require("service.user")
   local call_err = ""
   local ok, user_role = xpcall(user_service.get_user_role, function(err)
-    call_err = err
+    call_err = error_util.get_msg(err)
   end, user_info.id);
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
@@ -30,7 +31,7 @@ function _M.get_user_info(params)
     nickname = user_info.nickname,
     avatar = user_info.avatar,
     roles = user_role,
-    perms = {}
+    perms = { "*:*:*" }
   }
   ngx.ctx.response:writeln(res_util.success(data));
 end

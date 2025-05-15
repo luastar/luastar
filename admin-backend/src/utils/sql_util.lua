@@ -31,7 +31,7 @@ local _M = {}
 替换语句中的变量
 sql 带有#{}或${}变量的语句
 data 变量值对象
-nv 变量值为空的时候是否处理为 null
+nv 变量值为空的时候是否处理为""，用于动态 set 和 where 条件
 --]]
 local function fmt_sql_value(sql, data, nv)
 	local var, var1, var2 = nil, {}, {}
@@ -86,11 +86,11 @@ local function fmt_sql_set(set, data)
 	local s, st = nil, {}
 	for i, key in ipairs(set) do
 		s = fmt_sql_value(key, data, true)
-		if s then
+		if not _.isEmpty(s) then
 			table.insert(st, s)
 		end
 	end
-	return " set " .. table.concat(st, ",")
+	return " set " .. table.concat(st, ", ")
 end
 
 local function fmt_sql_where(where, data)
@@ -103,14 +103,14 @@ local function fmt_sql_where(where, data)
 	local w, wt = nil, {}
 	for i, key in ipairs(where) do
 		w = fmt_sql_value(key, data, true)
-		if w and w ~= "" then
+		if not _.isEmpty(w) then
 			table.insert(wt, w)
 		end
 	end
 	if _.size(wt) == 0 then
 		return " "
 	end
-	local rs = str_util.trim(table.concat(wt, " \n"))
+	local rs = str_util.trim(table.concat(wt, " "))
 	if str_util.start_with(rs, "and") then
 		rs = string.sub(rs, 4, string.len(rs))
 	elseif str_util.start_with(rs, "or") then
@@ -123,12 +123,12 @@ local function fmt_sql_limit(limit_obj, data)
 	if not limit_obj then
 		return " "
 	end
-	local limit = tonumber(fmt_sql_value(limit_obj["limit"], data, false))
-	local offset = tonumber(fmt_sql_value(limit_obj["offset"], data, false))
-	if limit == nil or offset == nil then
+	local limit = fmt_sql_value(limit_obj["limit"], data, false)
+	local offset = fmt_sql_value(limit_obj["offset"], data, false)
+	if _.isEmpty(limit) or _.isEmpty(offset) then
 		return " "
 	end
-	return string.format(" limit %d offset %d", limit, offset)
+	return string.format(" limit %d offset %d", tonumber(limit), tonumber(offset))
 end
 
 function _M.fmt_sql_table(sql_table, data)
@@ -172,7 +172,7 @@ function _M.fmt_sql(sql, data)
 		return nil
 	end
 	-- set var value
-	return fmt_sql_value(sql, data, true)
+	return fmt_sql_value(sql, data, false)
 end
 
 return _M
