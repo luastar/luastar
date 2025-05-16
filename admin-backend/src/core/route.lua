@@ -19,26 +19,26 @@ routes = {
 }
 --]===]
 function _M:match_route(path, method)
-    if _.isEmpty(path) or _.isEmpty(method) then
-        logger.error("匹配路由失败：请求路径或方法名为空！")
-        return nil
-    end
-    -- 从字典中获取路由信息
-    local dict = ngx.shared.dict_ls_routes;
-    local routes_str = dict:get("routes");
-    if not routes_str then
-        logger.error("匹配路由失败：路由信息为空！")
-        return nil
-    end
-    local routes_table = cjson.decode(routes_str);
-    -- 路由匹配
-    for k, v in ipairs(routes_table) do
-        if str_util.path_and_method_is_macth(path, method, v["path"], v["method"], v["mode"]) then
-            return v
-        end
-    end
-    logger.info("匹配路由失败：找不到匹配的路由[", path, "]")
+  if _.isEmpty(path) or _.isEmpty(method) then
+    logger.error("匹配路由失败：请求路径或方法名为空！")
     return nil
+  end
+  -- 从字典中获取路由信息
+  local dict = ngx.shared.dict_ls_routes
+  local routes_str = dict:get("routes")
+  if not routes_str then
+    logger.error("匹配路由失败：路由信息为空！")
+    return nil
+  end
+  local routes_table = cjson.decode(routes_str)
+  -- 路由匹配
+  for k, v in ipairs(routes_table) do
+    if str_util.path_and_method_is_macth(path, method, v["path"], v["method"], v["mode"]) then
+      return v
+    end
+  end
+  logger.info("匹配路由失败：找不到匹配的路由[", path, "]")
+  return nil
 end
 
 return _M

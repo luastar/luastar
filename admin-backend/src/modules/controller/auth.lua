@@ -15,8 +15,8 @@ local _M = {}
 --]]
 function _M.login(params)
   -- 参数校验
-  local username = ngx.ctx.request:get_arg("username");
-  local password = ngx.ctx.request:get_arg("password");
+  local username = ngx.ctx.request:get_arg("username")
+  local password = ngx.ctx.request:get_arg("password")
   if _.isEmpty(username) or _.isEmpty(password) then
     ngx.ctx.response:writeln(res_util.invalid_argument("用户名或密码不能为空"))
     return
@@ -26,7 +26,7 @@ function _M.login(params)
   local call_err = ""
   local ok, user_info = xpcall(user_service.get_user_info_by_name, function(err)
     call_err = error_util.get_msg(err)
-  end, username);
+  end, username)
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -79,23 +79,23 @@ end
 --]]
 function _M.refresh_token(params)
   -- 参数校验
-  local refresh_token = ngx.ctx.request:get_arg("refreshToken");
+  local refresh_token = ngx.ctx.request:get_arg("refreshToken")
   if _.isEmpty(refresh_token) then
-    ngx.ctx.response:writeln(res_util.invalid_argument("refreshToken不能为空"));
+    ngx.ctx.response:writeln(res_util.invalid_argument("refreshToken不能为空"))
     return
   end
   -- 验证token
-  local jwt_config = ls_cache.get_config("jwt_config");
-  local jwt_obj = jwt_util.verify(jwt_config.secret, refresh_token);
+  local jwt_config = ls_cache.get_config("jwt_config")
+  local jwt_obj = jwt_util.verify(jwt_config.secret, refresh_token)
   if not jwt_obj.verified then
-    ngx.ctx.response:writeln(res_util.invalid_refresh_token("refreshToken无效"));
+    ngx.ctx.response:writeln(res_util.invalid_refresh_token("refreshToken无效"))
     return
   end
   -- 从字典里取 refreshToken
   local dict = ngx.shared.dict_ls_tokens
   local dict_refresh_token = dict:get("refresh:" .. jwt_obj.payload.jti)
   if not dict_refresh_token then
-    ngx.ctx.response:writeln(res_util.invalid_refresh_token("refreshToken已过期"));
+    ngx.ctx.response:writeln(res_util.invalid_refresh_token("refreshToken已过期"))
     return
   end
   -- 生成新的 token
@@ -120,7 +120,7 @@ function _M.refresh_token(params)
     accessToken = access_token,
     refreshToken = refresh_token,
     expiresIn = jwt_config.access_expire
-  };
+  }
   ngx.ctx.response:writeln(res_util.success(data))
 end
 

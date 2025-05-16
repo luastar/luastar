@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 
-const ROUTE_BASE_URL = "/api/admin/route";
+const BASE_URL = "/api/admin/route";
 
 const RouteAPI = {
   /**
@@ -10,7 +10,7 @@ const RouteAPI = {
    */
   getPage(queryParams: RoutePageQuery) {
     return request<any, PageResult<RoutePageVO[]>>({
-      url: `${ROUTE_BASE_URL}/page`,
+      url: `${BASE_URL}/page`,
       method: "post",
       data: queryParams,
     });
@@ -24,9 +24,19 @@ const RouteAPI = {
    */
   getFormData(id: string) {
     return request<any, RouteForm>({
-      url: `${ROUTE_BASE_URL}/form`,
+      url: `${BASE_URL}/form`,
       method: "get",
       params: { id: id },
+    });
+  },
+
+  /**
+   * 获取最大排序值
+   */
+  getMaxRank() {
+    return request<any, number>({
+      url: `${BASE_URL}/get-max-rank`,
+      method: "get",
     });
   },
 
@@ -37,7 +47,7 @@ const RouteAPI = {
    */
   create(data: RouteForm) {
     return request({
-      url: `${ROUTE_BASE_URL}/create`,
+      url: `${BASE_URL}/create`,
       method: "post",
       data: data,
     });
@@ -52,7 +62,7 @@ const RouteAPI = {
   update(id: string, data: RouteForm) {
     data.id = id;
     return request({
-      url: `${ROUTE_BASE_URL}/update`,
+      url: `${BASE_URL}/update`,
       method: "put",
       data: data,
     });
@@ -65,7 +75,7 @@ const RouteAPI = {
    */
   deleteByIds(ids: string[]) {
     return request({
-      url: `${ROUTE_BASE_URL}/delete`,
+      url: `${BASE_URL}/delete`,
       method: "delete",
       data: { ids: ids },
     });

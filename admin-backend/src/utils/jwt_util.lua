@@ -18,18 +18,18 @@ local _M = {}
 
 -- 签名
 function _M.sign(secret, payload)
-    local jwt_token = jwt:sign(secret,
-        {
-            header = { typ = "JWT", alg = "HS256" },
-            payload = payload
-        }
-    )
-    return jwt_token
+  local jwt_token = jwt:sign(secret,
+    {
+      header = { typ = "JWT", alg = "HS256" },
+      payload = payload
+    }
+  )
+  return jwt_token
 end
 
 -- 验证
 function _M.verify(secret, token)
-    return jwt:verify(secret, token)
+  return jwt:verify(secret, token)
 end
 
 return _M

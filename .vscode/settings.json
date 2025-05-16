@@ -1,50 +1,28 @@
 {
-  "editor.formatOnType": true,
   "editor.formatOnSave": true,
-  "editor.formatOnPaste": true,
-  "editor.tabSize": 2,
-  "editor.guides.bracketPairs": "active",
-  "editor.suggestSelection": "first",
-  "editor.acceptSuggestionOnCommitCharacter": false,
-  "editor.quickSuggestions": {
-    "other": true,
-    "comments": true,
-    "strings": true
-  },
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
+    "source.fixAll": "explicit",
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.stylelint": "explicit"
   },
-  "workbench.startupEditor": "newUntitledFile",
-  "git.confirmSync": false,
+  "[lua]": {
+    "editor.defaultFormatter": "sumneko.lua"
+  },
   "Lua.diagnostics.disable": ["need-check-nil"],
+  "Lua.format.defaultConfig": {
+    "indent_style": "space",
+    "indent_size": "2",
+    "quote_style": "double",
+    "max_line_length": "180",
+    "end_statement_with_semicolon": "never"
+  },
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "files.autoSave": "afterDelay",
-  "files.associations": {
-    "editor.snippetSuggestions": "top"
-  },
-  "css.lint.propertyIgnoredDueToDisplay": "ignore",
   "[css]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "i18n-ally.localesPaths": "locales",
-  "i18n-ally.keystyle": "nested",
-  "i18n-ally.sortKeys": true,
-  "i18n-ally.namespace": true,
-  "i18n-ally.enabledParsers": ["yaml", "js"],
-  "i18n-ally.sourceLanguage": "en",
-  "i18n-ally.displayLanguage": "zh-CN",
-  "i18n-ally.enabledFrameworks": ["vue"],
-  "iconify.excludes": ["el"],
-  "vscodeCustomCodeColor.highlightValue": [
-    "v-loading",
-    "v-auth",
-    "v-copy",
-    "v-longpress",
-    "v-optimize",
-    "v-perms",
-    "v-ripple"
-  ],
-  "vscodeCustomCodeColor.highlightValueColor": "#b392f0"
+  "css.lint.propertyIgnoredDueToDisplay": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "iconify.excludes": ["el"]
 }

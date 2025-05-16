@@ -1,5 +1,5 @@
 --[[
-    在 ngx_lua 模块 init_by_lua_file 阶段执行;
+    在 ngx_lua 模块 init_by_lua_file 阶段执行
 --]]
 
 -- 加载常用库

@@ -36,13 +36,13 @@ function _M:match_interceptor(path, method)
     return nil
   end
   -- 从字典中获取拦截器信息
-  local dict = ngx.shared.dict_ls_interceptors;
-  local interceptors_str = dict:get("interceptors");
+  local dict = ngx.shared.dict_ls_interceptors
+  local interceptors_str = dict:get("interceptors")
   if not interceptors_str then
     logger.error("匹配拦截器失败：拦截器信息为空！")
     return nil
   end
-  local interceptors_table = cjson.decode(interceptors_str);
+  local interceptors_table = cjson.decode(interceptors_str)
   -- 拦截器匹配
   local matched_ary = {}
   for k1, interceptor in ipairs(interceptors_table) do

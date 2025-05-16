@@ -360,6 +360,19 @@ async function handleOpenDialog(id?: string) {
     });
   } else {
     dialog.title = "新增路由";
+    // 设置默认值
+    formData.level = "user";
+    formData.method = "*";
+    formData.mode = "p";
+    formData.state = "enable";
+    // 获取最大排序值并设置默认值
+    RouteAPI.getMaxRank()
+      .then((maxRank) => {
+        formData.rank = (maxRank || 0) + 1;
+      })
+      .catch(() => {
+        formData.rank = 1; // 默认值
+      });
   }
 }
 
@@ -368,13 +381,7 @@ function handleCloseDialog() {
   dialog.visible = false;
   editFormRef.value.resetFields();
   editFormRef.value.clearValidate();
-
   formData.id = undefined;
-  formData.level = "user";
-  formData.method = "*";
-  formData.mode = "p";
-  formData.state = "enable";
-  formData.rank = 0;
 }
 
 // 提交路由表单（防抖）

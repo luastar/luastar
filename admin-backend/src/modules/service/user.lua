@@ -16,13 +16,13 @@ function _M.get_user_info_by_name(username)
     error_util.throw("[username]不能为空")
   end
   -- 从数据库获取用户信息
-  local bean_factory = ls_cache.get_bean_factory();
-  local mysql_service = bean_factory:get_bean("mysql_service");
+  local bean_factory = ls_cache.get_bean_factory()
+  local mysql_service = bean_factory:get_bean("mysql_service")
   local sql_user_query = sql_util.fmt_sql(
     [[ select * from ls_user where username = #{username} and state = 'enable' limit 1; ]],
     { username = username }
   )
-  local res, err, errcode, sqlstate = mysql_service:query(sql_user_query);
+  local res, err, errcode, sqlstate = mysql_service:query(sql_user_query)
   if not res then
     logger.error("查询用户信息失败: err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
     error_util.throw("查询用户信息失败 : " .. err)
@@ -42,13 +42,13 @@ function _M.get_user_info_by_id(id)
     error_util.throw("[id]不能为空")
   end
   -- 从数据库获取用户信息
-  local bean_factory = ls_cache.get_bean_factory();
-  local mysql_service = bean_factory:get_bean("mysql_service");
+  local bean_factory = ls_cache.get_bean_factory()
+  local mysql_service = bean_factory:get_bean("mysql_service")
   local sql_user_query = sql_util.fmt_sql(
     [[ select * from ls_user where id = #{id}; ]],
     { id = id }
   )
-  local res, err, errcode, sqlstate = mysql_service:query(sql_user_query);
+  local res, err, errcode, sqlstate = mysql_service:query(sql_user_query)
   if not res then
     logger.error("查询用户信息失败: err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
     error_util.throw("查询用户信息失败 : " .. err)
@@ -68,8 +68,8 @@ function _M.get_user_role(uid)
     error_util.throw("[uid]不能为空")
   end
   -- 从数据库获取用户角色
-  local bean_factory = ls_cache.get_bean_factory();
-  local mysql_service = bean_factory:get_bean("mysql_service");
+  local bean_factory = ls_cache.get_bean_factory()
+  local mysql_service = bean_factory:get_bean("mysql_service")
   local sql_role_query = sql_util.fmt_sql(
     [[
       select t1.id, t1.code
@@ -79,7 +79,7 @@ function _M.get_user_role(uid)
     ]],
     { uid = uid }
   )
-  local res, err, errcode, sqlstate = mysql_service:query(sql_role_query);
+  local res, err, errcode, sqlstate = mysql_service:query(sql_role_query)
   if not res then
     logger.error("查询用户角色失败: err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
     error_util.throw("查询用户角色失败 : " .. err)

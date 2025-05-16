@@ -20,7 +20,7 @@ function _M.get_user_info(params)
   local call_err = ""
   local ok, user_role = xpcall(user_service.get_user_role, function(err)
     call_err = error_util.get_msg(err)
-  end, user_info.id);
+  end, user_info.id)
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -33,7 +33,7 @@ function _M.get_user_info(params)
     roles = user_role,
     perms = { "*:*:*" }
   }
-  ngx.ctx.response:writeln(res_util.success(data));
+  ngx.ctx.response:writeln(res_util.success(data))
 end
 
 function _M.get_user_profile(params)
@@ -53,7 +53,7 @@ function _M.get_user_profile(params)
     email = user_info.email,
     createTime = user_info.create_at
   }
-  ngx.ctx.response:writeln(res_util.success(data));
+  ngx.ctx.response:writeln(res_util.success(data))
 end
 
 return _M

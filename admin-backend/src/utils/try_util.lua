@@ -27,42 +27,42 @@ try_util.try(
 local _M = {}
 
 function _M.try(try_block)
-    -- 执行 try_block 函数
-    local status, err = true, nil
-    if type(try_block) == "function" then
-        status, err = xpcall(try_block, debug.traceback)
-    end
+  -- 执行 try_block 函数
+  local status, err = true, nil
+  if type(try_block) == "function" then
+    status, err = xpcall(try_block, debug.traceback)
+  end
 
-    -- 定义 finally 函数
-    local finally = function(finally_block, catch_block_declared)
-        if type(finally_block) == "function" then
-            finally_block()
-        end
-        if not status and not catch_block_declared then
-            error(err)
-        end
+  -- 定义 finally 函数
+  local finally = function(finally_block, catch_block_declared)
+    if type(finally_block) == "function" then
+      finally_block()
     end
-
-    -- 定义 catch 函数
-    local catch = function(catch_block)
-        local catch_block_declared = type(catch_block) == "function";
-        if not status and catch_block_declared then
-            local ex = err or "unknown error occurred"
-            catch_block(ex)
-        end
-        return {
-            finally = function(finally_block)
-                finally(finally_block, catch_block_declared)
-            end
-        }
+    if not status and not catch_block_declared then
+      error(err)
     end
+  end
 
+  -- 定义 catch 函数
+  local catch = function(catch_block)
+    local catch_block_declared = type(catch_block) == "function"
+    if not status and catch_block_declared then
+      local ex = err or "unknown error occurred"
+      catch_block(ex)
+    end
     return {
-        catch = catch,
-        finally = function(finally_block)
-            finally(finally_block, false)
-        end
+      finally = function(finally_block)
+        finally(finally_block, catch_block_declared)
+      end
     }
+  end
+
+  return {
+    catch = catch,
+    finally = function(finally_block)
+      finally(finally_block, false)
+    end
+  }
 end
 
 return _M
