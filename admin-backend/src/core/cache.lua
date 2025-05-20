@@ -61,17 +61,17 @@ function _M.get_text(key)
   return i18n[key] or ""
 end
 
--- 获取 bean 工厂
-function _M.get_bean_factory()
+-- 获取 bean 实例
+function _M.get_bean(name)
   local bean_factory = get(CACHE_KEY_BEAN_FACTORY)
   if bean_factory then
-    return bean_factory
+    return bean_factory:get_bean(name)
   end
   local bean_file = get(CACHE_KEY_LUASTAR_PATH) .. "/admin-backend/config/bean.lua"
   logger.info("init luastar bean : ", bean_file)
   bean_factory = require("core.bean_factory"):new(bean_file)
   set(CACHE_KEY_BEAN_FACTORY, bean_factory)
-  return bean_factory
+  return bean_factory:get_bean(name)
 end
 
 return _M

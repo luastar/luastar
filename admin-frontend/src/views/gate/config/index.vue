@@ -3,11 +3,11 @@
   <div class="app-container">
     <!-- 搜索区域 -->
     <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="auto">
+      <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="80px">
         <el-form-item label="级别" prop="level">
           <el-select v-model="queryParams.level" placeholder="全部" clearable style="width: 100px">
             <el-option
-              v-for="item in levelOptions"
+              v-for="item in LevelOptions"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -16,14 +16,7 @@
         </el-form-item>
 
         <el-form-item label="类型" prop="type">
-          <el-select v-model="queryParams.type" placeholder="全部" clearable style="width: 100px">
-            <el-option
-              v-for="item in typeOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            ></el-option>
-          </el-select>
+          <el-input v-model="queryParams.type" placeholder="请输入类型" />
         </el-form-item>
 
         <el-form-item label="编码" prop="code">
@@ -32,13 +25,6 @@
 
         <el-form-item label="名称" prop="name">
           <el-input v-model="queryParams.name" placeholder="请输入名称" />
-        </el-form-item>
-
-        <el-form-item label="状态" prop="state">
-          <el-select v-model="queryParams.state" placeholder="全部" clearable style="width: 100px">
-            <el-option label="启用" :value="1" />
-            <el-option label="禁用" :value="0" />
-          </el-select>
         </el-form-item>
 
         <el-form-item class="search-buttons">
@@ -74,16 +60,8 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="50" align="center" />
-        <el-table-column label="级别" prop="level" width="100">
-          <template #default="scope">
-            {{ formatLevel(scope.row.level) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="类型" prop="type" width="100">
-          <template #default="scope">
-            {{ formatType(scope.row.type) }}
-          </template>
-        </el-table-column>
+        <el-table-column label="级别" prop="level" width="100" />
+        <el-table-column label="类型" prop="type" width="100" />
         <el-table-column label="编码" prop="code" width="200" />
         <el-table-column label="名称" prop="name" width="200" />
         <el-table-column label="值类型" prop="vtype" width="100">
@@ -100,8 +78,8 @@
         </el-table-column>
         <el-table-column label="状态" prop="state" width="80">
           <template #default="scope">
-            <el-tag :type="scope.row.state === 1 ? 'success' : 'danger'">
-              {{ scope.row.state === 1 ? "启用" : "禁用" }}
+            <el-tag :type="scope.row.state === 'enable' ? 'success' : 'danger'">
+              {{ scope.row.state === "enable" ? "启用" : "停用" }}
             </el-tag>
           </template>
         </el-table-column>
@@ -151,7 +129,7 @@
         <el-form-item label="级别" prop="level">
           <el-select v-model="formData.level" placeholder="请选择级别" clearable>
             <el-option
-              v-for="item in levelOptions"
+              v-for="item in LevelOptions"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -160,14 +138,7 @@
         </el-form-item>
 
         <el-form-item label="类型" prop="type">
-          <el-select v-model="formData.type" placeholder="请选择类型" clearable>
-            <el-option
-              v-for="item in typeOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            ></el-option>
-          </el-select>
+          <el-input v-model="formData.type" placeholder="请输入类型" />
         </el-form-item>
 
         <el-form-item label="编码" prop="code">
@@ -196,7 +167,6 @@
             v-model="formData.vcontent"
             placeholder="请输入字符串值"
           />
-
           <!-- 布尔类型 -->
           <el-switch
             v-else-if="formData.vtype === ConfigVType.BOOLEAN"
@@ -206,7 +176,6 @@
             :active-value="String(true)"
             :inactive-value="String(false)"
           />
-
           <!-- 数值类型 -->
           <el-input-number
             v-else-if="formData.vtype === ConfigVType.NUMBER"
@@ -215,13 +184,12 @@
             :controls="true"
             placeholder="请输入数值"
           />
-
           <!-- 对象/数组类型 -->
           <el-input
             v-else
             v-model="formData.vcontent"
             type="textarea"
-            :rows="4"
+            :rows="8"
             placeholder="请输入JSON格式的对象或数组"
           />
         </el-form-item>
@@ -231,9 +199,9 @@
             v-model="formData.state"
             inline-prompt
             active-text="启用"
-            inactive-text="禁用"
-            :active-value="1"
-            :inactive-value="0"
+            inactive-text="停用"
+            :active-value="'enable'"
+            :inactive-value="'disable'"
           />
         </el-form-item>
 
@@ -254,7 +222,7 @@
 
 <script setup lang="ts">
 import { useAppStore } from "@/store/modules/app.store";
-import { DeviceEnum } from "@/enums/settings/device.enum";
+import { DeviceEnum, LevelOptions } from "@/enums";
 import ConfigAPI, {
   ConfigVType,
   ConfigForm,
@@ -288,15 +256,16 @@ const dialog = reactive({
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600px" : "90%"));
 
 const formData = reactive<ConfigForm>({
-  level: "system",
-  type: "system",
+  level: "user",
   code: "",
   name: "",
   vtype: ConfigVType.STRING,
   vcontent: "",
-  state: 1,
-  rank: 0,
+  state: "enable",
 });
+
+// 初始化标志位
+const isInitializing = ref(false);
 
 // 数值类型的计算属性
 const numberValue = computed({
@@ -318,43 +287,19 @@ const rules = reactive({
   name: [{ required: true, message: "名称不能为空", trigger: "blur" }],
   vtype: [{ required: true, message: "值类型不能为空", trigger: "blur" }],
   vcontent: [{ required: true, message: "值内容不能为空", trigger: "blur" }],
-  state: [{ required: true, message: "状态不能为空", trigger: "blur" }],
 });
 
 // 选中的配置ID
 const selectIds = ref<string[]>([]);
-// 级别下拉数据源
-const levelOptions = [
-  { label: "系统级", value: "system" },
-  { label: "应用级", value: "app" },
-  { label: "用户级", value: "user" },
-];
-// 类型下拉数据源
-const typeOptions = [
-  { label: "系统配置", value: "system" },
-  { label: "业务配置", value: "business" },
-  { label: "其他配置", value: "other" },
-];
+
 // 值类型下拉数据源
-const vtypeOptions = [
+const vtypeOptions: OptionType[] = [
   { label: "字符串", value: ConfigVType.STRING },
   { label: "数字", value: ConfigVType.NUMBER },
   { label: "布尔值", value: ConfigVType.BOOLEAN },
   { label: "对象", value: ConfigVType.OBJECT },
   { label: "数组", value: ConfigVType.ARRAY },
 ];
-
-// 格式化级别显示
-const formatLevel = (level: string) => {
-  const item = levelOptions.find((item) => item.value === level);
-  return item ? item.label : level;
-};
-
-// 格式化类型显示
-const formatType = (type: string) => {
-  const item = typeOptions.find((item) => item.value === type);
-  return item ? item.label : type;
-};
 
 // 查询
 async function handleQuery() {
@@ -374,11 +319,6 @@ async function handleQuery() {
 function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryParams.pageNum = 1;
-  queryParams.level = undefined;
-  queryParams.type = undefined;
-  queryParams.code = undefined;
-  queryParams.name = undefined;
-  queryParams.state = undefined;
   handleQuery();
 }
 
@@ -394,14 +334,27 @@ function handleSelectionChange(selection: any[]) {
  */
 async function handleOpenDialog(id?: string) {
   dialog.visible = true;
+  isInitializing.value = true;
   if (id) {
     dialog.title = "修改配置";
-    ConfigAPI.getFormData(id).then((data) => {
+    await ConfigAPI.getFormData(id).then((data) => {
       Object.assign(formData, { ...data });
     });
   } else {
     dialog.title = "新增配置";
+    // 设置默认值
+    formData.level = "user";
+    formData.vtype = ConfigVType.STRING;
+    formData.state = "enable";
+    await ConfigAPI.getMaxRank()
+      .then((maxRank) => {
+        formData.rank = (maxRank || 0) + 1;
+      })
+      .catch(() => {
+        formData.rank = 1; // 默认值
+      });
   }
+  isInitializing.value = false;
 }
 
 // 关闭弹窗
@@ -409,20 +362,15 @@ function handleCloseDialog() {
   dialog.visible = false;
   editFormRef.value.resetFields();
   editFormRef.value.clearValidate();
-
   formData.id = undefined;
-  formData.level = "system";
-  formData.type = "system";
-  formData.vtype = ConfigVType.STRING;
-  formData.state = 1;
-  formData.rank = 0;
 }
 
 // 监听值类型变化
 watch(
   () => formData.vtype,
   (newType, oldType) => {
-    if (newType !== oldType) {
+    if (newType !== oldType && !isInitializing.value) {
+      // 只在非初始化阶段设置默认值
       // 根据新类型设置默认值
       switch (newType) {
         case ConfigVType.STRING:
@@ -474,13 +422,13 @@ const validateValueContent = () => {
         }
         // 格式化JSON字符串
         formData.vcontent = JSON.stringify(parsed, null, 2);
-      } catch (e) {
+      } catch (_error) {
         ElMessage.error("值内容必须是有效的JSON格式");
         return false;
       }
     }
     return true;
-  } catch (error) {
+  } catch (_error) {
     ElMessage.error("值内容格式验证失败");
     return false;
   }

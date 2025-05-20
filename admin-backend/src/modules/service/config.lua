@@ -31,8 +31,7 @@ function _M.get_config_count_and_list(params)
     params["pageSize"] = 10
   end
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询条件
   local sql_query_where = {
     [[ `level` = #{level} ]],
@@ -95,8 +94,7 @@ function _M.get_config_by_id(id)
     error_util.throw("参数[id]不能为空！")
   end
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询语句
   local sql_query = sql_util.fmt_sql(
     [[ select * from ls_config where `id` = #{id}; ]],
@@ -119,8 +117,7 @@ function _M.get_config_by_code(code)
     error_util.throw("参数[code]不能为空！")
   end
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询语句
   local sql_query = sql_util.fmt_sql(
     [[ select * from ls_config where `code` = #{code}; ]],
@@ -139,8 +136,7 @@ end
 --]]
 function _M.get_max_rank()
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询语句
   local sql_query = [[ select max(`rank`) as max_rank from ls_config; ]]
   local res, err, errcode, sqlstate = mysql_service:query(sql_query)
@@ -188,8 +184,7 @@ function _M.create_config(user_info, config_info)
   config_info["update_by"] = user_info["username"]
   config_info["update_at"] = date_util.get_time()
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询语句
   local sql_query = sql_util.fmt_sql(
     [[
@@ -251,8 +246,7 @@ function _M.update_config(user_info, config_info)
   config_info["update_by"] = user_info["username"]
   config_info["update_at"] = date_util.get_time()
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询语句
   local sql_query = sql_util.fmt_sql_table({
     sql = [[ update ls_config @{set} @{where}; ]],
@@ -289,8 +283,7 @@ function _M.delete_config(user_info, ids)
     error_util.throw("参数[ids]不能为空！")
   end
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询语句
   local ids_table = {}
   for i, v in ipairs(ids) do

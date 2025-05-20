@@ -100,36 +100,6 @@ export interface RoutePageQuery extends PageQuery {
   path?: string;
 }
 
-/** 路由分页对象 */
-export interface RoutePageVO {
-  /** ID */
-  id: string;
-  /** 级别 */
-  level?: string;
-  /** 类型 */
-  type?: string;
-  /** 编码 */
-  code?: string;
-  /** 名称 */
-  name?: string;
-  /** 路径 */
-  path?: string;
-  /** 请求方法 */
-  method?: string;
-  /** 匹配模式 */
-  mode?: string;
-  /** 代码模块 */
-  mcode?: string;
-  /** 代码函数 */
-  mfunc?: string;
-  /** 参数 */
-  params?: string;
-  /** 状态 */
-  state?: string;
-  /** 排序 */
-  rank?: number;
-}
-
 /** 路由表单类型 */
 export interface RouteForm {
   /** ID */
@@ -158,4 +128,16 @@ export interface RouteForm {
   state: string;
   /** 排序 */
   rank?: number;
+}
+
+/** 路由分页对象 */
+export interface RoutePageVO extends RouteForm {
+  /** 创建人 */
+  createBy: string;
+  /** 创建时间 */
+  createAt: string;
+  /** 更新人 */
+  updateBy: string;
+  /** 更新时间 */
+  updateAt: string;
 }

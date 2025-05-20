@@ -5,6 +5,8 @@
     "source.fixAll.eslint": "explicit",
     "source.fixAll.stylelint": "explicit"
   },
+  "editor.tabSize": 2,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[lua]": {
     "editor.defaultFormatter": "sumneko.lua"
   },

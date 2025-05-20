@@ -59,6 +59,12 @@ export const constantRoutes: RouteRecordRaw[] = [
         meta: { title: "个人中心", icon: "user", hidden: true },
       },
       {
+        path: "config",
+        name: "Config",
+        component: () => import("@/views/gate/config/index.vue"),
+        meta: { title: "配置管理", icon: "el-icon-Setting" },
+      },
+      {
         path: "route",
         name: "Route",
         component: () => import("@/views/gate/route/index.vue"),
@@ -75,12 +81,6 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "Module",
         component: () => import("@/views/gate/module/index.vue"),
         meta: { title: "代码管理", icon: "code" },
-      },
-      {
-        path: "config",
-        name: "Config",
-        component: () => import("@/views/gate/config/index.vue"),
-        meta: { title: "配置管理", icon: "el-icon-Setting" },
       },
       {
         path: "user",

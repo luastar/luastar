@@ -28,11 +28,7 @@ function _M.get_config_list()
     return
   end
   -- 返回结果
-  local data = {
-    total = count,
-    list = list
-  }
-  ngx.ctx.response:writeln(res_util.success(data))
+  ngx.ctx.response:writeln(res_util.success({ total = count, list = list }))
 end
 
 --[[
@@ -51,8 +47,28 @@ function _M.get_config_info()
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
   end
+  -- 转换数据类型
+  config_info["rank"] = tonumber(config_info["rank"])
   -- 返回结果
   ngx.ctx.response:writeln(res_util.success(config_info))
+end
+
+--[[
+  获取最大排序值
+--]]
+function _M.get_max_rank()
+  -- 从数据库获取最大排序值
+  local config_service = module.require("service.config")
+  local call_err = ""
+  local ok, max_rank = xpcall(config_service.get_max_rank, function(err)
+    call_err = error_util.get_msg(err)
+  end)
+  if not ok then
+    ngx.ctx.response:writeln(res_util.failure(call_err))
+    return
+  end
+  -- 返回结果
+  ngx.ctx.response:writeln(res_util.success(max_rank))
 end
 
 --[[
@@ -60,19 +76,20 @@ end
 --]]
 function _M.create_config()
   -- 获取请求参数
-  local params = ngx.ctx.request:get_body_json()
+  local user_info = ngx.ctx.user_info
+  local config_info = ngx.ctx.request:get_body_json()
   -- 创建配置
   local config_service = module.require("service.config")
   local call_err = ""
-  local ok, id = xpcall(config_service.create_config, function(err)
+  local ok = xpcall(config_service.create_config, function(err)
     call_err = error_util.get_msg(err)
-  end, params)
+  end, user_info, config_info)
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
   end
   -- 返回结果
-  ngx.ctx.response:writeln(res_util.success(id))
+  ngx.ctx.response:writeln(res_util.success())
 end
 
 --[[
@@ -80,13 +97,14 @@ end
 --]]
 function _M.update_config()
   -- 获取请求参数
-  local params = ngx.ctx.request:get_body_json()
+  local user_info = ngx.ctx.user_info
+  local config_info = ngx.ctx.request:get_body_json()
   -- 更新配置
   local config_service = module.require("service.config")
   local call_err = ""
   local ok = xpcall(config_service.update_config, function(err)
     call_err = error_util.get_msg(err)
-  end, params)
+  end, user_info, config_info)
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -100,19 +118,14 @@ end
 --]]
 function _M.delete_config()
   -- 获取请求参数
+  local user_info = ngx.ctx.user_info
   local params = ngx.ctx.request:get_body_json()
-  local ids = params["ids"]
-  -- 参数校验
-  if _.isEmpty(ids) then
-    ngx.ctx.response:writeln(res_util.failure("参数[ids]不能为空"))
-    return
-  end
   -- 删除配置
   local config_service = module.require("service.config")
   local call_err = ""
   local ok = xpcall(config_service.delete_config, function(err)
     call_err = error_util.get_msg(err)
-  end, ids)
+  end, user_info, params["ids"])
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return

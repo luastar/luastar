@@ -4,7 +4,7 @@
     <!-- 用户列表 -->
     <!-- 搜索区域 -->
     <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="auto">
+      <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="80px">
         <el-form-item label="关键字" prop="keywords">
           <el-input
             v-model="queryParams.keywords"

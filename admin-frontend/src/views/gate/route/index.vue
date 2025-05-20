@@ -3,11 +3,11 @@
   <div class="app-container">
     <!-- 搜索区域 -->
     <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="auto">
+      <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="80px">
         <el-form-item label="级别" prop="level">
           <el-select v-model="queryParams.level" placeholder="全部" clearable style="width: 100px">
             <el-option
-              v-for="item in levelOptions"
+              v-for="item in LevelOptions"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -136,7 +136,7 @@
             clearable
           >
             <el-option
-              v-for="item in levelOptions"
+              v-for="item in LevelOptions"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -198,7 +198,7 @@
         </el-form-item>
 
         <el-form-item label="参数" prop="params">
-          <el-input v-model="formData.params" placeholder="请输入参数" />
+          <el-input v-model="formData.params" type="textarea" :rows="4" placeholder="请输入参数" />
         </el-form-item>
 
         <el-form-item label="状态" prop="state">
@@ -230,7 +230,7 @@
 <script setup lang="ts">
 import CustomMultiSelect from "@/components/CustomMultiSelect/index.vue";
 import { useAppStore } from "@/store/modules/app.store";
-import { DeviceEnum } from "@/enums/settings/device.enum";
+import { DeviceEnum, LevelOptions } from "@/enums";
 
 import RouteAPI, { RouteForm, RoutePageQuery, RoutePageVO } from "@/api/gate/route.api";
 import ConfigAPI from "@/api/gate/config.api";
@@ -279,11 +279,6 @@ const rules = reactive({
 
 // 选中的路由ID
 const selectIds = ref<string[]>([]);
-// 级别下拉数据源
-const levelOptions: OptionType[] = [
-  { label: "系统", value: "system" },
-  { label: "用户", value: "user" },
-];
 // 类型下拉数据源
 const typeOptions = ref<OptionType[]>();
 // 请求方法下拉数据源
@@ -331,11 +326,6 @@ async function handleQueryOptions() {
 function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryParams.pageNum = 1;
-  queryParams.level = undefined;
-  queryParams.type = undefined;
-  queryParams.code = undefined;
-  queryParams.name = undefined;
-  queryParams.path = undefined;
   handleQuery();
 }
 
@@ -365,7 +355,6 @@ async function handleOpenDialog(id?: string) {
     formData.method = "*";
     formData.mode = "p";
     formData.state = "enable";
-    // 获取最大排序值并设置默认值
     RouteAPI.getMaxRank()
       .then((maxRank) => {
         formData.rank = (maxRank || 0) + 1;

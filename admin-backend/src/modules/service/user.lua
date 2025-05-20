@@ -16,8 +16,7 @@ function _M.get_user_info_by_name(username)
     error_util.throw("[username]不能为空")
   end
   -- 从数据库获取用户信息
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   local sql_user_query = sql_util.fmt_sql(
     [[ select * from ls_user where username = #{username} and state = 'enable' limit 1; ]],
     { username = username }
@@ -42,8 +41,7 @@ function _M.get_user_info_by_id(id)
     error_util.throw("[id]不能为空")
   end
   -- 从数据库获取用户信息
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   local sql_user_query = sql_util.fmt_sql(
     [[ select * from ls_user where id = #{id}; ]],
     { id = id }
@@ -68,8 +66,7 @@ function _M.get_user_role(uid)
     error_util.throw("[uid]不能为空")
   end
   -- 从数据库获取用户角色
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   local sql_role_query = sql_util.fmt_sql(
     [[
       select t1.id, t1.code

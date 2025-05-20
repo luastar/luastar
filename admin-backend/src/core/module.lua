@@ -12,20 +12,20 @@ local _M = {}
 加载模块代码
 --]===]
 function _M.require(mcode)
-  -- 优先从本地项目中加载模块
+  -- 从字典中获取模块信息
+  local dict = ngx.shared.dict_ls_modules
+  local module_content_base64 = dict:get(mcode)
+  if module_content_base64 then
+    -- 加载模块代码
+    local module_content = str_util.decode_base64(module_content_base64)
+    return file_util.load_lua_str(module_content)
+  end
+  -- 从本地项目加载模块
   local ok, module = pcall(require, "modules." .. mcode)
   if ok then
     return module
   end
-  -- 从字典中获取模块信息
-  local dict = ngx.shared.dict_ls_modules
-  local module_content_base64 = dict:get(mcode)
-  if not module_content_base64 then
-    error("模块[" .. mcode .. "]不存在！")
-  end
-  -- 加载模块代码
-  local module_content = str_util.decode_base64(module_content_base64)
-  return file_util.load_lua_str(module_content)
+  error_util.throw("模块[" .. mcode .. "]不存在！")
 end
 
 --[===[

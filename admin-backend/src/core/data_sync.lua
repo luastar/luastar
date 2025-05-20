@@ -12,12 +12,11 @@ local _M = {}
 同步路由信息
 --]]
 function _M.sync_route()
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   local sql = [[ select * from ls_route where state = 'enable' order by rank; ]]
   local res, err, errcode, sqlstate = mysql_service:query(sql)
   if not res then
-    logger.error("获取路由信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate);
+    logger.error("获取路由信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
     return
   end
   -- logger.info("获取路由信息成功 : ", cjson.encode(res))
@@ -47,12 +46,11 @@ end
 同步拦截器信息
 --]]
 function _M.sync_interceptor()
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   local sql = [[ select * from ls_interceptor where state = 'enable' order by rank; ]]
   local res, err, errcode, sqlstate = mysql_service:query(sql)
   if not res then
-    logger.error("获取拦截器信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate);
+    logger.error("获取拦截器信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
     return
   end
   local interceptors_table = {}
@@ -83,8 +81,7 @@ end
 同步模块代码信息
 --]]
 function _M.sync_module()
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   local sql = [[ select * from ls_module where state = 'enable'; ]]
   local res, err, errcode, sqlstate = mysql_service:query(sql)
   if not res then
@@ -104,8 +101,7 @@ end
 同步配置信息
 --]]
 function _M.sync_config()
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   local sql = [[ select * from ls_config where state = 'enable'; ]]
   local res, err, errcode, sqlstate = mysql_service:query(sql)
   if not res then

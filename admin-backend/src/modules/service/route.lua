@@ -31,8 +31,7 @@ function _M.get_route_count_and_list(params)
     params["pageSize"] = 20
   end
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询条件
   local sql_query_where = {
     [[ `level` = #{level} ]],
@@ -95,8 +94,7 @@ function _M.get_route_by_id(id)
     error_util.throw("参数[id]不能为空！")
   end
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询语句
   local sql_query = sql_util.fmt_sql(
     [[ select * from ls_route where `id` = #{id}; ]],
@@ -115,8 +113,7 @@ end
 --]]
 function _M.get_max_rank()
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询语句
   local sql_query = [[ select max(`rank`) as max_rank from ls_route; ]]
   local res, err, errcode, sqlstate = mysql_service:query(sql_query)
@@ -176,8 +173,7 @@ function _M.create_route(user_info, route_info)
   route_info["update_by"] = user_info["username"]
   route_info["update_at"] = date_util.get_time()
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询语句
   local sql_query = sql_util.fmt_sql(
     [[
@@ -252,8 +248,7 @@ function _M.update_route(user_info, route_info)
   route_info["update_by"] = user_info["username"]
   route_info["update_at"] = date_util.get_time()
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询语句
   local sql_query = sql_util.fmt_sql_table({
     sql = [[ update ls_route @{set} @{where} ; ]],
@@ -295,8 +290,7 @@ function _M.delete_route(user_info, ids)
     error_util.throw("参数[ids]不能为空！")
   end
   -- mysql 服务
-  local bean_factory = ls_cache.get_bean_factory()
-  local mysql_service = bean_factory:get_bean("mysql_service")
+  local mysql_service = ls_cache.get_bean("mysql_service")
   -- 查询语句
   local ids_table = {}
   for i, v in ipairs(ids) do
