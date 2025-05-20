@@ -190,11 +190,24 @@
         </el-form-item>
 
         <el-form-item label="模块编码" prop="mcode">
-          <el-input v-model="formData.mcode" placeholder="请输入模块编码" />
+          <el-autocomplete
+            v-model="formData.mcode"
+            :fetch-suggestions="handleModuleSearch"
+            clearable
+            placeholder="请输入模块编码"
+            value-key="code"
+          />
         </el-form-item>
 
         <el-form-item label="模块函数" prop="mfunc">
-          <el-input v-model="formData.mfunc" placeholder="请输入模块函数" />
+          <el-autocomplete
+            v-model="formData.mfunc"
+            :fetch-suggestions="handleFuncSearch"
+            clearable
+            placeholder="请输入模块函数"
+            value-key="code"
+            @focus="handleFuncFocus"
+          />
         </el-form-item>
 
         <el-form-item label="参数" prop="params">
@@ -234,6 +247,7 @@ import { DeviceEnum, LevelOptions } from "@/enums";
 
 import RouteAPI, { RouteForm, RoutePageQuery, RoutePageVO } from "@/api/gate/route.api";
 import ConfigAPI from "@/api/gate/config.api";
+import ModuleAPI, { CodeName } from "@/api/gate/module.api";
 
 defineOptions({
   name: "Route",
@@ -299,11 +313,14 @@ const modeOptions: OptionType[] = [
   { label: "完全匹配", value: "p" },
   { label: "模糊匹配", value: "v" },
 ];
+// 代码提示数据
+const moduleOptions = ref<CodeName[]>([]);
+const moduleFuncOptions = ref<CodeName[]>([]);
 
 // 查询
 async function handleQuery() {
   loading.value = true;
-  handleQueryOptions();
+  initOptions();
   queryParams.pageNum = 1;
   RouteAPI.getPage(queryParams)
     .then((data) => {
@@ -315,10 +332,13 @@ async function handleQuery() {
     });
 }
 
-// 查询类型选项
-async function handleQueryOptions() {
+// 初始化选项
+async function initOptions() {
   ConfigAPI.getConfigContent<OptionType[]>("route.type").then((data) => {
     typeOptions.value = data;
+  });
+  ModuleAPI.getHintModuleList<CodeName[]>("controller").then((data) => {
+    moduleOptions.value = data;
   });
 }
 
@@ -341,8 +361,7 @@ function handleSelectionChange(selection: any[]) {
  */
 async function handleOpenDialog(id?: string) {
   dialog.visible = true;
-  // 加载类型下拉数据源
-  await handleQueryOptions();
+  await initOptions();
   if (id) {
     dialog.title = "修改路由";
     RouteAPI.getFormData(id).then((data) => {
@@ -430,6 +449,43 @@ function handleDelete(id?: string) {
       ElMessage.info("已取消删除");
     }
   );
+}
+
+// 代码模块提示
+function handleModuleSearch(queryString: string, cb: any) {
+  const results = queryString
+    ? moduleOptions.value.filter(handleModuleFilter(queryString))
+    : moduleOptions.value;
+  cb(results);
+}
+
+// 代码模块提示过滤
+function handleModuleFilter(queryString: string) {
+  return (module: CodeName) => {
+    return module.code.toLowerCase().includes(queryString.toLowerCase());
+  };
+}
+
+// 代码模块函数搜索
+function handleFuncSearch(queryString: string, cb: any) {
+  const results = queryString
+    ? moduleFuncOptions.value.filter(handleFuncFilter(queryString))
+    : moduleFuncOptions.value;
+  cb(results);
+}
+
+// 代码模块函数提示过滤
+function handleFuncFilter(queryString: string) {
+  return (func: CodeName) => {
+    return func.code.toLowerCase().includes(queryString.toLowerCase());
+  };
+}
+
+// 代码模块函数提示聚焦
+function handleFuncFocus() {
+  ModuleAPI.getHintModuleFuncList<CodeName[]>(formData.mcode).then((data) => {
+    moduleFuncOptions.value = data;
+  });
 }
 
 onMounted(() => {

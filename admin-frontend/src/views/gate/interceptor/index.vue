@@ -172,15 +172,35 @@
         </el-form-item>
 
         <el-form-item label="模块编码" prop="mcode">
-          <el-input v-model="formData.mcode" placeholder="请输入模块编码" />
+          <el-autocomplete
+            v-model="formData.mcode"
+            :fetch-suggestions="handleModuleSearch"
+            clearable
+            placeholder="请输入模块编码"
+            value-key="code"
+          />
         </el-form-item>
 
         <el-form-item label="前置函数" prop="mfunc_before">
-          <el-input v-model="formData.mfunc_before" placeholder="请输入前置函数" />
+          <el-autocomplete
+            v-model="formData.mfunc_before"
+            :fetch-suggestions="handleFuncSearch"
+            clearable
+            placeholder="请输入前置函数"
+            value-key="code"
+            @focus="handleFuncFocus"
+          />
         </el-form-item>
 
         <el-form-item label="后置函数" prop="mfunc_after">
-          <el-input v-model="formData.mfunc_after" placeholder="请输入后置函数" />
+          <el-autocomplete
+            v-model="formData.mfunc_after"
+            :fetch-suggestions="handleFuncSearch"
+            clearable
+            placeholder="请输入后置函数"
+            value-key="code"
+            @focus="handleFuncFocus"
+          />
         </el-form-item>
 
         <el-form-item label="参数" prop="params">
@@ -222,6 +242,7 @@ import InterceptorAPI, {
   InterceptorPageQuery,
   InterceptorPageVO,
 } from "@/api/gate/interceptor.api";
+import ModuleAPI, { CodeName } from "@/api/gate/module.api";
 
 defineOptions({
   name: "Interceptor",
@@ -269,6 +290,10 @@ const rules = reactive({
 // 选中的拦截器ID
 const selectIds = ref<string[]>([]);
 
+// 代码提示数据
+const moduleOptions = ref<CodeName[]>([]);
+const moduleFuncOptions = ref<CodeName[]>([]);
+
 // 查询
 async function handleQuery() {
   loading.value = true;
@@ -281,6 +306,13 @@ async function handleQuery() {
     .finally(() => {
       loading.value = false;
     });
+}
+
+// 初始化选项
+async function initOptions() {
+  ModuleAPI.getHintModuleList<CodeName[]>("interceptor").then((data) => {
+    moduleOptions.value = data;
+  });
 }
 
 // 重置查询
@@ -302,6 +334,7 @@ function handleSelectionChange(selection: any[]) {
  */
 async function handleOpenDialog(id?: string) {
   dialog.visible = true;
+  await initOptions();
   if (id) {
     dialog.title = "修改拦截器";
     InterceptorAPI.getFormData(id).then((data) => {
@@ -387,6 +420,43 @@ function handleDelete(id?: string) {
       ElMessage.info("已取消删除");
     }
   );
+}
+
+// 代码模块提示
+function handleModuleSearch(queryString: string, cb: any) {
+  const results = queryString
+    ? moduleOptions.value.filter(handleModuleFilter(queryString))
+    : moduleOptions.value;
+  cb(results);
+}
+
+// 代码模块提示过滤
+function handleModuleFilter(queryString: string) {
+  return (module: CodeName) => {
+    return module.code.toLowerCase().includes(queryString.toLowerCase());
+  };
+}
+
+// 代码模块函数搜索
+function handleFuncSearch(queryString: string, cb: any) {
+  const results = queryString
+    ? moduleFuncOptions.value.filter(handleFuncFilter(queryString))
+    : moduleFuncOptions.value;
+  cb(results);
+}
+
+// 代码模块函数提示过滤
+function handleFuncFilter(queryString: string) {
+  return (func: CodeName) => {
+    return func.code.toLowerCase().includes(queryString.toLowerCase());
+  };
+}
+
+// 代码模块函数提示聚焦
+function handleFuncFocus() {
+  ModuleAPI.getHintModuleFuncList<CodeName[]>(formData.mcode).then((data) => {
+    moduleFuncOptions.value = data;
+  });
 }
 
 onMounted(() => {

@@ -29,25 +29,6 @@ function _M.require(mcode)
 end
 
 --[===[
-列出模块函数列表
---]===]
-function _M.func_list(mcode)
-  local func_list = {}
-  -- 加载模块代码
-  local ok, module = pcall(_M.require, mcode)
-  if not ok then
-    return func_list
-  end
-  -- 列出模块函数列表
-  for method_name, method in pairs(module) do
-    if type(method) == "function" then
-      table.insert(func_list, method_name)
-    end
-  end
-  return func_list
-end
-
---[===[
 执行模块方法
 --]===]
 function _M.execute(mcode, mfunc, params)

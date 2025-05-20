@@ -5,6 +5,7 @@ local ngx = require "ngx"
 local module = require "core.module"
 local res_util = require "utils.res_util"
 local error_util = require "utils.error_util"
+local file_util = require "utils.file_util"
 
 local _M = {}
 
@@ -131,6 +132,68 @@ function _M.delete_module()
   end
   -- 返回结果
   ngx.ctx.response:writeln(res_util.success())
+end
+
+--[[
+  获取提示代码列表
+--]]
+function _M.get_hint_module_list()
+  -- 获取请求参数
+  local type = ngx.ctx.request:get_arg("type")
+  -- 查询结果
+  local module_service = module.require("service.module")
+  local call_err = ""
+  local ok, res = xpcall(module_service.get_module_list_by_type, function(err)
+    call_err = error_util.get_msg(err)
+  end, type)
+  if not ok then
+    ngx.ctx.response:writeln(res_util.failure(call_err))
+    return
+  end
+  -- 返回结果
+  ngx.ctx.response:writeln(res_util.success(res))
+end
+
+--[[
+  获取提示代码函数列表
+--]]
+function _M.get_hint_func_list()
+  -- 获取请求参数
+  local code = ngx.ctx.request:get_arg("code")
+  -- 查询结果
+  local module_service = module.require("service.module")
+  local call_err = ""
+  local ok, res = xpcall(module_service.get_module_by_code, function(err)
+    call_err = error_util.get_msg(err)
+  end, code)
+  if not ok then
+    ngx.ctx.response:writeln(res_util.failure(call_err))
+    return
+  end
+  -- 加载模块
+  local module
+  if _.isEmpty(res) then
+    -- 从本地项目加载模块
+    local ok, mod = pcall(require, "modules." .. code)
+    if ok then
+      module = mod
+    end
+  else
+    -- 加载模块代码
+    module = file_util.load_lua_str(res["content"])
+  end
+  if not module then
+    ngx.ctx.response:writeln(res_util.failure("加载[" .. code .. "]模块代码失败！"))
+    return
+  end
+  -- 列出模块函数列表
+  local func_list = {}
+  for method_name, method in pairs(module) do
+    if type(method) == "function" then
+      table.insert(func_list, { code = method_name, name = method_name })
+    end
+  end
+  ngx.ctx.response:writeln(res_util.success(func_list))
 end
 
 return _M

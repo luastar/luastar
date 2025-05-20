@@ -109,6 +109,33 @@ function _M.get_module_by_id(id)
 end
 
 --[[
+ 获取代码信息
+--]]
+function _M.get_module_by_code(code)
+  -- 参数校验
+  if _.isEmpty(code) then
+    error_util.throw("参数[code]不能为空！")
+  end
+  -- mysql 服务
+  local mysql_service = ls_cache.get_bean("mysql_service")
+  -- 查询语句
+  local sql_query = sql_util.fmt_sql(
+    [[ select * from ls_module where `code` = #{code}; ]],
+    { code = code }
+  )
+  local res, err, errcode, sqlstate = mysql_service:query(sql_query)
+  if not res then
+    logger.error("查询代码信息失败: err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
+    error_util.throw("查询代码信息失败 : " .. err)
+  end
+  if _.isEmpty(res) then
+    return {}
+  end
+  res[1]["content"] = str_util.decode_base64(res[1]["content"])
+  return res[1]
+end
+
+--[[
  获取最大排序
 --]]
 function _M.get_max_rank()
@@ -269,6 +296,31 @@ function _M.delete_module(user_info, ids)
   if not res then
     logger.error("删除代码信息失败: err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
     error_util.throw("删除代码信息失败 : " .. err)
+  end
+  return res
+end
+
+--[[
+ 根据代码类型获取代码列表
+--]]
+function _M.get_module_list_by_type(type)
+  -- mysql 服务
+  local mysql_service = ls_cache.get_bean("mysql_service")
+  -- 查询语句
+  local sql_query = sql_util.fmt_sql_table(
+    {
+      sql = [[ select code, name from ls_module @{where} order by rank; ]],
+      where = {
+        [[  `type` = #{type} ]],
+        [[ and `state` = #{state} ]]
+      }
+    },
+    { type = type, state = "enable" }
+  )
+  local res, err, errcode, sqlstate = mysql_service:query(sql_query)
+  if not res then
+    logger.error("查询代码列表失败: err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
+    error_util.throw("查询代码列表失败 : " .. err)
   end
   return res
 end

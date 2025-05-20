@@ -58,6 +58,24 @@ const ModuleAPI = {
       data: { ids },
     });
   },
+
+  /** 获取提示代码列表 */
+  getHintModuleList(type: string) {
+    return request<any, CodeName[]>({
+      url: `${BASE_URL}/get-hint-module-list`,
+      method: "get",
+      params: { type },
+    });
+  },
+
+  /** 获取提示代码函数列表 */
+  getHintModuleFuncList(code: string) {
+    return request<any, CodeName[]>({
+      url: `${BASE_URL}/get-hint-func-list`,
+      method: "get",
+      params: { code },
+    });
+  },
 };
 
 export default ModuleAPI;
@@ -106,4 +124,12 @@ export interface ModulePageVO extends ModuleForm {
   updateBy: string;
   /** 更新时间 */
   updateAt: string;
+}
+
+/** 代码模块编码名称 */
+export interface CodeName {
+  /** 编码 */
+  code: string;
+  /** 名称 */
+  name: string;
 }
