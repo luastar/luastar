@@ -119,9 +119,9 @@ export interface RouteForm {
   /** 匹配模式 */
   mode?: string;
   /** 代码模块 */
-  mcode?: string;
+  mcode: string;
   /** 代码函数 */
-  mfunc?: string;
+  mfunc: string;
   /** 参数 */
   params?: string;
   /** 状态 */

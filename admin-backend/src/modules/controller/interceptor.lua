@@ -17,11 +17,11 @@ function _M.get_interceptor_list()
   -- 从数据库获取拦截器列表
   local interceptor_service = module.require("service.interceptor")
   local call_err = ""
-  local ok, count, list = xpcall(function()
-    return interceptor_service.get_interceptor_count_and_list(params)
-  end, function(err)
-    call_err = error_util.get_msg(err)
-  end)
+  local ok, count, list = xpcall(
+    interceptor_service.get_interceptor_count_and_list,
+    function(err) call_err = error_util.get_msg(err) end,
+    params
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -39,9 +39,11 @@ function _M.get_interceptor_info()
   -- 从数据库获取拦截器信息
   local interceptor_service = module.require("service.interceptor")
   local call_err = ""
-  local ok, interceptor_info = xpcall(interceptor_service.get_interceptor_by_id, function(err)
-    call_err = error_util.get_msg(err)
-  end, id)
+  local ok, interceptor_info = xpcall(
+    interceptor_service.get_interceptor_by_id,
+    function(err) call_err = error_util.get_msg(err) end,
+    id
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -59,9 +61,10 @@ function _M.get_max_rank()
   -- 从数据库获取最大排序值
   local interceptor_service = module.require("service.interceptor")
   local call_err = ""
-  local ok, max_rank = xpcall(interceptor_service.get_max_rank, function(err)
-    call_err = error_util.get_msg(err)
-  end)
+  local ok, max_rank = xpcall(
+    interceptor_service.get_max_rank,
+    function(err) call_err = error_util.get_msg(err) end
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -80,9 +83,11 @@ function _M.create_interceptor()
   -- 创建拦截器
   local interceptor_service = module.require("service.interceptor")
   local call_err = ""
-  local ok = xpcall(interceptor_service.create_interceptor, function(err)
-    call_err = error_util.get_msg(err)
-  end, user_info, interceptor_info)
+  local ok = xpcall(
+    interceptor_service.create_interceptor,
+    function(err) call_err = error_util.get_msg(err) end,
+    user_info, interceptor_info
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -101,9 +106,11 @@ function _M.update_interceptor()
   -- 更新拦截器
   local interceptor_service = module.require("service.interceptor")
   local call_err = ""
-  local ok = xpcall(interceptor_service.update_interceptor, function(err)
-    call_err = error_util.get_msg(err)
-  end, user_info, interceptor_info)
+  local ok = xpcall(
+    interceptor_service.update_interceptor,
+    function(err) call_err = error_util.get_msg(err) end,
+    user_info, interceptor_info
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -122,9 +129,11 @@ function _M.delete_interceptor()
   -- 删除拦截器
   local interceptor_service = module.require("service.interceptor")
   local call_err = ""
-  local ok = xpcall(interceptor_service.delete_interceptor, function(err)
-    call_err = error_util.get_msg(err)
-  end, user_info, params["ids"])
+  local ok = xpcall(
+    interceptor_service.delete_interceptor,
+    function(err) call_err = error_util.get_msg(err) end,
+    user_info, params["ids"]
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return

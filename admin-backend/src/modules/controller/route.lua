@@ -17,11 +17,11 @@ function _M.get_route_list()
   -- 从数据库获取路由列表
   local route_service = module.require("service.route")
   local call_err = ""
-  local ok, count, list = xpcall(function()
-    return route_service.get_route_count_and_list(params)
-  end, function(err)
-    call_err = error_util.get_msg(err)
-  end)
+  local ok, count, list = xpcall(
+    route_service.get_route_count_and_list,
+    function(err) call_err = error_util.get_msg(err) end,
+    params
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -39,9 +39,11 @@ function _M.get_route_info()
   -- 从数据库获取路由信息
   local route_service = module.require("service.route")
   local call_err = ""
-  local ok, route_info = xpcall(route_service.get_route_by_id, function(err)
-    call_err = error_util.get_msg(err)
-  end, id)
+  local ok, route_info = xpcall(
+    route_service.get_route_by_id,
+    function(err) call_err = error_util.get_msg(err) end,
+    id
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -59,9 +61,10 @@ function _M.get_max_rank()
   -- 从数据库获取最大排序值
   local route_service = module.require("service.route")
   local call_err = ""
-  local ok, max_rank = xpcall(route_service.get_max_rank, function(err)
-    call_err = error_util.get_msg(err)
-  end)
+  local ok, max_rank = xpcall(
+    route_service.get_max_rank,
+    function(err) call_err = error_util.get_msg(err) end
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -80,9 +83,11 @@ function _M.create_route()
   -- 创建路由
   local route_service = module.require("service.route")
   local call_err = ""
-  local ok = xpcall(route_service.create_route, function(err)
-    call_err = error_util.get_msg(err)
-  end, user_info, route_info)
+  local ok = xpcall(
+    route_service.create_route,
+    function(err) call_err = error_util.get_msg(err) end,
+    user_info, route_info
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -101,9 +106,11 @@ function _M.update_route()
   -- 更新路由
   local route_service = module.require("service.route")
   local call_err = ""
-  local ok = xpcall(route_service.update_route, function(err)
-    call_err = error_util.get_msg(err)
-  end, user_info, route_info)
+  local ok = xpcall(
+    route_service.update_route,
+    function(err) call_err = error_util.get_msg(err) end,
+    user_info, route_info
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -122,9 +129,11 @@ function _M.delete_route()
   -- 删除路由
   local route_service = module.require("service.route")
   local call_err = ""
-  local ok = xpcall(route_service.delete_route, function(err)
-    call_err = error_util.get_msg(err)
-  end, user_info, params["ids"])
+  local ok = xpcall(
+    route_service.delete_route,
+    function(err) call_err = error_util.get_msg(err) end,
+    user_info, params["ids"]
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return

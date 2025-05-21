@@ -18,11 +18,11 @@ function _M.get_config_list()
   -- 从数据库获取配置列表
   local config_service = module.require("service.config")
   local call_err = ""
-  local ok, count, list = xpcall(function()
-    return config_service.get_config_count_and_list(params)
-  end, function(err)
-    call_err = error_util.get_msg(err)
-  end)
+  local ok, count, list = xpcall(
+    config_service.get_config_count_and_list,
+    function(err) call_err = error_util.get_msg(err) end,
+    params
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -40,9 +40,11 @@ function _M.get_config_info()
   -- 从数据库获取配置信息
   local config_service = module.require("service.config")
   local call_err = ""
-  local ok, config_info = xpcall(config_service.get_config_by_id, function(err)
-    call_err = error_util.get_msg(err)
-  end, id)
+  local ok, config_info = xpcall(
+    config_service.get_config_by_id,
+    function(err) call_err = error_util.get_msg(err) end,
+    id
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -60,9 +62,10 @@ function _M.get_max_rank()
   -- 从数据库获取最大排序值
   local config_service = module.require("service.config")
   local call_err = ""
-  local ok, max_rank = xpcall(config_service.get_max_rank, function(err)
-    call_err = error_util.get_msg(err)
-  end)
+  local ok, max_rank = xpcall(
+    config_service.get_max_rank,
+    function(err) call_err = error_util.get_msg(err) end
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -81,9 +84,11 @@ function _M.create_config()
   -- 创建配置
   local config_service = module.require("service.config")
   local call_err = ""
-  local ok = xpcall(config_service.create_config, function(err)
-    call_err = error_util.get_msg(err)
-  end, user_info, config_info)
+  local ok = xpcall(
+    config_service.create_config,
+    function(err) call_err = error_util.get_msg(err) end,
+    user_info, config_info
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -102,9 +107,11 @@ function _M.update_config()
   -- 更新配置
   local config_service = module.require("service.config")
   local call_err = ""
-  local ok = xpcall(config_service.update_config, function(err)
-    call_err = error_util.get_msg(err)
-  end, user_info, config_info)
+  local ok = xpcall(
+    config_service.update_config,
+    function(err) call_err = error_util.get_msg(err) end,
+    user_info, config_info
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -123,9 +130,11 @@ function _M.delete_config()
   -- 删除配置
   local config_service = module.require("service.config")
   local call_err = ""
-  local ok = xpcall(config_service.delete_config, function(err)
-    call_err = error_util.get_msg(err)
-  end, user_info, params["ids"])
+  local ok = xpcall(
+    config_service.delete_config,
+    function(err) call_err = error_util.get_msg(err) end,
+    user_info, params["ids"]
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
@@ -143,9 +152,11 @@ function _M.get_config_content()
   -- 从数据库获取配置信息
   local config_service = module.require("service.config")
   local call_err = ""
-  local ok, config_info = xpcall(config_service.get_config_by_code, function(err)
-    call_err = error_util.get_msg(err)
-  end, code)
+  local ok, config_info = xpcall(
+    config_service.get_config_by_code,
+    function(err) call_err = error_util.get_msg(err) end,
+    code
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return

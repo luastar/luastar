@@ -81,11 +81,11 @@ export interface InterceptorForm {
   /** 编码 */
   code: string;
   /** 名称 */
-  name: string;
+  name?: string;
   /** 拦截路由 */
   routes: string;
   /** 排除路由 */
-  routes_exclude: string;
+  routes_exclude?: string;
   /** 代码模块 */
   mcode: string;
   /** 执行前置函数 */

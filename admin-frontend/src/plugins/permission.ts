@@ -4,7 +4,6 @@ import { getAccessToken } from "@/utils/auth";
 import router from "@/router";
 import { usePermissionStore, useUserStore } from "@/store";
 
-/*
 export function setupPermission() {
   // 白名单路由
   const whiteList = ["/login"];
@@ -64,51 +63,6 @@ export function setupPermission() {
     NProgress.done();
   });
 }
-*/
-
-export function setupPermission() {
-  // 白名单路由
-  const whiteList = ["/login"];
-
-  router.beforeEach(async (to, from, next) => {
-    NProgress.start();
-
-    const isLogin = !!getAccessToken(); // 判断是否登录
-    if (isLogin) {
-      if (to.path === "/login") {
-        // 已登录，访问登录页，跳转到首页
-        next({ path: "/" });
-      } else {
-        usePermissionStore().generateRoutes();
-        if (to.matched.length === 0) {
-          // 路由未匹配，跳转到404
-          next("/404");
-        } else {
-          // 动态设置页面标题
-          const title = (to.params.title as string) || (to.query.title as string);
-          if (title) {
-            to.meta.title = title;
-          }
-          next();
-        }
-      }
-    } else {
-      // 未登录，判断是否在白名单中
-      if (whiteList.includes(to.path)) {
-        next();
-      } else {
-        // 不在白名单，重定向到登录页
-        redirectToLogin(to, next);
-        NProgress.done();
-      }
-    }
-  });
-
-  // 后置守卫，保证每次路由跳转结束时关闭进度条
-  router.afterEach(() => {
-    NProgress.done();
-  });
-}
 
 // 重定向到登录页
 function redirectToLogin(to: RouteLocationNormalized, next: NavigationGuardNext) {
@@ -123,7 +77,7 @@ export function hasAuth(value: string | string[], type: "button" | "role" = "but
   const { roles, perms } = useUserStore().userInfo;
 
   // 超级管理员 拥有所有权限
-  if (type === "button" && roles.includes("ROOT")) {
+  if (type === "button" && roles.includes("admin")) {
     return true;
   }
 

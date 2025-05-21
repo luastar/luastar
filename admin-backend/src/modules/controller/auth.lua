@@ -13,7 +13,7 @@ local _M = {}
 --[[
  登录
 --]]
-function _M.login(params)
+function _M.login()
   -- 参数校验
   local username = ngx.ctx.request:get_arg("username")
   local password = ngx.ctx.request:get_arg("password")
@@ -24,15 +24,17 @@ function _M.login(params)
   -- 从数据库获取用户信息
   local user_service = module.require("service.user")
   local call_err = ""
-  local ok, user_info = xpcall(user_service.get_user_info_by_name, function(err)
-    call_err = error_util.get_msg(err)
-  end, username)
+  local ok, user_info = xpcall(
+    user_service.get_user_by_name,
+    function(err) call_err = error_util.get_msg(err) end,
+    username
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.failure(call_err))
     return
   end
   -- 验证密码
-  if user_info.passwd ~= str_util.sha256(password) then
+  if user_info["passwd"] ~= str_util.sha256(password) then
     ngx.ctx.response:writeln(res_util.failure("用户名或密码错误"))
     return
   end
@@ -43,22 +45,22 @@ function _M.login(params)
     jti = jti,
     iss = "LuastarAdmin",
     sub = username,
-    exp = ngx.time() + jwt_config.access_expire,
+    exp = ngx.time() + jwt_config["access_expire"],
     uid = user_info.id,
   }
   local refresh_token_payload = {
     jti = jti,
     iss = "LuastarAdmin",
     sub = username,
-    exp = ngx.time() + jwt_config.refresh_expire,
+    exp = ngx.time() + jwt_config["refresh_expire"],
     uid = user_info.id,
   }
-  local access_token = jwt_util.sign(jwt_config.secret, access_token_payload)
-  local refresh_token = jwt_util.sign(jwt_config.secret, refresh_token_payload)
+  local access_token = jwt_util.sign(jwt_config["secret"], access_token_payload)
+  local refresh_token = jwt_util.sign(jwt_config["secret"], refresh_token_payload)
   -- 保存token（可改为redis）
   local dict = ngx.shared.dict_ls_tokens
-  local ok1, err1 = dict:set("access:" .. access_token_payload.jti, access_token, jwt_config.access_expire)
-  local ok2, err2 = dict:set("refresh:" .. refresh_token_payload.jti, refresh_token, jwt_config.refresh_expire)
+  local ok1, err1 = dict:set("access:" .. access_token_payload["jti"], access_token, jwt_config["access_expire"])
+  local ok2, err2 = dict:set("refresh:" .. refresh_token_payload["jti"], refresh_token, jwt_config["refresh_expire"])
   if not ok1 or not ok2 then
     logger.error("保存token失败: err1 = ", _.ifEmpty(err1, ""), ", err2 = ", _.ifEmpty(err2, ""))
     ngx.ctx.response:writeln(res_util.failure("保存token失败"))
@@ -69,7 +71,7 @@ function _M.login(params)
     tokenType = "Bearer",
     accessToken = access_token,
     refreshToken = refresh_token,
-    expiresIn = jwt_config.access_expire
+    expiresIn = jwt_config["access_expire"]
   }
   ngx.ctx.response:writeln(res_util.success(data))
 end
@@ -77,7 +79,7 @@ end
 --[[
  刷新 token
 --]]
-function _M.refresh_token(params)
+function _M.refresh_token()
   -- 参数校验
   local refresh_token = ngx.ctx.request:get_arg("refreshToken")
   if _.isEmpty(refresh_token) then
@@ -86,7 +88,7 @@ function _M.refresh_token(params)
   end
   -- 验证token
   local jwt_config = ls_cache.get_config("jwt_config")
-  local jwt_obj = jwt_util.verify(jwt_config.secret, refresh_token)
+  local jwt_obj = jwt_util.verify(jwt_config["secret"], refresh_token)
   if not jwt_obj.verified then
     ngx.ctx.response:writeln(res_util.invalid_refresh_token("refreshToken无效"))
     return
@@ -103,12 +105,12 @@ function _M.refresh_token(params)
     jti = jwt_obj.payload.jti,
     iss = "LuastarAdmin",
     sub = jwt_obj.payload.sub,
-    exp = ngx.time() + jwt_config.access_expire,
+    exp = ngx.time() + jwt_config["access_expire"],
     uid = jwt_obj.payload.uid,
   }
-  local access_token = jwt_util.sign(jwt_config.secret, access_token_payload)
+  local access_token = jwt_util.sign(jwt_config["secret"], access_token_payload)
   -- 保存token（可改为redis）
-  local ok, err = dict:set("access:" .. access_token_payload.jti, access_token, jwt_config.access_expire)
+  local ok, err = dict:set("access:" .. access_token_payload["jti"], access_token, jwt_config["access_expire"])
   if not ok then
     logger.error("保存token失败: err = ", _.ifEmpty(err, ""))
     ngx.ctx.response:writeln(res_util.failure("保存token失败"))
@@ -119,15 +121,74 @@ function _M.refresh_token(params)
     tokenType = "Bearer",
     accessToken = access_token,
     refreshToken = refresh_token,
-    expiresIn = jwt_config.access_expire
+    expiresIn = jwt_config["access_expire"]
   }
+  ngx.ctx.response:writeln(res_util.success(data))
+end
+
+--[[
+ 获取前端路由
+--]]
+function _M.get_routes()
+  local user_info = ngx.ctx.user_info
+  local data = {}
+  if str_util.contains_ignore_case(user_info["roles"], "admin") then
+    table.insert(data, {
+      path = "/system",
+      name = "System",
+      component = "Layout",
+      redirect = "/system/user",
+      meta = { title = "系统管理", icon = "system", },
+      children = {
+        {
+          path = "user",
+          name = "User",
+          component = "system/user/index",
+          meta = { title = "用户管理", icon = "el-icon-User", },
+        }
+      }
+    })
+  end
+  table.insert(data, {
+    path = "/gate",
+    name = "Gate",
+    component = "Layout",
+    redirect = "/gate/config",
+    meta = { title = "网关管理", icon = "menu", },
+    children = {
+      {
+        path = "config",
+        name = "Config",
+        component = "gate/config/index",
+        meta = { title = "配置管理", icon = "el-icon-Setting", },
+      },
+      {
+        path = "route",
+        name = "Route",
+        component = "gate/route/index",
+        meta = { title = "路由管理", icon = "el-icon-Aim", },
+      },
+      {
+        path = "interceptor",
+        name = "Interceptor",
+        component = "gate/interceptor/index",
+        meta = { title = "拦截器管理", icon = "el-icon-Filter", },
+      },
+      {
+        path = "module",
+        name = "Module",
+        component = "gate/module/index",
+        meta = { title = "代码管理", icon = "code", },
+      }
+    }
+  })
   ngx.ctx.response:writeln(res_util.success(data))
 end
 
 --[[
  退出登录
 --]]
-function _M.logout(params)
+function _M.logout()
   local jti = ngx.ctx.token_jti
   local user_info = ngx.ctx.user_info
   if _.isEmpty(jti) or _.isEmpty(user_info) then

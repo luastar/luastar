@@ -20,7 +20,7 @@ function _M.handle_before()
   access_token = access_token:gsub("^%s*[Bb][Ee][Aa][Rr][Ee][Rr]%s*", "")
   -- 验证 token
   local jwt_config = ls_cache.get_config("jwt_config")
-  local jwt_obj = jwt_util.verify(jwt_config.secret, access_token)
+  local jwt_obj = jwt_util.verify(jwt_config["secret"], access_token)
   if not jwt_obj.verified then
     ngx.ctx.response:writeln(res_util.invalid_access_token("token无效！"))
     return false
@@ -40,9 +40,11 @@ function _M.handle_before()
   end
   local user_service = module.require("service.user")
   local call_err = ""
-  local ok, user_info = xpcall(user_service.get_user_info_by_id, function(err)
-    call_err = error_util.get_msg(err)
-  end, uid)
+  local ok, user_info = xpcall(
+    user_service.get_user_by_id,
+    function(err) call_err = error_util.get_msg(err) end,
+    uid
+  )
   if not ok then
     ngx.ctx.response:writeln(res_util.invalid_access_token("获取用户信息失败: " .. call_err))
     return false

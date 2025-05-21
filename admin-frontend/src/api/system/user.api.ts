@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 
-const USER_BASE_URL = "/api/admin/users";
+const BASE_URL = "/api/admin/user";
 
 const UserAPI = {
   /**
@@ -10,7 +10,7 @@ const UserAPI = {
    */
   getInfo() {
     return request<any, UserInfo>({
-      url: `${USER_BASE_URL}/me`,
+      url: `${BASE_URL}/me`,
       method: "get",
     });
   },
@@ -22,21 +22,32 @@ const UserAPI = {
    */
   getPage(queryParams: UserPageQuery) {
     return request<any, PageResult<UserPageVO[]>>({
-      url: `${USER_BASE_URL}/page`,
-      method: "get",
-      params: queryParams,
+      url: `${BASE_URL}/page`,
+      method: "post",
+      data: queryParams,
     });
   },
 
   /**
    * 获取用户表单详情
    *
-   * @param userId 用户ID
+   * @param id 用户ID
    * @returns 用户表单详情
    */
-  getFormData(userId: string) {
+  getFormData(id: string) {
     return request<any, UserForm>({
-      url: `${USER_BASE_URL}/${userId}/form`,
+      url: `${BASE_URL}/form`,
+      method: "get",
+      params: { id: id },
+    });
+  },
+
+  /**
+   * 获取最大排序值
+   */
+  getMaxRank() {
+    return request<any, number>({
+      url: `${BASE_URL}/get-max-rank`,
       method: "get",
     });
   },
@@ -48,7 +59,7 @@ const UserAPI = {
    */
   create(data: UserForm) {
     return request({
-      url: `${USER_BASE_URL}`,
+      url: `${BASE_URL}/create`,
       method: "post",
       data: data,
     });
@@ -61,8 +72,9 @@ const UserAPI = {
    * @param data 用户表单数据
    */
   update(id: string, data: UserForm) {
+    data.id = id;
     return request({
-      url: `${USER_BASE_URL}/${id}`,
+      url: `${BASE_URL}/update`,
       method: "put",
       data: data,
     });
@@ -76,9 +88,9 @@ const UserAPI = {
    */
   resetPassword(id: string, password: string) {
     return request({
-      url: `${USER_BASE_URL}/${id}/password/reset`,
+      url: `${BASE_URL}/reset-password`,
       method: "put",
-      params: { password: password },
+      data: { id: id, password: password },
     });
   },
 
@@ -87,60 +99,18 @@ const UserAPI = {
    *
    * @param ids 用户ID字符串，多个以英文逗号(,)分割
    */
-  deleteByIds(ids: string) {
+  deleteByIds(ids: string[]) {
     return request({
-      url: `${USER_BASE_URL}/${ids}`,
+      url: `${BASE_URL}/delete`,
       method: "delete",
-    });
-  },
-
-  /** 下载用户导入模板 */
-  downloadTemplate() {
-    return request({
-      url: `${USER_BASE_URL}/template`,
-      method: "get",
-      responseType: "blob",
-    });
-  },
-
-  /**
-   * 导出用户
-   *
-   * @param queryParams 查询参数
-   */
-  export(queryParams: UserPageQuery) {
-    return request({
-      url: `${USER_BASE_URL}/export`,
-      method: "get",
-      params: queryParams,
-      responseType: "blob",
-    });
-  },
-
-  /**
-   * 导入用户
-   *
-   * @param deptId 部门ID
-   * @param file 导入文件
-   */
-  import(deptId: string, file: File) {
-    const formData = new FormData();
-    formData.append("file", file);
-    return request<any, ExcelResult>({
-      url: `${USER_BASE_URL}/import`,
-      method: "post",
-      params: { deptId: deptId },
-      data: formData,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      data: { ids: ids },
     });
   },
 
   /** 获取个人中心用户信息 */
   getProfile() {
     return request<any, UserProfileVO>({
-      url: `${USER_BASE_URL}/profile`,
+      url: `${BASE_URL}/profile`,
       method: "get",
     });
   },
@@ -148,7 +118,7 @@ const UserAPI = {
   /** 修改个人中心用户信息 */
   updateProfile(data: UserProfileForm) {
     return request({
-      url: `${USER_BASE_URL}/profile`,
+      url: `${BASE_URL}/profile`,
       method: "put",
       data: data,
     });
@@ -157,55 +127,9 @@ const UserAPI = {
   /** 修改个人中心用户密码 */
   changePassword(data: PasswordChangeForm) {
     return request({
-      url: `${USER_BASE_URL}/password`,
+      url: `${BASE_URL}/change-password`,
       method: "put",
       data: data,
-    });
-  },
-
-  /** 发送短信验证码（绑定或更换手机号）*/
-  sendMobileCode(mobile: string) {
-    return request({
-      url: `${USER_BASE_URL}/mobile/code`,
-      method: "post",
-      params: { mobile: mobile },
-    });
-  },
-
-  /** 绑定或更换手机号 */
-  bindOrChangeMobile(data: MobileUpdateForm) {
-    return request({
-      url: `${USER_BASE_URL}/mobile`,
-      method: "put",
-      data: data,
-    });
-  },
-
-  /** 发送邮箱验证码（绑定或更换邮箱）*/
-  sendEmailCode(email: string) {
-    return request({
-      url: `${USER_BASE_URL}/email/code`,
-      method: "post",
-      params: { email: email },
-    });
-  },
-
-  /** 绑定或更换邮箱 */
-  bindOrChangeEmail(data: EmailUpdateForm) {
-    return request({
-      url: `${USER_BASE_URL}/email`,
-      method: "put",
-      data: data,
-    });
-  },
-
-  /**
-   *  获取用户下拉列表
-   */
-  getOptions() {
-    return request<any, OptionType[]>({
-      url: `${USER_BASE_URL}/options`,
-      method: "get",
     });
   },
 };
@@ -215,20 +139,15 @@ export default UserAPI;
 /** 登录用户信息 */
 export interface UserInfo {
   /** 用户ID */
-  userId?: string;
-
+  id?: string;
   /** 用户名 */
   username?: string;
-
   /** 昵称 */
   nickname?: string;
-
   /** 头像URL */
   avatar?: string;
-
   /** 角色 */
   roles: string[];
-
   /** 权限 */
   perms: string[];
 }
@@ -237,122 +156,72 @@ export interface UserInfo {
  * 用户分页查询对象
  */
 export interface UserPageQuery extends PageQuery {
-  /** 搜索关键字 */
-  keywords?: string;
-
-  /** 用户状态 */
-  status?: number;
-
-  /** 部门ID */
-  deptId?: string;
-
-  /** 开始时间 */
-  createTime?: [string, string];
-}
-
-/** 用户分页对象 */
-export interface UserPageVO {
-  /** 用户ID */
-  id: string;
-  /** 用户头像URL */
-  avatar?: string;
-  /** 创建时间 */
-  createTime?: Date;
-  /** 部门名称 */
-  deptName?: string;
-  /** 用户邮箱 */
-  email?: string;
-  /** 性别 */
-  gender?: number;
-  /** 手机号 */
-  mobile?: string;
-  /** 用户昵称 */
-  nickname?: string;
-  /** 角色名称，多个使用英文逗号(,)分割 */
-  roleNames?: string;
-  /** 用户状态(1:启用;0:禁用) */
-  status?: number;
   /** 用户名 */
   username?: string;
+  /** 昵称 */
+  nickname?: string;
+  /** 邮箱 */
+  email?: string;
 }
 
 /** 用户表单类型 */
 export interface UserForm {
   /** 用户ID */
   id?: string;
-  /** 用户头像 */
-  avatar?: string;
-  /** 部门ID */
-  deptId?: string;
-  /** 邮箱 */
-  email?: string;
-  /** 性别 */
-  gender?: number;
-  /** 手机号 */
-  mobile?: string;
-  /** 昵称 */
-  nickname?: string;
-  /** 角色ID集合 */
-  roleIds?: number[];
-  /** 用户状态(1:正常;0:禁用) */
-  status?: number;
   /** 用户名 */
   username?: string;
+  /** 昵称 */
+  nickname?: string;
+  /** 邮箱 */
+  email?: string;
+  /** 用户头像 */
+  avatar?: string;
+  /** 角色ID，逗号分隔 */
+  roles?: string;
+  /** 状态 */
+  state?: string;
+  /** 排序 */
+  rank?: number;
+}
+
+/** 用户分页对象 */
+export interface UserPageVO extends UserForm {
+  /** 创建人 */
+  createBy: string;
+  /** 创建时间 */
+  createAt: string;
+  /** 更新人 */
+  updateBy: string;
+  /** 更新时间 */
+  updateAt: string;
 }
 
 /** 个人中心用户信息 */
 export interface UserProfileVO {
   /** 用户ID */
   id?: string;
-
   /** 用户名 */
   username?: string;
-
   /** 昵称 */
   nickname?: string;
-
   /** 头像URL */
   avatar?: string;
-
-  /** 性别 */
-  gender?: number;
-
-  /** 手机号 */
-  mobile?: string;
-
   /** 邮箱 */
   email?: string;
-
-  /** 部门名称 */
-  deptName?: string;
-
   /** 角色名称，多个使用英文逗号(,)分割 */
-  roleNames?: string;
-
-  /** 创建时间 */
-  createTime?: Date;
+  roles?: string;
 }
 
 /** 个人中心用户信息表单 */
 export interface UserProfileForm {
   /** 用户ID */
   id?: string;
-
   /** 用户名 */
   username?: string;
-
   /** 昵称 */
   nickname?: string;
-
   /** 头像URL */
   avatar?: string;
-
-  /** 性别 */
-  gender?: number;
-
-  /** 手机号 */
-  mobile?: string;
-
   /** 邮箱 */
   email?: string;
 }
@@ -365,20 +234,4 @@ export interface PasswordChangeForm {
   newPassword?: string;
   /** 确认新密码 */
   confirmPassword?: string;
-}
-
-/** 修改手机表单 */
-export interface MobileUpdateForm {
-  /** 手机号 */
-  mobile?: string;
-  /** 验证码 */
-  code?: string;
-}
-
-/** 修改邮箱表单 */
-export interface EmailUpdateForm {
-  /** 邮箱 */
-  email?: string;
-  /** 验证码 */
-  code?: string;
 }

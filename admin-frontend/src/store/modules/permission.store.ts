@@ -3,7 +3,7 @@ import { constantRoutes } from "@/router";
 import { store } from "@/store";
 import router from "@/router";
 
-import MenuAPI, { type RouteVO } from "@/api/system/menu.api";
+import AuthAPI, { type RouteVO } from "@/api/auth.api";
 const modules = import.meta.glob("../../views/**/**.vue");
 const Layout = () => import("@/layout/index.vue");
 
@@ -21,9 +21,8 @@ export const usePermissionStore = defineStore("permission", () => {
    * @returns Promise<RouteRecordRaw[]> 解析后的动态路由列表
    */
   function generateRoutes() {
-    /*
     return new Promise<RouteRecordRaw[]>((resolve, reject) => {
-      MenuAPI.getRoutes()
+      AuthAPI.getRoutes()
         .then((data) => {
           const dynamicRoutes = parseDynamicRoutes(data);
           routes.value = [...constantRoutes, ...dynamicRoutes];
@@ -34,8 +33,6 @@ export const usePermissionStore = defineStore("permission", () => {
           reject(error);
         });
     });
-    */
-    routes.value = constantRoutes;
   }
 
   /**

@@ -58,36 +58,6 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import("@/views/profile/index.vue"),
         meta: { title: "个人中心", icon: "user", hidden: true },
       },
-      {
-        path: "config",
-        name: "Config",
-        component: () => import("@/views/gate/config/index.vue"),
-        meta: { title: "配置管理", icon: "el-icon-Setting" },
-      },
-      {
-        path: "route",
-        name: "Route",
-        component: () => import("@/views/gate/route/index.vue"),
-        meta: { title: "路由管理", icon: "el-icon-Aim" },
-      },
-      {
-        path: "interceptor",
-        name: "Interceptor",
-        component: () => import("@/views/gate/interceptor/index.vue"),
-        meta: { title: "拦截器管理", icon: "el-icon-Filter" },
-      },
-      {
-        path: "module",
-        name: "Module",
-        component: () => import("@/views/gate/module/index.vue"),
-        meta: { title: "代码管理", icon: "code" },
-      },
-      {
-        path: "user",
-        name: "User",
-        component: () => import("@/views/system/user/index.vue"),
-        meta: { title: "用户管理", icon: "el-icon-User" },
-      },
     ],
   },
 ];

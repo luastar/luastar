@@ -278,6 +278,8 @@ const formData = reactive<RouteForm>({
   level: "user",
   code: "",
   path: "",
+  mcode: "",
+  mfunc: "",
   state: "enable",
 });
 
@@ -337,7 +339,7 @@ async function initOptions() {
   ConfigAPI.getConfigContent<OptionType[]>("route.type").then((data) => {
     typeOptions.value = data;
   });
-  ModuleAPI.getHintModuleList<CodeName[]>("controller").then((data) => {
+  ModuleAPI.getHintModuleList("controller").then((data) => {
     moduleOptions.value = data;
   });
 }
@@ -483,7 +485,7 @@ function handleFuncFilter(queryString: string) {
 
 // 代码模块函数提示聚焦
 function handleFuncFocus() {
-  ModuleAPI.getHintModuleFuncList<CodeName[]>(formData.mcode).then((data) => {
+  ModuleAPI.getHintModuleFuncList(formData.mcode).then((data) => {
     moduleFuncOptions.value = data;
   });
 }

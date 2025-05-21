@@ -272,7 +272,10 @@ const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600
 const formData = reactive<InterceptorForm>({
   level: "user",
   code: "",
-  path: "",
+  routes: "",
+  mcode: "",
+  mfunc_before: "",
+  mfunc_after: "",
   state: "enable",
 });
 
@@ -310,7 +313,7 @@ async function handleQuery() {
 
 // 初始化选项
 async function initOptions() {
-  ModuleAPI.getHintModuleList<CodeName[]>("interceptor").then((data) => {
+  ModuleAPI.getHintModuleList("interceptor").then((data) => {
     moduleOptions.value = data;
   });
 }
@@ -454,7 +457,7 @@ function handleFuncFilter(queryString: string) {
 
 // 代码模块函数提示聚焦
 function handleFuncFocus() {
-  ModuleAPI.getHintModuleFuncList<CodeName[]>(formData.mcode).then((data) => {
+  ModuleAPI.getHintModuleFuncList(formData.mcode).then((data) => {
     moduleFuncOptions.value = data;
   });
 }
