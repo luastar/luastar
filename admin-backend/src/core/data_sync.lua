@@ -9,6 +9,34 @@ local ngx_thread_wait = ngx.thread.wait
 local _M = {}
 
 --[[
+同步配置信息
+--]]
+function _M.sync_config()
+  local mysql_service = ls_cache.get_bean("mysql_service")
+  local sql = [[ select * from ls_config where state = 'enable'; ]]
+  local res, err, errcode, sqlstate = mysql_service:query(sql)
+  if not res then
+    logger.error("获取配置信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
+    return
+  end
+  local dict = ngx.shared.dict_ls_configs
+  if _.isEmpty(res) then
+    dict:flush_all()
+    return
+  end
+  for k, v in pairs(res) do
+    local config_info = {
+      vtype = v["vtype"],
+      vcontent = v["vcontent"],
+    }
+    local ok, err = dict:safe_set(v["code"], cjson.encode(config_info))
+    if not ok then
+      logger.error("保存配置信息到字典失败 : id = ", v.id, ", err = ", err)
+    end
+  end
+end
+
+--[[
 同步路由信息
 --]]
 function _M.sync_route()
@@ -19,7 +47,11 @@ function _M.sync_route()
     logger.error("获取路由信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
     return
   end
-  -- logger.info("获取路由信息成功 : ", cjson.encode(res))
+  local dict = ngx.shared.dict_ls_routes
+  if _.isEmpty(res) then
+    dict:flush_all()
+    return
+  end
   local routes_table = {}
   for k, v in pairs(res) do
     table.insert(routes_table, {
@@ -32,12 +64,9 @@ function _M.sync_route()
       params = v.params
     })
   end
-  local dict = ngx.shared.dict_ls_routes
   local routes_str = cjson.encode(routes_table)
   local ok, err = dict:safe_set("routes", routes_str)
-  if ok then
-    -- logger.info("保存路由信息到字典成功 : ", routes_str)
-  else
+  if not ok then
     logger.error("保存路由信息到字典失败 : err = ", err)
   end
 end
@@ -51,6 +80,11 @@ function _M.sync_interceptor()
   local res, err, errcode, sqlstate = mysql_service:query(sql)
   if not res then
     logger.error("获取拦截器信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
+    return
+  end
+  local dict = ngx.shared.dict_ls_interceptors
+  if _.isEmpty(res) then
+    dict:flush_all()
     return
   end
   local interceptors_table = {}
@@ -69,7 +103,6 @@ function _M.sync_interceptor()
       params = v.params
     })
   end
-  local dict = ngx.shared.dict_ls_interceptors
   local interceptors_str = cjson.encode(interceptors_table)
   local ok, err = dict:safe_set("interceptors", interceptors_str)
   if not ok then
@@ -89,6 +122,10 @@ function _M.sync_module()
     return
   end
   local dict = ngx.shared.dict_ls_modules
+  if _.isEmpty(res) then
+    dict:flush_all()
+    return
+  end
   for k, v in pairs(res) do
     local ok, err = dict:safe_set(v.code, v.content)
     if not ok then
@@ -98,39 +135,19 @@ function _M.sync_module()
 end
 
 --[[
-同步配置信息
---]]
-function _M.sync_config()
-  local mysql_service = ls_cache.get_bean("mysql_service")
-  local sql = [[ select * from ls_config where state = 'enable'; ]]
-  local res, err, errcode, sqlstate = mysql_service:query(sql)
-  if not res then
-    logger.error("获取配置信息失败 : err = ", err, ", errcode = ", errcode, ", sqlstate = ", sqlstate)
-    return
-  end
-  local dict = ngx.shared.dict_ls_configs
-  for k, v in pairs(res) do
-    local config_info = {
-      code = v.code,
-      vtype = v.vtype,
-      vcontent = v.vcontent,
-    }
-    local ok, err = dict:safe_set(v.id, cjson.encode(config_info))
-    if not ok then
-      logger.error("保存配置信息到字典失败 : id = ", v.id, ", err = ", err)
-    end
-  end
-end
-
---[[
 同步所有信息
 --]]
 function _M.sync()
+  local thread_sync_config = ngx_thread_spawn(_M.sync_config)
   local thread_sync_route = ngx_thread_spawn(_M.sync_route)
   local thread_sync_interceptor = ngx_thread_spawn(_M.sync_interceptor)
   local thread_sync_module = ngx_thread_spawn(_M.sync_module)
-  local thread_sync_config = ngx_thread_spawn(_M.sync_config)
-  ngx_thread_wait(thread_sync_route, thread_sync_interceptor, thread_sync_module, thread_sync_config)
+  ngx_thread_wait(
+    thread_sync_config,
+    thread_sync_route,
+    thread_sync_interceptor,
+    thread_sync_module
+  )
 end
 
 return _M

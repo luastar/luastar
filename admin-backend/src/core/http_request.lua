@@ -12,6 +12,9 @@ function _M:new()
   logger.debug("[Request init] start.")
   local instance = {
     schema = ngx.var.schema,
+    host = ngx.var.host,
+    server_addr = ngx.var.server_addr,
+    server_port = ngx.var.server_port,
     uri = ngx.var.uri,
     request_method = ngx.var.request_method,
     request_uri = ngx.var.request_uri,

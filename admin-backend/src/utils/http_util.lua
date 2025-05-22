@@ -9,7 +9,7 @@ local _M = {}
 -- 私有方法
 -- 格式化字符串
 local fmt = function(p, ...)
-  if select('#', ...) == 0 then
+  if select("#", ...) == 0 then
     return p
   else
     return string.format(p, ...)
@@ -120,16 +120,17 @@ end
 {
     url = "", -- 请求链接
     method = "POST", -- http方法, 默认：GET
-    timeout = timeout, -- 请求超时时间，默认：30秒
     headers = { content-type="application/x-www-form-urlencoded" }, -- 请求头信息
     params = { a="1", b="2" }, -- 请求参数
     body = "", -- 请求体
+    connect_timeout = 6000, -- 连接超时时间
+    send_timeout = 600000, -- 发送超时时间
+    read_timeout = 600000, -- 读取超时时间
     keepalive = true, -- 是否保持连接
     keepalive_timeout = 600000, -- 连接池超时时间
     keepalive_pool = 256 -- 连接池大小
 }
-返回结果：
-res_status, res_headers, res_body
+返回结果：{ status, headers, body }
 --]===]
 function _M.request(options)
   -- 参数校验
@@ -141,11 +142,13 @@ function _M.request(options)
   -- 设置默认值
   options = _.defaults(options, {
     method = "GET",
-    timeout = 60000,
     headers = {},
+    connect_timeout = 6000,
+    send_timeout = 600000,
+    read_timeout = 600000,
     keepalive = true,
     keepalive_timeout = 600000, -- 单位是ms
-    keepalive_pool = 512
+    keepalive_pool = 256
   })
   -- 设置 trace_id
   options["headers"]["trace_id"] = ngx.ctx.trace_id
@@ -165,19 +168,15 @@ function _M.request(options)
       options["headers"]["Content-Type"] = content_type
     end
   end
-  -- 请求http
-  local http_instance = http:new()
-  http_instance:set_timeout(options["timeout"])
-  local res, err = http_instance:request_uri(options["url"], options)
-  if err == "closed" then
-    logger.error("request_http connection closed，retry")
-    res, err = http_instance:request_uri(options["url"], options)
-  end
+  -- 发起 http 请求
+  local httpc = http:new()
+  httpc:set_timeouts(options["connect_timeout"], options["send_timeout"], options["read_timeout"])
+  local res, err = httpc:request_uri(options["url"], options)
   if not res then
-    logger.error("request_http fail，url=", options["url"], ", err=", err)
-    return 500, nil, err
+    logger.error("request fail : url = ", options["url"], ", err = ", err)
+    return nil
   end
-  return res.status, res.headers, res.body
+  return res
 end
 
 return _M
