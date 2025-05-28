@@ -10,7 +10,11 @@
   "[lua]": {
     "editor.defaultFormatter": "sumneko.lua"
   },
-  "Lua.diagnostics.disable": ["need-check-nil"],
+  "Lua.diagnostics.disable": [
+    "need-check-nil",
+    "cast-local-type",
+    "undefined-field"
+  ],
   "Lua.format.defaultConfig": {
     "indent_style": "space",
     "indent_size": "2",

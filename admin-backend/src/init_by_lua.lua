@@ -12,7 +12,12 @@ local cache = require "core.cache"
 cjson.encode_empty_table_as_object(false)
 
 -- 定义全局变量
-_G.LUASTAR_CACHE = {}
+local LUASTAR_PATH = os.getenv("LUASTAR_PATH") or ""
+local LUASTAR_CONFIG_FILE = os.getenv("LUASTAR_CONFIG_FILE") or ""
+_G.LUASTAR_CACHE = {
+    LUASTAR_PATH = LUASTAR_PATH,
+    LUASTAR_CONFIG_FILE = LUASTAR_PATH .. LUASTAR_CONFIG_FILE,
+}
 _G._ = _
 _G.cjson = cjson
 _G.logger = logger
