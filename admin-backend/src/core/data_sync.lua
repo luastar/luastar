@@ -55,13 +55,14 @@ function _M.sync_route()
   local routes_table = {}
   for k, v in pairs(res) do
     table.insert(routes_table, {
-      code = v.code,
-      path = v.path,
-      method = v.method,
-      mode = v.mode,
-      mcode = v.mcode,
-      mfunc = v.mfunc,
-      params = v.params
+      type = v["type"] or "unknown",
+      code = v["code"],
+      path = v["path"],
+      method = v["method"],
+      mode = v["mode"],
+      mcode = v["mcode"],
+      mfunc = v["mfunc"],
+      params = v["params"]
     })
   end
   local routes_str = cjson.encode(routes_table)

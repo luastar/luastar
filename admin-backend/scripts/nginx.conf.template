@@ -66,6 +66,8 @@ http {
   lua_shared_dict dict_ls_interceptors 64m;
   lua_shared_dict dict_ls_modules 256m;
   lua_shared_dict dict_ls_configs 64m;
+  lua_shared_dict dict_ls_traffic 64m;
+  lua_shared_dict dict_ls_stats 64m;
   lua_shared_dict dict_ls_tokens 64m;
 
   # 设置 Lua 包路径(';;'为默认路径)
@@ -110,7 +112,9 @@ http {
     # 网关入口
     location / {
       default_type 'text/plain';
+      access_by_lua_file '${LUASTAR_PATH}/admin-backend/src/access_by_lua.lua';
       content_by_lua_file '${LUASTAR_PATH}/admin-backend/src/content_by_lua.lua';
+      log_by_lua_file '${LUASTAR_PATH}/admin-backend/src/log_by_lua.lua';
     }
 
   }
@@ -126,7 +130,9 @@ http {
     # 后端路由
     location ^~/api/admin/ {
       default_type 'text/plain';
+      access_by_lua_file '${LUASTAR_PATH}/admin-backend/src/access_by_lua.lua';
       content_by_lua_file '${LUASTAR_PATH}/admin-backend/src/content_by_lua.lua';
+      log_by_lua_file '${LUASTAR_PATH}/admin-backend/src/log_by_lua.lua';
     }
 
     # 前端路由

@@ -35,6 +35,7 @@ function _M.content()
     ngx.exit(404)
     return
   end
+  ngx.ctx.matched_route = matched_route
   -- 匹配拦截器
   local interceptor = require "core.interceptor"
   local matched_interceptor = interceptor:match_interceptor(ngx.var.uri, ngx.var.request_method)
@@ -84,8 +85,8 @@ function _M.handle(matched_route)
   local ok, err = module.execute(matched_route["mcode"], matched_route["mfunc"], matched_route["params"])
   if not ok then
     logger.error("执行路由控制器失败：code = ", matched_route["code"], ", err = ", err)
-    ngx.ctx.response:writeln(res_util.error(err))
     ngx.status = 500
+    ngx.ctx.response:writeln(res_util.error(err))
   end
 end
 
@@ -101,8 +102,8 @@ function _M.handle_after(matched_interceptor)
     local ok, err = module.execute(v["mcode"], v["mfunc_after"], v["params"])
     if not ok then
       logger.error("执行拦截器后置方法失败：code = ", v["code"], ", err = ", err)
-      ngx.ctx.response:writeln(res_util.error(err))
       ngx.status = 500
+      ngx.ctx.response:writeln(res_util.error(err))
       return
     end
   end

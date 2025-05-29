@@ -6,7 +6,7 @@ export LUASTAR_CONFIG_FILE="/admin-backend/config/app_dev.lua"
 
 # 脚本变量
 PROGNAME=/Users/zhuminghua/Documents/apps/openresty-1.27.1.1/bin/openresty
-RUNPATH="${LUASTAR_PATH}/admin-backend/scrpts"
+RUNPATH="${LUASTAR_PATH}/admin-backend/scripts"
 DESC="Openresty"
 
 # 替换变量，生成配置文件

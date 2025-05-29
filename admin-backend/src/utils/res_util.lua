@@ -37,6 +37,17 @@ function _M.invalid_refresh_token(msg)
   return cjson.encode(res)
 end
 
+function _M.too_many_requests(msg)
+  local res = {
+    traceId = ngx.ctx.trace_id,
+    success = false,
+    errCode = "429",
+    errMessage = msg or "Too Many Requests",
+  }
+  ngx.status = 429
+  return cjson.encode(res)
+end
+
 function _M.success(data, needFormat)
   local res = {
     traceId = ngx.ctx.trace_id,
@@ -67,6 +78,17 @@ function _M.error(msg)
     errMessage = msg or "System Error",
   }
   ngx.status = 500
+  return cjson.encode(res)
+end
+
+function _M.serivce_unavailable(msg)
+  local res = {
+    traceId = ngx.ctx.trace_id,
+    success = false,
+    errCode = "503",
+    errMessage = msg or "Service Unavailable",
+  }
+  ngx.status = 503
   return cjson.encode(res)
 end
 
