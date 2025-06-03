@@ -1,5 +1,6 @@
 local ngx = require "ngx"
 local config = require "core.config"
+local str_util = require "utils.str_util"
 local error_util = require "utils.error_util"
 
 local _M = {}
@@ -23,9 +24,9 @@ local STATE = {
 local DEFAULT_CONFIG = {
   -- 基础配置
   strategy = STRATEGY.SLOW_REQUEST_RATIO, -- 策略类型
-  stat_interval = 60,                     -- 统计时间窗口(秒)
+  time_window = 60,                       -- 时间窗口(秒)
   bucket_count = 10,                      -- 桶数量
-  min_request_amount = 5,                 -- 最小请求数
+  min_requests = 5,                       -- 最小请求数
   circuit_breaker_timeout = 30,           -- 熔断时长(秒)
   -- 慢调用比例策略配置
   slow_request_ratio = {
@@ -53,55 +54,57 @@ local DEFAULT_CONFIG = {
 function _M:new(res_key)
   -- 获取资源配置参数
   local breaker_config = config.get_config("circuit_breaker." .. res_key) or {}
-  local config = _.defaults(breaker_config, DEFAULT_CONFIG)
+  local current_config = _.defaults(breaker_config, DEFAULT_CONFIG)
   -- 参数校验
-  if config["stat_interval"] <= 1 then
-    error_util.throw("统计周期[stat_interval]不能小于1秒")
+  if current_config["time_window"] <= 1 then
+    error_util.throw("时间窗口[time_window]不能小于1秒")
   end
-  if config["bucket_count"] <= 1 then
+  if current_config["bucket_count"] <= 1 then
     error_util.throw("桶数量[bucket_count]不能小于1个")
   end
-  config["bucket_interval"] = config["stat_interval"] / config["bucket_count"]
-  -- 类实例属性
-  local instance = {
-    res_key = res_key,
-    config = config,
-    key_state = res_key .. ":state",
-    key_bucket_time = res_key .. ":bucket:time:",
-    key_bucket_request = res_key .. ":bucket:request:",
-    key_bucket_slow = res_key .. ":bucket:slow:",
-    key_bucket_error = res_key .. ":bucket:error:",
-    key_open_time = res_key .. ":open:time",
-    key_half_open_request = res_key .. ":half_open:request",
-    key_half_open_success = res_key .. ":half_open:success",
-  }
-  -- 初始化状态
+  current_config["bucket_interval"] = current_config["time_window"] / current_config["bucket_count"]
+  -- 存储字典
   local dict = ngx.shared.dict_ls_traffic
   if not dict then
     error_util.throw("字典[dict_ls_traffic]未配置")
   end
+  local key_prefix = "breaker:" .. str_util.md5(res_key)
+  -- 类实例属性
+  local instance = {
+    res_key = res_key,
+    config = current_config,
+    dict = dict,
+    key_state = key_prefix .. ":state",
+    key_bucket_time = key_prefix .. ":bucket:time:",
+    key_bucket_request = key_prefix .. ":bucket:request:",
+    key_bucket_slow = key_prefix .. ":bucket:slow:",
+    key_bucket_error = key_prefix .. ":bucket:error:",
+    key_open_time = key_prefix .. ":open:time",
+    key_half_open_request = key_prefix .. ":half_open:request",
+    key_half_open_success = key_prefix .. ":half_open:success",
+  }
+  -- 初始化状态
   local state = dict:get(instance.key_state)
   if not state then
     dict:set(instance.key_state, STATE.CLOSED)
   end
-  setmetatable(instance, mt)
-  return instance
+  return setmetatable(instance, mt)
 end
 
 -- 获取时间戳所在的桶索引
 function _M:get_bucket_index(current_time)
-  return math.floor((current_time % self.config["stat_interval"]) / self.config["bucket_interval"]) + 1
+  return math.floor((current_time % self.config["time_window"]) / self.config["bucket_interval"]) + 1
 end
 
 -- 获取时间戳的统计信息
 function _M:get_stat_info(current_time)
   -- 汇总每个桶的数据
-  local dict = ngx.shared.dict_ls_traffic
+  local dict = self.dict
   local amount_request, amount_slow, amount_error = 0, 0, 0
   for i = 1, self.config["bucket_count"] do
     local bucket_time = dict:get(self.key_bucket_time .. i) or 0
     -- 只统计时间窗口内的桶数据
-    if current_time - bucket_time <= self.config["stat_interval"] then
+    if current_time - bucket_time <= self.config["time_window"] then
       local bucket_request = dict:get(self.key_bucket_request .. i) or 0
       amount_request = amount_request + bucket_request
       local bucket_slow = dict:get(self.key_bucket_slow .. i) or 0
@@ -120,7 +123,7 @@ end
 -- 检查是否需要熔断
 function _M:check_circuit_breaker()
   -- 获取状态
-  local dict = ngx.shared.dict_ls_traffic
+  local dict = self.dict
   local state = dict:get(self.key_state)
 
   -- 如果是 OPEN 状态，检查是否应该进入 HALF_OPEN
@@ -149,7 +152,7 @@ function _M:check_circuit_breaker()
   local current_time = ngx.now()
   local stat_info = self:get_stat_info(current_time)
   -- 检查请求数是否达到最小阈值
-  if stat_info["amount_request"] < self.config["min_request_amount"] then
+  if stat_info["amount_request"] < self.config["min_requests"] then
     return false
   end
   -- 根据策略检查是否需要熔断
@@ -186,7 +189,7 @@ function _M:record_request()
   local is_slow = rt > self.config["slow_request_ratio"]["max_rt"]
   local is_error = ngx.status >= 500
   -- 检查桶是否过期，如果过期则重置
-  local dict = ngx.shared.dict_ls_traffic
+  local dict = self.dict
   local bucket_time = dict:get(self.key_bucket_time .. bucket_index) or 0
   if current_time - bucket_time > self.config["bucket_interval"] then
     -- 重置桶数据
