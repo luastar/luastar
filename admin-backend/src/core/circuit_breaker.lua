@@ -118,7 +118,7 @@ function _M:get_stat_info(current_time)
 end
 
 -- 检查是否需要熔断
-function _M.check_circuit_breaker(self)
+function _M:check_circuit_breaker()
   -- 获取状态
   local dict = ngx.shared.dict_ls_traffic
   local state = dict:get(self.key_state)
@@ -178,7 +178,7 @@ function _M.check_circuit_breaker(self)
 end
 
 -- 记录请求结果
-function _M:record_request(self)
+function _M:record_request()
   -- 获取当前时间和桶索引
   local current_time = ngx.now()
   local bucket_index = self:get_bucket_index(current_time)
@@ -216,7 +216,7 @@ function _M:record_request(self)
     if half_open_request >= self.config["half_open"]["min_sample_count"] then
       local success_rate = half_open_success / half_open_request
       -- 成功率达标，恢复服务
-      if success_rate >= self.config.config["half_open"]["success_threshold"] then
+      if success_rate >= self.config["half_open"]["success_threshold"] then
         dict:set(self.key_state, STATE.CLOSED)
         -- 重置所有桶的统计数据
         for i = 1, self.config["bucket_count"] do

@@ -23,11 +23,13 @@ handler = function(premature)
   data_sync.sync()
 end
 
--- 仅保持一个 worker 执行
-if ngx.worker.id() == 0 then
-  local ok, err = ngx_timer_at(0, handler)
-  if not ok then
-    logger.error("failed to create timer : ", err)
-    return
+do
+  -- 仅保持一个 worker 执行
+  if ngx.worker.id() == 0 then
+    local ok, err = ngx_timer_at(0, handler)
+    if not ok then
+      logger.error("failed to create timer : ", err)
+      return
+    end
   end
 end
