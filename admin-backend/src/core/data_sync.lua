@@ -1,6 +1,9 @@
 local ngx = require "ngx"
 local ngx_thread_spawn = ngx.thread.spawn
 local ngx_thread_wait = ngx.thread.wait
+local stats = require "core.access_stats"
+local sql_util = require "utils.sql_util"
+local str_util = require "utils.str_util"
 
 --[===[
 数据同步模块
@@ -136,9 +139,72 @@ function _M.sync_module()
 end
 
 --[[
-同步所有信息
+同步统计信息
 --]]
-function _M.sync()
+function _M.sync_stats()
+  -- 数据字典
+  local dict = ngx.shared[stats.KEYS.KEY_DICT_NAME]
+  if not dict then
+    return
+  end
+  -- 当前时间
+  local timestamp = math.floor(ngx.time() / 60) * 60
+  -- 开始时间
+  local start_time = timestamp - 120
+  -- 最后持久化时间
+  local last_persist_time = dict:get(stats.KEYS.KEY_LAST_PERSIST_TIME)
+  if last_persist_time then
+    start_time = last_persist_time + 60
+  end
+  -- 截止时间
+  local end_time = timestamp - 60
+  -- 获取统计数据
+  local stats_data = stats.get_stats_data(start_time, end_time)
+  -- 没有要持久化的数据
+  if _.isEmpty(stats_data) then
+    return
+  end
+  -- 保存到数据库
+  local mysql_service = ls_cache.get_bean("mysql_service")
+  for i, v in ipairs(stats_data) do
+    -- 先查询是否保存过
+    local sql_query = sql_util.fmt_sql(
+      [[ select * from ls_stats where type = #{type} and timestamp = #{timestamp};]],
+      v
+    )
+    local res, err, errcode, sqlstate = mysql_service:query(sql_query)
+    if _.isEmpty(res) then
+      -- 再保存到数据库
+      v["id"] = tostring(v["timestamp"]) .. "-" .. i
+      local sql_save = sql_util.fmt_sql(
+        [[
+          insert into ls_stats (
+            id, type, timestamp, timestamp_str,
+            value01, value02, value03, value04, value05,
+            create_by, create_at, update_by, update_at
+          ) values (
+            #{id}, #{type}, #{timestamp}, #{timestamp_str}, #{value01}, #{value02}, #{value03}, #{value04}, #{value05},
+            'admin', now(), 'admin', now()
+          );
+        ]],
+        v
+      )
+      local res, err, errcode, sqlstate = mysql_service:query(sql_save)
+      if not res then
+        logger.error("保存统计信息到数据库失败 : err = ", err)
+      end
+    end
+  end
+  -- 删除保存过的数据
+  stats.delete_stats_data(start_time, end_time)
+  -- 更新最后同步时间
+  dict:set(stats.KEYS.KEY_LAST_PERSIST_TIME, end_time)
+end
+
+--[[
+同步数据库信息到数据字典
+--]]
+function _M.sync_db_to_dict()
   local thread_sync_config = ngx_thread_spawn(_M.sync_config)
   local thread_sync_route = ngx_thread_spawn(_M.sync_route)
   local thread_sync_interceptor = ngx_thread_spawn(_M.sync_interceptor)
@@ -149,6 +215,13 @@ function _M.sync()
     thread_sync_interceptor,
     thread_sync_module
   )
+end
+
+--[[
+同步数据字典信息到数据库
+--]]
+function _M.sync_dict_to_db()
+  _M.sync_stats()
 end
 
 return _M

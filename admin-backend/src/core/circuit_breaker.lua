@@ -20,6 +20,9 @@ local STATE = {
   HALF_OPEN = "HALF_OPEN",
 }
 
+-- 默认失效时间
+local DEFAULT_TTL = 24 * 3600
+
 -- 默认配置
 local DEFAULT_CONFIG = {
   -- 基础配置
@@ -86,7 +89,7 @@ function _M:new(res_key)
   -- 初始化状态
   local state = dict:get(instance.key_state)
   if not state then
-    dict:set(instance.key_state, STATE.CLOSED)
+    dict:set(instance.key_state, STATE.CLOSED, DEFAULT_TTL)
   end
   return setmetatable(instance, mt)
 end
@@ -130,7 +133,7 @@ function _M:check_circuit_breaker()
   if state == STATE.OPEN then
     local last_open_time = dict:get(self.key_open_time) or 0
     if ngx.now() - last_open_time > self.config["circuit_breaker_timeout"] then
-      dict:set(self.key_state, STATE.HALF_OPEN)
+      dict:set(self.key_state, STATE.HALF_OPEN, DEFAULT_TTL)
       return false
     end
     return true
@@ -159,21 +162,21 @@ function _M:check_circuit_breaker()
   if self.config["strategy"] == STRATEGY.SLOW_REQUEST_RATIO then
     local slow_ratio = stat_info["amount_slow"] / stat_info["amount_request"]
     if slow_ratio > self.config["slow_request_ratio"]["threshold"] then
-      dict:set(self.key_state, STATE.OPEN)
-      dict:set(self.key_open_time, current_time)
+      dict:set(self.key_state, STATE.OPEN, DEFAULT_TTL)
+      dict:set(self.key_open_time, current_time, DEFAULT_TTL)
       return true
     end
   elseif self.config["strategy"] == STRATEGY.ERROR_RATIO then
     local error_ratio = stat_info["amount_error"] / stat_info["amount_request"]
     if error_ratio > self.config["error_ratio"]["threshold"] then
-      dict:set(self.key_state, STATE.OPEN)
-      dict:set(self.key_open_time, current_time)
+      dict:set(self.key_state, STATE.OPEN, DEFAULT_TTL)
+      dict:set(self.key_open_time, current_time, DEFAULT_TTL)
       return true
     end
   elseif self.config["strategy"] == STRATEGY.ERROR_COUNT then
     if stat_info["amount_error"] > self.config["error_count"]["threshold"] then
-      dict:set(self.key_state, STATE.OPEN)
-      dict:set(self.key_open_time, current_time)
+      dict:set(self.key_state, STATE.OPEN, DEFAULT_TTL)
+      dict:set(self.key_open_time, current_time, DEFAULT_TTL)
       return true
     end
   end
@@ -193,15 +196,22 @@ function _M:record_request()
   local bucket_time = dict:get(self.key_bucket_time .. bucket_index) or 0
   if current_time - bucket_time > self.config["bucket_interval"] then
     -- 重置桶数据
-    dict:set(self.key_bucket_time .. bucket_index, current_time)
-    dict:set(self.key_bucket_request .. bucket_index, 0)
-    dict:set(self.key_bucket_slow .. bucket_index, 0)
-    dict:set(self.key_bucket_error .. bucket_index, 0)
+    dict:set(self.key_bucket_time .. bucket_index, current_time, DEFAULT_TTL)
+    dict:set(self.key_bucket_request .. bucket_index, 0, DEFAULT_TTL)
+    dict:set(self.key_bucket_slow .. bucket_index, 0, DEFAULT_TTL)
+    dict:set(self.key_bucket_error .. bucket_index, 0, DEFAULT_TTL)
   else
     -- 更新桶数据
     dict:incr(self.key_bucket_request .. bucket_index, 1, 0)
-    if is_slow then dict:incr(self.key_bucket_slow .. bucket_index, 1, 0) end
-    if is_error then dict:incr(self.key_bucket_error .. bucket_index, 1, 0) end
+    dict:expire(self.key_bucket_request .. bucket_index, DEFAULT_TTL)
+    if is_slow then
+      dict:incr(self.key_bucket_slow .. bucket_index, 1, 0)
+      dict:expire(self.key_bucket_slow .. bucket_index, DEFAULT_TTL)
+    end
+    if is_error then
+      dict:incr(self.key_bucket_error .. bucket_index, 1, 0)
+      dict:expire(self.key_bucket_error .. bucket_index, DEFAULT_TTL)
+    end
   end
 
   -- 半开状态数据更新
@@ -209,8 +219,10 @@ function _M:record_request()
   if state == STATE.HALF_OPEN then
     -- 记录请求数和成功数
     dict:incr(self.key_half_open_request, 1, 0)
+    dict:expire(self.key_half_open_request, DEFAULT_TTL)
     if not is_slow and not is_error then
       dict:incr(self.key_half_open_success, 1, 0)
+      dict:expire(self.key_half_open_success, DEFAULT_TTL)
     end
     -- 获取统计信息
     local half_open_request = dict:get(self.key_half_open_request) or 0
@@ -223,21 +235,21 @@ function _M:record_request()
         dict:set(self.key_state, STATE.CLOSED)
         -- 重置所有桶的统计数据
         for i = 1, self.config["bucket_count"] do
-          dict:set(self.key_bucket_time .. i, ngx.now())
-          dict:set(self.key_bucket_request .. i, 0)
-          dict:set(self.key_bucket_slow .. i, 0)
-          dict:set(self.key_bucket_error .. i, 0)
+          dict:set(self.key_bucket_time .. i, ngx.now(), DEFAULT_TTL)
+          dict:set(self.key_bucket_request .. i, 0, DEFAULT_TTL)
+          dict:set(self.key_bucket_slow .. i, 0, DEFAULT_TTL)
+          dict:set(self.key_bucket_error .. i, 0, DEFAULT_TTL)
         end
         -- 重置半开状态统计
-        dict:set(self.key_half_open_request, 0)
-        dict:set(self.key_half_open_success, 0)
+        dict:set(self.key_half_open_request, 0, DEFAULT_TTL)
+        dict:set(self.key_half_open_success, 0, DEFAULT_TTL)
         -- 失败率达标，重新熔断
       elseif success_rate <= self.config["half_open"]["failure_threshold"] then
-        dict:set(self.key_state, STATE.OPEN)
-        dict:set(self.key_open_time, ngx.now())
+        dict:set(self.key_state, STATE.OPEN, DEFAULT_TTL)
+        dict:set(self.key_open_time, ngx.now(), DEFAULT_TTL)
         -- 重置半开状态统计
-        dict:set(self.key_half_open_request, 0)
-        dict:set(self.key_half_open_success, 0)
+        dict:set(self.key_half_open_request, 0, DEFAULT_TTL)
+        dict:set(self.key_half_open_success, 0, DEFAULT_TTL)
       end
     end
   end
