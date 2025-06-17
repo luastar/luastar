@@ -1,9 +1,8 @@
 local ngx = require "ngx"
 local ngx_thread_spawn = ngx.thread.spawn
 local ngx_thread_wait = ngx.thread.wait
-local stats = require "core.access_stats"
+local stats = require "core.stats"
 local sql_util = require "utils.sql_util"
-local str_util = require "utils.str_util"
 
 --[===[
 数据同步模块

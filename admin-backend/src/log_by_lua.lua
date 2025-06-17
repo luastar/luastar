@@ -1,4 +1,4 @@
-local stats = require "core.access_stats"
+local stats = require "core.stats"
 
 -- 执行
 do

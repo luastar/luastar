@@ -28,6 +28,45 @@
         </div>
       </div>
     </el-card>
+
+    <!-- 数据统计 -->
+    <el-row :gutter="10" class="mt-5">
+      <!-- 请求量 -->
+      <el-col :xs="24" :span="12">
+        <el-card>
+          <template #header>
+            <div class="flex-x-between">
+              <span>请求数量（近1小时）</span>
+            </div>
+          </template>
+          <ECharts :options="requestsChartOptions" height="400px" />
+        </el-card>
+      </el-col>
+      <!-- 请求响应时间 -->
+      <el-col :xs="24" :span="12">
+        <el-card>
+          <template #header>
+            <div class="flex-x-between">
+              <span>请求响应时间（近1小时）</span>
+            </div>
+          </template>
+          <ECharts :options="responseTimeChartOptions" height="400px" />
+        </el-card>
+      </el-col>
+    </el-row>
+    <el-row :gutter="10" class="mt-5">
+      <!-- 请求状态码 -->
+      <el-col :xs="24" :span="12">
+        <el-card>
+          <template #header>
+            <div class="flex-x-between">
+              <span>请求状态码（近1小时）</span>
+            </div>
+          </template>
+          <ECharts :options="statusChartOptions" height="400px" />
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -37,6 +76,8 @@ defineOptions({
   inheritAttrs: false,
 });
 
+import { dayjs } from "element-plus";
+import StatsAPI, { StatsData } from "@/api/gate/stats.api";
 import { useUserStore } from "@/store/modules/user.store";
 
 const userStore = useUserStore();
@@ -60,6 +101,182 @@ const greetings = computed(() => {
     return "偷偷向银河要了一把碎星，只等你闭上眼睛撒入你的梦中，晚安🌛！";
   }
 });
+
+// 请求数数图表配置
+const requestsChartOptions = ref();
+// 响应时间图表配置
+const responseTimeChartOptions = ref();
+// 状态码图表配置
+const statusChartOptions = ref();
+
+/**
+ * 获取统计数据，并更新图表配置
+ */
+const fetchStatsData = () => {
+  const startDate = Math.floor(dayjs().subtract(60, "minute").toDate().getTime() / 1000);
+  const endDate = Math.floor(new Date().getTime() / 1000);
+  // 获取请求数数据
+  StatsAPI.getData({
+    type: "requests",
+    start_time: startDate,
+    end_time: endDate,
+  }).then((data) => {
+    updateRequestsChartOptions(data);
+    updateResponseTimeChartOptions(data);
+  });
+  // 获取状态码数据
+  StatsAPI.getData({
+    type: "status",
+    start_time: startDate,
+    end_time: endDate,
+  }).then((data) => {
+    updateStatusChartOptions(data);
+  });
+};
+
+/**
+ * 更新请求数图表的配置项
+ *
+ * @param data - 统计数据
+ */
+const updateRequestsChartOptions = (data: StatsData[]) => {
+  requestsChartOptions.value = {
+    tooltip: {
+      trigger: "axis",
+    },
+    xAxis: {
+      type: "category",
+      data: data.map((item) => item.timestamp_str),
+    },
+    yAxis: {
+      type: "value",
+      splitLine: {
+        show: true,
+        lineStyle: {
+          type: "dashed",
+        },
+      },
+    },
+    series: [
+      {
+        name: "请求数",
+        type: "line",
+        data: data.map((item) => item.value01 || 0),
+      },
+    ],
+  };
+};
+
+/**
+ * 更新响应时间图表的配置项
+ *
+ * @param data - 统计数据
+ */
+const updateResponseTimeChartOptions = (data: StatsData[]) => {
+  responseTimeChartOptions.value = {
+    tooltip: {
+      trigger: "axis",
+    },
+    legend: {
+      bottom: 0,
+      data: ["最大响应时间", "平均响应时间"],
+    },
+    xAxis: {
+      type: "category",
+      data: data.map((item) => item.timestamp_str),
+    },
+    yAxis: {
+      type: "value",
+      splitLine: {
+        show: true,
+        lineStyle: {
+          type: "dashed",
+        },
+      },
+    },
+    series: [
+      {
+        name: "最大响应时间",
+        type: "line",
+        data: data.map((item) => item.value02 || 0),
+      },
+      {
+        name: "平均响应时间",
+        type: "line",
+        data: data.map((item) => item.value03 || 0),
+      },
+    ],
+  };
+};
+
+/**
+ * 更新状态图表的配置项
+ *
+ * @param data - 统计数据
+ */
+const updateStatusChartOptions = (data: StatsData[]) => {
+  statusChartOptions.value = {
+    tooltip: {
+      trigger: "axis",
+    },
+    legend: {
+      bottom: 0,
+      data: ["2xx", "3xx", "4xx", "5xx"],
+    },
+    xAxis: {
+      type: "category",
+      data: data.map((item) => item.timestamp_str),
+    },
+    yAxis: {
+      type: "value",
+      splitLine: {
+        show: true,
+        lineStyle: {
+          type: "dashed",
+        },
+      },
+    },
+    series: [
+      {
+        name: "2xx",
+        type: "line",
+        data: data.map((item) => item.value01 || 0),
+      },
+      {
+        name: "3xx",
+        type: "line",
+        data: data.map((item) => item.value02 || 0),
+      },
+      {
+        name: "4xx",
+        type: "line",
+        data: data.map((item) => item.value03 || 0),
+      },
+      {
+        name: "5xx",
+        type: "line",
+        data: data.map((item) => item.value04 || 0),
+      },
+    ],
+  };
+};
+
+// 定时刷新数据
+let refreshTimer: ReturnType<typeof setInterval> | null = null;
+const startRefreshTimer = () => {
+  refreshTimer = setInterval(fetchStatsData, 60000);
+};
+
+onMounted(() => {
+  fetchStatsData();
+  startRefreshTimer();
+});
+
+onUnmounted(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -73,28 +290,6 @@ const greetings = computed(() => {
     right: 0;
     z-index: 1;
     border: 0;
-  }
-
-  .version-item {
-    padding: 16px;
-    margin-bottom: 12px;
-    background: var(--el-fill-color-lighter);
-    border-radius: 8px;
-    transition: all 0.2s;
-
-    &.latest-item {
-      background: var(--el-color-primary-light-9);
-      border: 1px solid var(--el-color-primary-light-5);
-    }
-    &:hover {
-      transform: translateX(5px);
-    }
-    .version-content {
-      margin-bottom: 12px;
-      font-size: 13px;
-      line-height: 1.5;
-      color: var(--el-text-color-secondary);
-    }
   }
 }
 </style>

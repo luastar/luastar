@@ -4,7 +4,7 @@
 local ngx = require "ngx"
 local request = require "core.request"
 local response = require "core.response"
-local stats = require "core.access_stats"
+local stats = require "core.stats"
 local res_util = require "utils.res_util"
 local str_util = require "utils.str_util"
 
@@ -12,8 +12,8 @@ local str_util = require "utils.str_util"
   初始化上下文
 --]]
 local function init_ctx()
-  -- 记录开始请求时间
-  ngx.ctx.start_time = ngx.now()
+  -- 记录开始请求时间（毫秒级）
+  ngx.ctx.start_time = ngx.now() * 1000
   -- 初始化输入输出
   ngx.ctx.request = request:new()
   ngx.ctx.response = response:new()
@@ -71,7 +71,6 @@ do
     ngx.say(msg)
     ngx.exit(500)
   end
-  -- 注册日志
   -- 匹配路由
   local route = require "core.route"
   local matched_route = route:match_route(ngx.var.uri, ngx.var.request_method)
@@ -81,6 +80,7 @@ do
     }, "")
     logger.error(msg)
     ngx.say(msg)
+    ngx.ctx.exit_status = 404 -- on_abort 回调函数通过 ngx.status 获取不到 ngx.exit(status)中的状态码
     ngx.exit(404)
     return
   end
