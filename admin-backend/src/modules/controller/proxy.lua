@@ -34,14 +34,13 @@ function _M.proxy(params)
   if not str_util.start_with(uri, "/") then
     uri = table.concat({ "/", uri })
   end
-  -- 代理方式 http 或 sub（适合返回值没有大数据量的请求）
+  -- 代理方式 sub（适合返回值没有大数据量的请求）、http（http转发）  或 http_sse（http 流式返回）
   local proxy_mode = params["mode"] or "sub"
   local method = string.upper(ngx.ctx.request.request_method)
-  local res
   if proxy_mode == "sub" then
-    -- 子请求到代理服务
+    -- 子请求
     ngx.ctx.proxy_project = params["project"]
-    res = ngx.location.capture(
+    local res = ngx.location.capture(
       "/proxy" .. uri,
       {
         args = ngx.ctx.request.query_string,
@@ -50,12 +49,18 @@ function _M.proxy(params)
       }
     )
     if not res then
-      for k, v in pairs(res.header) do
-        ngx.ctx.response:set_header(k, v)
-      end
+      ngx.ctx.response:set_status(500)
+      ngx.ctx.response:writeln("代理请求失败！")
+      return
     end
-  else
-    -- http请求到代理服务
+    -- 返回结果
+    for k, v in pairs(res.header) do
+      ngx.ctx.response:set_header(k, v)
+    end
+    ngx.ctx.response:set_status(res.status)
+    ngx.ctx.response:writeln(res.body)
+  else if proxy_mode == "http_sse" then
+    -- http sse
     local url_table = {
       "http://", ngx.var.server_addr, ":", ngx.var.server_port, "/proxy", uri,
     }
@@ -66,26 +71,54 @@ function _M.proxy(params)
     local headers = ngx.req.get_headers()
     -- 写入项目信息
     headers["x-proxy-project"] = params["project"]
-    res = http_util.request({
+    local res = http_util.request_sse({
+      url = table.concat(url_table, ""),
+      method = method,
+      headers = headers,
+      body = ngx.ctx.request:get_body(),
+      callback = function (data)
+        ngx.ctx.response:writeln(data)
+      end
+    })
+    if not res then
+      ngx.ctx.response:set_status(500)
+      ngx.ctx.response:writeln("代理请求失败！")
+      return
+    end
+    for k, v in pairs(res.header) do
+      ngx.ctx.response:set_header(k, v)
+    end
+    ngx.ctx.response:set_status(res.status)
+  else
+    -- http
+    local url_table = {
+      "http://", ngx.var.server_addr, ":", ngx.var.server_port, "/proxy", uri,
+    }
+    if not _.isEmpty(ngx.ctx.request.query_string) then
+      table.insert(url_table, "?")
+      table.insert(url_table, ngx.ctx.request.query_string)
+    end
+    local headers = ngx.req.get_headers()
+    -- 写入项目信息
+    headers["x-proxy-project"] = params["project"]
+    local res = http_util.request({
       url = table.concat(url_table, ""),
       method = method,
       headers = headers,
       body = ngx.ctx.request:get_body()
     })
     if not res then
-      for k, v in pairs(res["headers"]) do
-        ngx.ctx.response:set_header(k, v)
-      end
+      ngx.ctx.response:set_status(500)
+      ngx.ctx.response:writeln("代理请求失败！")
+      return
     end
+    -- 返回结果
+    for k, v in pairs(res.header) do
+      ngx.ctx.response:set_header(k, v)
+    end
+    ngx.ctx.response:set_status(res.status)
+    ngx.ctx.response:writeln(res.body)
   end
-  if not res then
-    ngx.ctx.response:set_status(500)
-    ngx.ctx.response:writeln("代理请求失败！")
-    return
-  end
-  -- 返回结果
-  ngx.ctx.response:set_status(res.status)
-  ngx.ctx.response:writeln(res.body)
 end
 
 return _M
