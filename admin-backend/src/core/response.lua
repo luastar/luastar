@@ -11,40 +11,24 @@ local mt = { __index = _M }
 function _M.new(self)
   logger.debug("[Response init] start.")
   local instance = {
-    _output = {},
-    _cookies = {},
-    _eof = false
+    _cookies = {}
   }
   return setmetatable(instance, mt)
 end
 
 -- 写入内容
 function _M:write(content)
-  if self._eof then
-    logger.error("response has been explicitly finished before.")
-    return
-  end
-  table.insert(self._output, content)
+  ngx.print(content)
 end
 
 -- 写入内容并换行
 function _M:writeln(content)
-  if self._eof then
-    logger.error("response has been explicitly finished before.")
-    return
-  end
-  table.insert(self._output, content)
-  table.insert(self._output, "\r\n")
+  ngx.say(content)
 end
 
--- 获取输出内容
-function _M:get_output()
-  return self._output
-end
-
--- 重置输出内容
-function _M:reset_output()
-  self._output = {}
+-- 刷新缓冲区
+function _M:flush(wait)
+  ngx.flush(wait)
 end
 
 -- 重定向
@@ -54,12 +38,7 @@ end
 
 -- 设置返回 http 状态
 function _M:set_status(status)
-  local res_status = tonumber(status)
-  if _.isEmpty(res_status) then
-    logger.error("response res_status is empty.")
-    return
-  end
-  ngx.status = res_status
+  ngx.status = status
 end
 
 -- 设置返回头
@@ -101,39 +80,36 @@ function _M:set_content_type_stream()
 end
 
 -- 设置 cookie
-local function _set_cookie_(key, value, encrypt, duration, path)
-  if not value then return nil end
-  if not key or key == "" or not value then
+function _M:set_cookie(key, value, encrypt, duration, path)
+  if _.isEmpty(key) or _.isEmpty(value) then
     return
   end
   if not duration or duration <= 0 then
-    duration = 604800     -- 7 days, 7*24*60*60 seconds
+    duration = 604800 -- 7 days, 7*24*60*60 seconds
   end
-  if not path or path == "" then
+  if _.isEmpty(path) then
     path = "/"
   end
-  if value and value ~= "" and encrypt == true then
+  if encrypt then
     value = ndk.set_var.set_encrypt_session(value)
     value = ndk.set_var.set_encode_base64(value)
   end
-  local expiretime = ngx.time() + duration
-  expiretime = ngx.cookie_time(expiretime)
-  return table.concat({ key, "=", value, "; expires=", expiretime, "; path=", path })
+  local expiretime = ngx.cookie_time(ngx.time() + duration)
+  self._cookies[key] = table.concat({ key, "=", value, "; expires=", expiretime, "; path=", path })
+  self:set_header("Set-Cookie", _.values(self._cookies))
 end
 
--- 设置 cookie
-function _M:set_cookie(key, value, encrypt, duration, path)
-  local cookie = _set_cookie_(key, value, encrypt, duration, path)
-  self._cookies[key] = cookie
+-- 删除 cookie
+function _M:remove_cookie(key)
+  if _.isEmpty(key) then
+    return
+  end
+  self._cookies[key] = nil
   self:set_header("Set-Cookie", _.values(self._cookies))
 end
 
 -- 设置为 500 错误
 function _M:error(info)
-  if self._eof then
-    logger.error("response has been explicitly finished before.")
-    return
-  end
   self:set_status(500)
   self:set_content_type_html()
   self:write(info)
@@ -141,17 +117,7 @@ end
 
 -- 结束返回
 function _M:finish()
-  if self._eof then
-    logger.error("response has been explicitly finished before.")
-    return
-  end
-  ngx.print(self._output)          -- 输出
-  self._output = nil               -- 清空内容
-  self._eof = true                 -- 标记结束
-  local ok, ret = pcall(ngx.eof)   -- 返回结束
-  if not ok then
-    logger.error("ngx.eof() error:" .. ret)
-  end
+  ngx.eof()
 end
 
 return _M

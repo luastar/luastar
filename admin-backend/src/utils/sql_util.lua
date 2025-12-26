@@ -111,9 +111,9 @@ local function fmt_sql_where(where, data)
     return " "
   end
   local rs = str_util.trim(table.concat(wt, " "))
-  if str_util.start_with(rs, "and") then
+  if str_util.start_with(string.lower(rs), "and") then
     rs = string.sub(rs, 4, string.len(rs))
-  elseif str_util.start_with(rs, "or") then
+  elseif str_util.start_with(string.lower(rs), "or") then
     rs = string.sub(rs, 3, string.len(rs))
   end
   return " where " .. rs

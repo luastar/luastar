@@ -157,7 +157,7 @@
         <el-form-item label="排除路由" prop="routes_exclude" tooltip="json数组">
           <template #label>
             <span>
-              拦截路由
+              排除路由
               <el-tooltip content="json数组。">
                 <QuestionFilled class="w-4 h-4 mx-1" />
               </el-tooltip>

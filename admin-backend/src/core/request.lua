@@ -2,6 +2,7 @@
 	http 请求模块
 --]]
 local ngx = require "ngx"
+local ndk = require "ndk"
 local upload = require "resty.upload"
 
 local _M = {}
