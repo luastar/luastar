@@ -110,14 +110,15 @@ end
 
 -- 设置为 500 错误
 function _M:error(info)
-  self:set_status(500)
+  self:set_status(ngx.HTTP_INTERNAL_SERVER_ERROR)
   self:set_content_type_html()
   self:write(info)
 end
 
 -- 结束返回
 function _M:finish()
-  ngx.eof()
+  -- ngx.eof()
+  ngx.exit(ngx.HTTP_OK)
 end
 
 return _M

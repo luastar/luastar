@@ -97,8 +97,9 @@ http {
     location ^~/api/admin/ {
       default_type 'text/plain';
       content_by_lua_block {
+        ngx.status = ngx.HTTP_FORBIDDEN
         ngx.say('Access Forbidden! ')
-        ngx.exit(403)
+        ngx.exit(ngx.HTTP_OK)
       }
     }
 
@@ -176,6 +177,22 @@ http {
         ngx.say("method: ".. ngx.var.request_method)
         ngx.say('this is the fake backend peer at 9002 ...')
       }
+    }
+  }
+
+  server {
+    listen 9003;
+    location / {
+      proxy_pass https://api.dify.ai;
+      proxy_set_header Host api.dify.ai;
+
+      proxy_connect_timeout 60s;
+      proxy_send_timeout 60s;
+      proxy_read_timeout 300s;
+
+      proxy_ssl_server_name on;
+      proxy_ssl_verify off;
+      proxy_ssl_protocols TLSv1.2 TLSv1.3;
     }
   }
 

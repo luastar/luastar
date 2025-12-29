@@ -47,8 +47,7 @@ local function handle_before(matched_interceptor)
     -- 调用失败
     if not execute_ok then
       logger.error("执行拦截器前置方法失败！code = ", v["code"], ", err = ", execute_res)
-      ngx.status = 500
-      ngx.ctx.response:writeln(res_util.error(execute_res))
+      ngx.ctx.response:error(res_util.error(execute_res))
       return false
     end
     -- 调用返回失败
@@ -68,8 +67,9 @@ do
   if not ok then
     local msg = "failed to register the on_abort callback: " .. err
     logger.error(msg)
+    ngx.status = ngx.HTTP_INTERNAL_SERVER_ERROR
     ngx.say(msg)
-    ngx.exit(500)
+    ngx.exit(ngx.HTTP_OK)
   end
   -- 匹配路由
   local route = require "core.route"
@@ -79,9 +79,9 @@ do
       "请求[path = ", ngx.var.uri, ", method = ", ngx.var.request_method, "]匹配不到路由！",
     }, "")
     logger.error(msg)
+    ngx.status = ngx.HTTP_NOT_FOUND
     ngx.say(msg)
-    ngx.ctx.exit_status = 404 -- on_abort 回调函数通过 ngx.status 获取不到 ngx.exit(status)中的状态码
-    ngx.exit(404)
+    ngx.exit(ngx.HTTP_OK)
     return
   end
   ngx.ctx.matched_route = matched_route
@@ -92,9 +92,7 @@ do
   -- 执行拦截前方法
   local ok = handle_before(matched_interceptor)
   if not ok then
-    -- 输出内容并退出
-    ngx.ctx.response:set_content_type_json()
-    ngx.ctx.response:finish()
-    ngx.exit()
+    -- 退出
+    ngx.exit(ngx.HTTP_OK)
   end
 end

@@ -54,12 +54,14 @@ function _M.proxy(params)
       return
     end
     -- 返回结果
-    for k, v in pairs(res.header) do
-      ngx.ctx.response:set_header(k, v)
+    if res.header then
+      for k, v in pairs(res.header) do
+        ngx.ctx.response:set_header(k, v)
+      end
     end
     ngx.ctx.response:set_status(res.status)
     ngx.ctx.response:writeln(res.body)
-  else if proxy_mode == "http_sse" then
+  elseif proxy_mode == "http_sse" then
     -- http sse
     local url_table = {
       "http://", ngx.var.server_addr, ":", ngx.var.server_port, "/proxy", uri,
@@ -76,8 +78,9 @@ function _M.proxy(params)
       method = method,
       headers = headers,
       body = ngx.ctx.request:get_body(),
-      callback = function (data)
-        ngx.ctx.response:writeln(data)
+      callback = function(data)
+        ngx.ctx.response:write(data)
+        ngx.ctx.response:flush(true)
       end
     })
     if not res then
@@ -85,10 +88,6 @@ function _M.proxy(params)
       ngx.ctx.response:writeln("代理请求失败！")
       return
     end
-    for k, v in pairs(res.header) do
-      ngx.ctx.response:set_header(k, v)
-    end
-    ngx.ctx.response:set_status(res.status)
   else
     -- http
     local url_table = {
@@ -113,8 +112,10 @@ function _M.proxy(params)
       return
     end
     -- 返回结果
-    for k, v in pairs(res.header) do
-      ngx.ctx.response:set_header(k, v)
+    if res.headers then
+      for k, v in pairs(res.headers) do
+        ngx.ctx.response:set_header(k, v)
+      end
     end
     ngx.ctx.response:set_status(res.status)
     ngx.ctx.response:writeln(res.body)

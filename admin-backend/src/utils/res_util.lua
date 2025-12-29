@@ -22,7 +22,7 @@ function _M.invalid_access_token(msg)
     errCode = "401",
     errMessage = msg or "Invalid Access Token",
   }
-  ngx.status = 401
+  ngx.status = ngx.HTTP_UNAUTHORIZED
   return cjson.encode(res)
 end
 
@@ -33,7 +33,7 @@ function _M.invalid_refresh_token(msg)
     errCode = "402",
     errMessage = msg or "Invalid Refresh Token",
   }
-  ngx.status = 402
+  ngx.status = ngx.HTTP_PAYMENT_REQUIRED
   return cjson.encode(res)
 end
 
@@ -44,7 +44,7 @@ function _M.too_many_requests(msg)
     errCode = "429",
     errMessage = msg or "Too Many Requests",
   }
-  ngx.status = 429
+  ngx.status = ngx.HTTP_TOO_MANY_REQUESTS
   return cjson.encode(res)
 end
 
@@ -77,7 +77,7 @@ function _M.error(msg)
     errCode = "500",
     errMessage = msg or "System Error",
   }
-  ngx.status = 500
+  ngx.status = ngx.HTTP_INTERNAL_SERVER_ERROR
   return cjson.encode(res)
 end
 
@@ -88,7 +88,7 @@ function _M.serivce_unavailable(msg)
     errCode = "503",
     errMessage = msg or "Service Unavailable",
   }
-  ngx.status = 503
+  ngx.status = ngx.HTTP_SERVICE_UNAVAILABLE
   return cjson.encode(res)
 end
 

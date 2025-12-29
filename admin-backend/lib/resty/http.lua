@@ -56,7 +56,7 @@ local HOP_BY_HOP_HEADERS = {
     ["transfer-encoding"]   = true,
     ["upgrade"]             = true,
     ["content-length"]      = true, -- Not strictly hop-by-hop, but Nginx will deal
-                                    -- with this (may send chunked for example).
+    -- with this (may send chunked for example).
 }
 
 
@@ -111,7 +111,7 @@ end
 
 
 local _M = {
-    _VERSION = '0.17.2',
+    _VERSION = "0.17.2",
 }
 _M._USER_AGENT = "lua-resty-http/" .. _M._VERSION .. " (Lua) ngx_lua/" .. ngx.config.ngx_lua_version
 
@@ -142,11 +142,9 @@ function _M.new(_)
     return setmetatable({ sock = sock, keepalive = true }, mt)
 end
 
-
 function _M.debug(d)
     DEBUG = (d == true)
 end
-
 
 function _M.set_timeout(self, timeout)
     local sock = self.sock
@@ -156,7 +154,6 @@ function _M.set_timeout(self, timeout)
 
     return sock:settimeout(timeout)
 end
-
 
 function _M.set_timeouts(self, connect_timeout, send_timeout, read_timeout)
     local sock = self.sock
@@ -206,7 +203,6 @@ function _M.tcp_only_connect(self, ...)
     return sock:connect(...)
 end
 
-
 function _M.set_keepalive(self, ...)
     local sock = self.sock
     if not sock then
@@ -228,7 +224,6 @@ function _M.set_keepalive(self, ...)
     end
 end
 
-
 function _M.get_reused_times(self)
     local sock = self.sock
     if not sock then
@@ -238,7 +233,6 @@ function _M.get_reused_times(self)
     return sock:getreusedtimes()
 end
 
-
 function _M.close(self)
     local sock = self.sock
     if not sock then
@@ -247,7 +241,6 @@ function _M.close(self)
 
     return sock:close()
 end
-
 
 local function _should_receive_body(method, code)
     if method == "HEAD" then return nil end
@@ -311,7 +304,6 @@ function _M.parse_uri(_, uri, query_in_path)
     end
 end
 
-
 local function _format_request(self, params)
     local version = params.version
     local headers = params.headers or {}
@@ -349,7 +341,6 @@ local function _format_request(self, params)
                 req[c] = key .. ": " .. tostring(value) .. "\r\n"
                 c = c + 1
             end
-
         else
             req[c] = key .. ": " .. tostring(values) .. "\r\n"
             c = c + 1
@@ -372,13 +363,13 @@ local function _receive_status(sock)
     local version = tonumber(str_sub(line, 6, 8))
     if not version then
         return nil, nil, nil,
-               "couldn't parse HTTP version from response status line: " .. line
+            "couldn't parse HTTP version from response status line: " .. line
     end
 
     local status = tonumber(str_sub(line, 10, 12))
     if not status then
         return nil, nil, nil,
-               "couldn't parse status code from response status line: " .. line
+            "couldn't parse status code from response status line: " .. line
     end
 
     local reason = str_sub(line, 14)
@@ -445,7 +436,6 @@ local function _chunked_body_reader(sock, default_chunk_size)
         repeat
             -- If we still have data on this chunk
             if max_chunk_size and remaining > 0 then
-
                 if remaining > max_chunk_size then
                     -- Consume up to max_chunk_size
                     length = max_chunk_size
@@ -456,7 +446,6 @@ local function _chunked_body_reader(sock, default_chunk_size)
                     remaining = 0
                 end
             else -- This is a fresh chunk
-
                 -- Receive the chunk size
                 local str, err = sock:receive("*l")
                 if not str then
@@ -492,7 +481,6 @@ local function _chunked_body_reader(sock, default_chunk_size)
                 -- Read the last (zero length) chunk's carriage return
                 sock:receive(2) -- read \r\n
             end
-
         until length == 0
     end)
 end
@@ -519,16 +507,13 @@ local function _body_reader(sock, content_length, default_chunk_size)
                     break
                 end
             until not str
-
         elseif not content_length then
             -- We have no length but don't wish to stream.
             -- HTTP 1.0 with no length will close connection, so read to the end.
             co_yield(sock:receive("*a"))
-
         elseif not max_chunk_size then
             -- We have a length and potentially keep-alive, but want everything.
             co_yield(sock:receive(content_length))
-
         else
             -- We have a length and potentially a keep-alive, and wish to stream
             -- the response.
@@ -554,7 +539,6 @@ local function _body_reader(sock, content_length, default_chunk_size)
                         break
                     end
                 end
-
             until length == 0
         end
     end)
@@ -626,7 +610,6 @@ local function _send_body(sock, body)
             elseif err ~= nil then
                 return nil, err, partial
             end
-
         until chunk == nil
     elseif body ~= nil then
         local bytes, err = sock:send(body)
@@ -694,7 +677,6 @@ function _M.send_request(self, params)
             -- drop the Content-Length, to help prevent request smuggling.
             -- https://tools.ietf.org/html/rfc7230#section-3.3.3
             headers["Content-Length"] = nil
-
         elseif not headers["Content-Length"] then
             -- A length was not given, try to calculate one.
 
@@ -702,17 +684,14 @@ function _M.send_request(self, params)
 
             if body_type == "function" then
                 return nil, "Request body is a function but a length or chunked encoding is not specified"
-
             elseif body_type == "table" then
                 local length = 0
                 for _, v in ipairs(body) do
                     length = length + #tostring(v)
                 end
                 headers["Content-Length"] = length
-
             elseif body == nil and EXPECTING_BODY[str_upper(params.method)] then
                 headers["Content-Length"] = 0
-
             elseif body ~= nil then
                 headers["Content-Length"] = #tostring(body)
             end
@@ -767,7 +746,6 @@ function _M.send_request(self, params)
     return true
 end
 
-
 function _M.read_response(self, params)
     local sock = self.sock
 
@@ -802,7 +780,7 @@ function _M.read_response(self, params)
     local ok, connection = pcall(str_lower, res_headers["Connection"])
     if ok then
         if (version == 1.1 and str_find(connection, "close", 1, true)) or
-           (version == 1.0 and not str_find(connection, "keep-alive", 1, true)) then
+            (version == 1.0 and not str_find(connection, "keep-alive", 1, true)) then
             self.keepalive = false
         end
     else
@@ -853,7 +831,6 @@ function _M.read_response(self, params)
     end
 end
 
-
 function _M.request(self, params)
     params = tbl_copy(params) -- Take by value
     local res, err = self:send_request(params)
@@ -863,7 +840,6 @@ function _M.request(self, params)
         return self:read_response(params)
     end
 end
-
 
 function _M.request_pipeline(self, requests)
     requests = tbl_copy(requests) -- Take by value
@@ -907,7 +883,6 @@ function _M.request_pipeline(self, requests)
     end
     return responses
 end
-
 
 function _M.request_uri(self, uri, params)
     params = tbl_copy(params or {}) -- Take by value
@@ -960,18 +935,15 @@ function _M.request_uri(self, uri, params)
         if not ok then
             ngx_log(ngx_ERR, err)
         end
-
     else
         local ok, err = self:set_keepalive(params.keepalive_timeout, params.keepalive_pool)
         if not ok then
             ngx_log(ngx_ERR, err)
         end
-
     end
 
     return res, nil
 end
-
 
 function _M.get_client_body_reader(_, chunksize, sock)
     chunksize = chunksize or 65536
@@ -1005,13 +977,11 @@ function _M.get_client_body_reader(_, chunksize, sock)
     end
 end
 
-
 function _M.set_proxy_options(self, opts)
     -- TODO: parse and cache these options, instead of parsing them
     -- on each request over and over again (lru-cache on module level)
     self.proxy_opts = tbl_copy(opts) -- Take by value
 end
-
 
 function _M.get_proxy_uri(self, scheme, host)
     if not self.proxy_opts then
@@ -1063,7 +1033,6 @@ function _M.get_proxy_uri(self, scheme, host)
     return nil
 end
 
-
 -- ----------------------------------------------------------------------------
 -- The following functions are considered DEPRECATED and may be REMOVED in
 -- future releases. Please see the notes in `README.md`.
@@ -1081,7 +1050,6 @@ function _M.ssl_handshake(self, ...)
 
     return sock:sslhandshake(...)
 end
-
 
 function _M.connect_proxy(self, proxy_uri, scheme, host, port, proxy_authorization)
     ngx_log(ngx_DEBUG, "Use of deprecated function `connect_proxy`")
@@ -1133,7 +1101,6 @@ function _M.connect_proxy(self, proxy_uri, scheme, host, port, proxy_authorizati
     return c, nil
 end
 
-
 function _M.proxy_request(self, chunksize)
     ngx_log(ngx_DEBUG, "Use of deprecated function `proxy_request`")
 
@@ -1144,7 +1111,6 @@ function _M.proxy_request(self, chunksize)
         headers = ngx_req_get_headers(),
     })
 end
-
 
 function _M.proxy_response(_, response, chunksize)
     ngx_log(ngx_DEBUG, "Use of deprecated function `proxy_response`")
@@ -1185,6 +1151,5 @@ function _M.proxy_response(_, response, chunksize)
         end
     until not chunk
 end
-
 
 return _M

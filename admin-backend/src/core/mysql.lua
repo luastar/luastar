@@ -89,7 +89,7 @@ function _M:query(sql, nrows)
     return nil, "failed to get mysql connect."
   end
   -- 执行 SQL 语句
-  logger.info("execute sql: ", sql)
+  logger.debug("execute sql: ", sql)
   local res, err, errcode, sqlstate = connect:query(sql, nrows)
   self:close(connect)
   return res, err, errcode, sqlstate
@@ -103,7 +103,7 @@ function _M:multi_query(sql)
   end
   -- 执行 SQL 语句
   local result = {}
-  logger.info("execute sql: ", sql)
+  logger.debug("execute sql: ", sql)
   local res, err, errcode, sqlstate = connect:query(sql)
   table.insert(result, { res = res, err = err, errcode = errcode, sqlstate = sqlstate })
   if not res then

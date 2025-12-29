@@ -20,7 +20,7 @@ handler1 = function(premature)
     end
   end
   -- 定时同步 mysql 数据到 dict
-  logger.info("[init_worker]开始同步数据到字典...")
+  logger.debug("[init_worker]开始同步数据到字典...")
   local data_sync = require "core.data_sync"
   data_sync.sync_db_to_dict()
 end
@@ -30,7 +30,7 @@ handler2 = function(premature)
     return
   end
   -- 定时同步 dict 数据到 mysql
-  logger.info("[init_worker]开始同步数据到数据库...")
+  logger.debug("[init_worker]开始同步数据到数据库...")
   local data_sync = require "core.data_sync"
   data_sync.sync_dict_to_db()
 end

@@ -10,7 +10,7 @@ local error_util = require "utils.error_util"
 local _M = {}
 
 function _M.handle_before()
-  logger.info("执行拦截器 handle_before 方法")
+  -- logger.info("执行拦截器 handle_before 方法")
   local access_token = ngx.ctx.request:get_header("Authorization")
   if _.isEmpty(access_token) then
     ngx.ctx.response:writeln(res_util.invalid_access_token("token无效！"))
@@ -56,7 +56,7 @@ function _M.handle_before()
 end
 
 function _M.handle_after()
-  logger.info("执行拦截器 handle_after 方法")
+  -- logger.info("执行拦截器 handle_after 方法")
 end
 
 return _M

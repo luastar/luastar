@@ -45,7 +45,7 @@ function _M.record_access()
   end
 
   -- 记录状态码
-  local status_code = ngx.ctx.exit_status or ngx.status
+  local status_code = ngx.status
   if status_code >= 200 and status_code < 300 then
     dict:incr(_M.KEYS.KEY_STATUS_2XX .. timestamp, 1, 0)
   elseif status_code >= 300 and status_code < 400 then

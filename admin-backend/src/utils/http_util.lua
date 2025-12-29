@@ -190,7 +190,7 @@ function _M.request_sse(options)
   options = _.defaults(options, {
     method = "GET",
     headers = {},
-    callback = logger.info,
+    callback = nil,
     connect_timeout = 6000,
     send_timeout = 600000,
     read_timeout = 600000,
@@ -257,7 +257,10 @@ function _M.request_sse(options)
       break
     end
     if buffer then
-      options["callback"](buffer)
+      logger.debug(buffer)
+      if _.isFunction(options["callback"]) then
+        pcall(options["callback"], buffer)
+      end
     end
   until not buffer
   -- 关闭连接

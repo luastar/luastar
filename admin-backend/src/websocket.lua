@@ -8,7 +8,7 @@ local wb, err = server:new {
 }
 if not wb then
   logger.error("failed to new websocket: ", err)
-  return ngx.exit(444) -- 关闭连接
+  return ngx.exit(ngx.HTTP_CLOSE) -- 关闭连接
 end
 
 -- 主消息循环
