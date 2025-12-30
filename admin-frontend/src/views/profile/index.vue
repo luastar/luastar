@@ -23,7 +23,7 @@
                 <Edit />
               </el-icon>
             </div>
-            <div class="user-role">{{ userProfile.roleNames }}</div>
+            <div class="user-role">{{ userProfile.roles }}</div>
           </div>
           <el-divider />
           <div class="user-stats">

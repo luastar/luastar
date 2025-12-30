@@ -304,7 +304,6 @@ const vtypeOptions: OptionType[] = [
 // 查询
 async function handleQuery() {
   loading.value = true;
-  queryParams.pageNum = 1;
   ConfigAPI.getPage(queryParams)
     .then((data) => {
       pageData.value = data.list;

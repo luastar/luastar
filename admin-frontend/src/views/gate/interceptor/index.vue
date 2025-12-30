@@ -300,7 +300,6 @@ const moduleFuncOptions = ref<CodeName[]>([]);
 // 查询
 async function handleQuery() {
   loading.value = true;
-  queryParams.pageNum = 1;
   InterceptorAPI.getPage(queryParams)
     .then((data) => {
       pageData.value = data.list;

@@ -242,7 +242,6 @@ const roleOptions: OptionType[] = [
 // 查询
 async function handleQuery() {
   loading.value = true;
-  queryParams.pageNum = 1;
   UserAPI.getPage(queryParams)
     .then((data) => {
       pageData.value = data.list;

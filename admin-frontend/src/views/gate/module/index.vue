@@ -252,7 +252,10 @@ const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "80%
 
 const formData = reactive<ModuleForm>({
   level: "user",
+  type: "",
   code: "",
+  name: "",
+  desc: "",
   content: "",
   state: "enable",
 });
@@ -273,7 +276,6 @@ const typeOptions = ref<OptionType[]>();
 async function handleQuery() {
   loading.value = true;
   handleQueryOptions();
-  queryParams.pageNum = 1;
   ModuleAPI.getPage(queryParams)
     .then((data) => {
       pageData.value = data.list;
@@ -321,8 +323,6 @@ async function handleOpenDialog(id?: string) {
     dialog.title = "新增代码";
     // 设置默认值
     formData.level = "user";
-    formData.method = "*";
-    formData.mode = "p";
     formData.state = "enable";
     ModuleAPI.getMaxRank()
       .then((maxRank) => {

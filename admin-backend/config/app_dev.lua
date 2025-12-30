@@ -22,6 +22,7 @@ local redis_config = {
   pool_size = 100
 }
 
+-- JWT 配置
 local jwt_config = {
   secret = "LuastarAdminTokenSecret",
   access_expire = 3600 * 2,

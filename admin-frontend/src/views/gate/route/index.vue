@@ -323,7 +323,6 @@ const moduleFuncOptions = ref<CodeName[]>([]);
 async function handleQuery() {
   loading.value = true;
   initOptions();
-  queryParams.pageNum = 1;
   RouteAPI.getPage(queryParams)
     .then((data) => {
       pageData.value = data.list;
