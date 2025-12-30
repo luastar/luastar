@@ -1,0 +1,200 @@
+user zhuminghua staff;
+worker_processes 4;
+
+pid logs/nginx.pid;
+
+worker_rlimit_nofile 10240;
+
+events {
+  #use epoll;
+  worker_connections 10240;
+}
+
+# 环境变量
+env LUASTAR_PATH;
+env LUASTAR_CONFIG_FILE;
+
+http {
+  include       mime.types;
+  default_type application/octet-stream;
+  charset utf-8;
+
+  log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+  '$status $body_bytes_sent "$http_referer" '
+  '"$http_user_agent" "$http_x_forwarded_for" '
+  'cost "$request_time"s "$upstream_response_time"s ';
+
+  # 日志配置
+  access_log 'logs/access.log' main;
+  error_log 'logs/error.log' info;
+
+  sendfile on;
+  tcp_nopush on;
+  tcp_nodelay on;
+
+  keepalive_timeout 65;
+  server_names_hash_bucket_size 128;
+  ignore_invalid_headers on;
+  underscores_in_headers on;
+  client_header_buffer_size 16k;
+  large_client_header_buffers 4 32k;
+  # 域名解析
+  resolver 114.114.114.114 8.8.8.8 valid=3600s; 
+  client_max_body_size 100m;
+  client_body_buffer_size 100m;
+
+  # 反向代理配置
+  proxy_connect_timeout 600;
+  proxy_read_timeout 600;
+  proxy_send_timeout 600;
+  proxy_buffer_size 16k;
+  proxy_buffers 4 64k;
+  proxy_busy_buffers_size 128k;
+  proxy_temp_file_write_size 128k;
+  proxy_next_upstream error http_502;
+
+  # gzip 配置
+  gzip on;
+  gzip_http_version 1.1;
+  gzip_min_length 1k;
+  gzip_buffers 4 8k;
+  gzip_comp_level 6;
+  gzip_vary off;
+  gzip_types application/json text/plain application/x-javascript text/css application/xml;
+
+  # Luastar 缓存
+  lua_shared_dict dict_ls_routes 128m;
+  lua_shared_dict dict_ls_interceptors 64m;
+  lua_shared_dict dict_ls_modules 256m;
+  lua_shared_dict dict_ls_configs 64m;
+  lua_shared_dict dict_ls_traffic 64m;
+  lua_shared_dict dict_ls_stats 64m;
+  lua_shared_dict dict_ls_tokens 64m;
+
+  # 设置 Lua 包路径(';;'为默认路径)
+  lua_package_path '${LUASTAR_PATH}/admin-backend/src/?.lua;${LUASTAR_PATH}/admin-backend/lib/?.lua;;';
+  # 代码缓存
+  lua_code_cache off;
+  # 中断回调
+  lua_check_client_abort on;
+  
+  # 初始化
+  init_by_lua_file '${LUASTAR_PATH}/admin-backend/src/init_by_lua.lua';
+  init_worker_by_lua_file '${LUASTAR_PATH}/admin-backend/src/init_worker_by_lua.lua';
+
+  # 代理服务
+  upstream backend {
+    server 0.0.0.1;
+    balancer_by_lua_file '${LUASTAR_PATH}/admin-backend/src/balancer_by_lua.lua';
+    keepalive 20;
+  }
+
+  # Luastar 网关，对外服务
+  server {
+    listen 80;
+    server_name localhost;
+
+    # 禁用管理接口
+    location ^~/api/admin/ {
+      default_type 'text/plain';
+      content_by_lua_block {
+        ngx.status = ngx.HTTP_FORBIDDEN
+        ngx.say('Access Forbidden! ')
+        ngx.exit(ngx.HTTP_OK)
+      }
+    }
+
+    # 代理转发
+    location ^~/proxy/ {
+      proxy_pass http://backend/;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # websocket
+    location ^~/ws/ {
+      # 允许升级协议
+      proxy_http_version 1.1;
+      proxy_set_header Connection "upgrade";
+      proxy_set_header Upgrade $http_upgrade;
+      # 允许跨域
+      add_header Access-Control-Allow-Origin *;
+      add_header Access-Control-Allow-Methods "GET, POST, OPTIONS";
+      add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept";
+      # 执行 Lua 脚本
+      content_by_lua_file ${LUASTAR_PATH}/admin-backend/src/websocket.lua;
+    }
+
+    # 网关入口
+    location / {
+      default_type 'text/plain';
+      access_by_lua_file '${LUASTAR_PATH}/admin-backend/src/access_by_lua.lua';
+      content_by_lua_file '${LUASTAR_PATH}/admin-backend/src/content_by_lua.lua';
+      log_by_lua_file '${LUASTAR_PATH}/admin-backend/src/log_by_lua.lua';
+    }
+
+  }
+
+  ## Luastar 管理后台，内部服务，不可对外暴露
+  server {
+    listen 8002;
+    server_name localhost;
+
+    # 后端路由
+    location ^~/api/admin/ {
+      default_type 'text/plain';
+      access_by_lua_file '${LUASTAR_PATH}/admin-backend/src/access_by_lua.lua';
+      content_by_lua_file '${LUASTAR_PATH}/admin-backend/src/content_by_lua.lua';
+      log_by_lua_file '${LUASTAR_PATH}/admin-backend/src/log_by_lua.lua';
+    }
+
+    # 前端路由
+    location / {
+      root '${LUASTAR_PATH}/admin-frontend/dist';
+      index index.html index.htm;
+    }
+  }
+
+  # 模拟后端服务
+  server {
+    listen 9001;
+    location = /fake {
+      default_type 'text/plain';
+      content_by_lua_block {
+        ngx.say("method: ".. ngx.var.request_method)
+        ngx.say('this is the fake backend peer at 9001 ...')
+      }
+    }
+  }
+
+  # 模拟后端服务
+  server {
+    listen 9002;
+    location = /fake {
+      default_type 'text/plain';
+      content_by_lua_block {
+        ngx.say("method: ".. ngx.var.request_method)
+        ngx.say('this is the fake backend peer at 9002 ...')
+      }
+    }
+  }
+
+  server {
+    listen 9003;
+    location / {
+      proxy_pass https://api.dify.ai;
+      proxy_set_header Host api.dify.ai;
+
+      proxy_connect_timeout 60s;
+      proxy_send_timeout 60s;
+      proxy_read_timeout 300s;
+
+      proxy_ssl_server_name on;
+      proxy_ssl_verify off;
+      proxy_ssl_protocols TLSv1.2 TLSv1.3;
+    }
+  }
+
+}

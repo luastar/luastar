@@ -1,0 +1,34 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.stylelint": "explicit"
+  },
+  "editor.tabSize": 2,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[lua]": {
+    "editor.defaultFormatter": "sumneko.lua"
+  },
+  "Lua.diagnostics.disable": [
+    "need-check-nil",
+    "cast-local-type",
+    "undefined-field"
+  ],
+  "Lua.format.defaultConfig": {
+    "indent_style": "space",
+    "indent_size": "2",
+    "quote_style": "double",
+    "max_line_length": "180",
+    "end_statement_with_semicolon": "never"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "css.lint.propertyIgnoredDueToDisplay": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "iconify.excludes": ["el"]
+}
